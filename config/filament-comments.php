@@ -11,7 +11,7 @@ return [
     /*
      * The table name to use for the comments.
      */
-    'table_name' => 'filament_comments',
+    'table_name' => 'comments',
 
     /*
      * The user model that should be used when associating comments with

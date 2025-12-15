@@ -10,5 +10,6 @@ class TestPost extends Model
     use HasComments;
 
     protected $table = 'posts';
+
     protected $guarded = [];
 }

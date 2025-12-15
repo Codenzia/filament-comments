@@ -4,6 +4,7 @@ namespace Codenzia\FilamentComments\Tests;
 
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
+use Codenzia\FilamentComments\FilamentCommentsServiceProvider;
 use Filament\Actions\ActionsServiceProvider;
 use Filament\FilamentServiceProvider;
 use Filament\Forms\FormsServiceProvider;
@@ -16,7 +17,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
-use Codenzia\FilamentComments\FilamentCommentsServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -52,7 +52,7 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
-        $migration = include __DIR__.'/../database/migrations/create_filament_comments_table.php';
+        $migration = include __DIR__ . '/../database/migrations/create_filament_comments_table.php.stub';
         $migration->up();
     }
 }

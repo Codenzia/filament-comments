@@ -2,6 +2,8 @@
 
 namespace Codenzia\FilamentComments;
 
+use Codenzia\FilamentComments\Commands\FilamentCommentsCommand;
+use Codenzia\FilamentComments\Testing\TestsFilamentComments;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
@@ -13,8 +15,6 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Codenzia\FilamentComments\Commands\FilamentCommentsCommand;
-use Codenzia\FilamentComments\Testing\TestsFilamentComments;
 
 use Livewire\Livewire;
 use Codenzia\FilamentComments\Livewire\CommentsComponent;

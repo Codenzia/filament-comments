@@ -10,12 +10,14 @@ return new class extends Migration
     {
         $tableName = config('codenzia-comments.table_name', 'comments');
 
-        Schema::create($tableName, function (Blueprint $table) {
+        Schema::create($tableName, function (Blueprint $table) use ($tableName) {
             $table->id();
             $table->morphs('commentable');
             $table->text('comment');
             $table->boolean('is_approved')->default(false);
             $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->foreign('parent_id')->references('id')->on($tableName)->onDelete('cascade');
             $table->timestamps();
         });
     }

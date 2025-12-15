@@ -84,7 +84,11 @@ class CommentsComponent extends Component implements HasForms
     public function render(): View
     {
         return view('codenzia-comments::livewire.comments', [
-            'comments' => $this->record->comments()->with(['commentator'])->latest()->get(),
+            'comments' => $this->record->comments()
+                ->whereNull('parent_id')
+                ->with(['commentator', 'replies.commentator'])
+                ->latest()
+                ->get(),
         ]);
     }
 }

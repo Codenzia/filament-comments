@@ -153,7 +153,8 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-            'create_filament_comments_table',
+            'create_codenzia_comments_table',
+            'create_codenzia_comments_reactions_table'
         ];
     }
 }

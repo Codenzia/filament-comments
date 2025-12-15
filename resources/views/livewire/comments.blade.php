@@ -6,7 +6,7 @@
             wire:click="create"
             color="primary"
         >
-            {{ __('filament-comments::filament-comments.comments.add') }}
+            {{ __('codenzia-comments::codenzia-comments.comments.add') }}
         </x-filament::button>
     </div>
 
@@ -27,7 +27,7 @@
             />
 
             <div class="text-sm text-gray-400 dark:text-gray-500">
-                {{ __('filament-comments::filament-comments.comments.empty') }}
+                {{ __('codenzia-comments::codenzia-comments.comments.empty') }}
             </div>
         </div>
     @endif

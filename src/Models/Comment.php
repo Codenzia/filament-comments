@@ -16,6 +16,7 @@ class Comment extends Model
         'comment',
         'user_id',
         'is_approved',
+        'parent_id',
     ];
 
     protected $casts = [
@@ -59,6 +60,21 @@ class Comment extends Model
     public function commentator()
     {
         return $this->belongsTo($this->getAuthModelName(), 'user_id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function replies()
+    {
+        return $this->hasMany(self::class, 'parent_id')->with(['commentator', 'replies']);
+    }
+
+    public function isReply()
+    {
+        return ! is_null($this->parent_id);
     }
 
     public function approve()

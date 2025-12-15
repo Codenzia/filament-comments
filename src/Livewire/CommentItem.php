@@ -17,7 +17,9 @@ class CommentItem extends Component implements HasForms
     use InteractsWithForms;
 
     public Comment $comment;
+
     public bool $showReplyForm = false;
+
     public ?array $replyData = [];
 
     protected $listeners = ['reactionUpdated' => '$refresh', 'commentDeleted' => '$refresh'];

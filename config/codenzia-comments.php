@@ -14,6 +14,11 @@ return [
     'table_name' => 'comments',
 
     /*
+     * The table name to use for the comment reactions.
+     */
+    'reactions_table_name' => 'comments_reactions',
+
+    /*
      * The user model that should be used when associating comments with
      * commentators. If null, the default user provider from your
      * Laravel authentication configuration will be used.
@@ -28,5 +33,18 @@ return [
     'editor' => [
         'placeholder' => 'Type your comment here...',
         'height' => 200,
+    ],
+
+    /**
+     * Available reaction types with their emoji icons
+     * You can customize the reaction types and emojis here
+     */
+    'reactions' => [
+        'like' => '👍',
+        'love' => '❤️',
+        'laugh' => '😄',
+        'wow' => '😮',
+        'sad' => '😢',
+        'angry' => '😠',
     ],
 ];

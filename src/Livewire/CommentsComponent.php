@@ -20,7 +20,7 @@ class CommentsComponent extends Component implements HasForms
 
     public Model $record;
 
-    protected $listeners = ['commentDeleted' => '$refresh'];
+    protected $listeners = ['commentDeleted' => '$refresh', 'reactionUpdated' => '$refresh'];
 
     public function mount(): void
     {
@@ -86,7 +86,7 @@ class CommentsComponent extends Component implements HasForms
         return view('codenzia-comments::livewire.comments', [
             'comments' => $this->record->comments()
                 ->whereNull('parent_id')
-                ->with(['commentator', 'replies.commentator'])
+                ->with(['commentator', 'replies.commentator', 'reactions', 'replies.reactions'])
                 ->latest()
                 ->get(),
         ]);

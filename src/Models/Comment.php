@@ -77,6 +77,27 @@ class Comment extends Model
         return ! is_null($this->parent_id);
     }
 
+    public function reactions()
+    {
+        return $this->hasMany(CommentReaction::class);
+    }
+
+    public function userReaction($userId = null)
+    {
+        $userId = $userId ?? auth()->id();
+        return $this->reactions()->where('user_id', $userId)->first();
+    }
+
+    public function getReactionsSummary()
+    {
+        return $this->reactions()
+            ->selectRaw('reaction_type, count(*) as count')
+            ->groupBy('reaction_type')
+            ->get()
+            ->pluck('count', 'reaction_type')
+            ->toArray();
+    }
+
     public function approve()
     {
         $this->update([

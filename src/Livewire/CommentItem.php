@@ -3,6 +3,7 @@
 namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
+use Codenzia\FilamentComments\Models\CommentReaction;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -19,9 +20,13 @@ class CommentItem extends Component implements HasForms
     public bool $showReplyForm = false;
     public ?array $replyData = [];
 
+    protected $listeners = ['reactionUpdated' => '$refresh', 'commentDeleted' => '$refresh'];
+
     public function mount(): void
     {
         $this->replyForm->fill();
+        // Ensure reactions are loaded
+        $this->comment->load('reactions');
     }
 
     public function replyForm(Schema $schema): Schema
@@ -69,6 +74,31 @@ class CommentItem extends Component implements HasForms
         $this->showReplyForm = false;
         $this->replyForm->fill();
         $this->dispatch('commentDeleted'); // Refresh parent
+    }
+
+    public function toggleReaction(string $reactionType): void
+    {
+        $userReaction = $this->comment->userReaction();
+
+        if ($userReaction) {
+            // If same reaction, remove it
+            if ($userReaction->reaction_type === $reactionType) {
+                $userReaction->delete();
+            } else {
+                // Change to new reaction
+                $userReaction->update(['reaction_type' => $reactionType]);
+            }
+        } else {
+            // Add new reaction
+            $this->comment->reactions()->create([
+                'user_id' => auth()->id(),
+                'reaction_type' => $reactionType,
+            ]);
+        }
+
+        // Refresh the comment to get updated reactions
+        $this->comment->refresh();
+        $this->dispatch('reactionUpdated');
     }
 
     public function delete(): void

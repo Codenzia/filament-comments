@@ -19,5 +19,12 @@ return [
 
     'modal.heading' => 'التعليقات',
 
-    'comments.delete.tooltip' => 'حذف التعليق'
+    'comments.delete.tooltip' => 'حذف التعليق',
+
+    'reactions.like' => 'إعجاب',
+    'reactions.love' => 'حب',
+    'reactions.laugh' => 'ضحك',
+    'reactions.wow' => 'واو',
+    'reactions.sad' => 'حزين',
+    'reactions.angry' => 'غضب',
 ];

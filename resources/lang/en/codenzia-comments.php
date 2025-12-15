@@ -19,5 +19,12 @@ return [
 
     'modal.heading' => 'Comments',
 
-    'comments.delete.tooltip' => 'Delete comment'
+    'comments.delete.tooltip' => 'Delete comment',
+
+    'reactions.like' => 'Like',
+    'reactions.love' => 'Love',
+    'reactions.laugh' => 'Laugh',
+    'reactions.wow' => 'Wow',
+    'reactions.sad' => 'Sad',
+    'reactions.angry' => 'Angry',
 ];

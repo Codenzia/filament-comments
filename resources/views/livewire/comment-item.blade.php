@@ -40,6 +40,32 @@
             {!! $comment->comment !!}
         </div>
 
+        {{-- Reactions --}}
+        @php
+            $reactions = $comment->getReactionsSummary();
+            $userReaction = $comment->userReaction();
+            $reactionTypes = config('codenzia-comments.reactions', []);
+        @endphp
+
+        <div class="flex items-center gap-2 flex-wrap">
+            @foreach ($reactionTypes as $type => $emoji)
+                @php
+                    $count = $reactions[$type] ?? 0;
+                    $isActive = $userReaction && $userReaction->reaction_type === $type;
+                @endphp
+                <button
+                    wire:click="toggleReaction('{{ $type }}')"
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors {{ $isActive ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ring-1 ring-primary-500' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700' }}"
+                    title="{{ __('codenzia-comments::codenzia-comments.reactions.' . $type) }}"
+                >
+                    <span class="text-sm">{{ $emoji }}</span>
+                    @if ($count > 0)
+                        <span class="font-medium">{{ $count }}</span>
+                    @endif
+                </button>
+            @endforeach
+        </div>
+
         {{-- Reply Button --}}
         <div class="flex items-center gap-3">
             <button

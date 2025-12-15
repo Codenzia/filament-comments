@@ -15,7 +15,7 @@ trait HasComments
      */
     public function comments()
     {
-        return $this->morphMany(config('filament-comments.comment_class'), 'commentable');
+        return $this->morphMany(config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class, 'commentable');
     }
 
     /**
@@ -35,7 +35,7 @@ trait HasComments
      */
     public function commentAsUser(?Model $user, string $comment)
     {
-        $commentClass = config('filament-comments.comment_class');
+        $commentClass = config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class;
 
         $comment = new $commentClass([
             'comment' => $comment,

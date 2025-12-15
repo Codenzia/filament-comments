@@ -24,7 +24,7 @@ class Comment extends Model
 
     public function getTable()
     {
-        return config('filament-comments.table_name', 'filament_comments');
+        return config('codenzia-comments.table_name', 'comments');
     }
 
     public static function boot(): void

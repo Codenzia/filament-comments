@@ -16,11 +16,15 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Codenzia\FilamentComments\Commands\FilamentCommentsCommand;
 use Codenzia\FilamentComments\Testing\TestsFilamentComments;
 
+use Livewire\Livewire;
+use Codenzia\FilamentComments\Livewire\CommentsComponent;
+use Codenzia\FilamentComments\Livewire\CommentItem;
+
 class FilamentCommentsServiceProvider extends PackageServiceProvider
 {
-    public static string $name = 'filament-comments';
+    public static string $name = 'codenzia-comments';
 
-    public static string $viewNamespace = 'filament-comments';
+    public static string $viewNamespace = 'codenzia-comments';
 
     public function configurePackage(Package $package): void
     {
@@ -36,7 +40,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
                     ->publishConfigFile()
                     ->publishMigrations()
                     ->askToRunMigrations()
-                    ->askToStarRepoOnGitHub('codenzia/filament-comments');
+                    ->askToStarRepoOnGitHub('codenzia/codenzia-comments');
             });
 
         $configFileName = $package->shortName();
@@ -62,6 +66,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+         Livewire::component('comments', CommentsComponent::class);
         // Asset Registration
         FilamentAsset::register(
             $this->getAssets(),
@@ -80,10 +85,14 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
         if (app()->runningInConsole()) {
             foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
                 $this->publishes([
-                    $file->getRealPath() => base_path("stubs/filament-comments/{$file->getFilename()}"),
-                ], 'filament-comments-stubs');
+                    $file->getRealPath() => base_path("stubs/codenzia-comments/{$file->getFilename()}"),
+                ], 'codenzia-comments-stubs');
             }
         }
+
+        // Livewire Component Registration
+        Livewire::component('codenzia-comments::comments', CommentsComponent::class);
+        Livewire::component('codenzia-comments::comment-item', CommentItem::class);
 
         // Testing
         Testable::mixin(new TestsFilamentComments);
@@ -91,7 +100,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
 
     protected function getAssetPackageName(): ?string
     {
-        return 'codenzia/filament-comments';
+        return 'codenzia/codenzia-comments';
     }
 
     /**
@@ -100,9 +109,9 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // AlpineComponent::make('filament-comments', __DIR__ . '/../resources/dist/components/filament-comments.js'),
-            Css::make('filament-comments-styles', __DIR__ . '/../resources/dist/filament-comments.css'),
-            Js::make('filament-comments-scripts', __DIR__ . '/../resources/dist/filament-comments.js'),
+            // AlpineComponent::make('codenzia-comments', __DIR__ . '/../resources/dist/components/codenzia-comments.js'),
+            Css::make('codenzia-comments-styles', __DIR__ . '/../resources/dist/codenzia-comments.css'),
+            Js::make('codenzia-comments-scripts', __DIR__ . '/../resources/dist/codenzia-comments.js'),
         ];
     }
 

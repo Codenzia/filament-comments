@@ -85,6 +85,7 @@ class Comment extends Model
     public function userReaction($userId = null)
     {
         $userId = $userId ?? auth()->id();
+
         return $this->reactions()->where('user_id', $userId)->first();
     }
 

@@ -16,7 +16,9 @@ class CommentItem extends Component implements HasForms
     use InteractsWithForms;
 
     public Comment $comment;
+
     public bool $showReplyForm = false;
+
     public ?array $replyData = [];
 
     public function mount(): void

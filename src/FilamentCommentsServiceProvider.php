@@ -66,7 +66,6 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-         Livewire::component('comments', CommentsComponent::class);
         // Asset Registration
         FilamentAsset::register(
             $this->getAssets(),
@@ -109,7 +108,6 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // AlpineComponent::make('codenzia-comments', __DIR__ . '/../resources/dist/components/codenzia-comments.js'),
             Css::make('codenzia-comments-styles', __DIR__ . '/../resources/dist/codenzia-comments.css'),
             Js::make('codenzia-comments-scripts', __DIR__ . '/../resources/dist/codenzia-comments.js'),
         ];

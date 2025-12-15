@@ -3,8 +3,8 @@
 use Codenzia\FilamentComments\Tests\Fixtures\TestPost;
 use Codenzia\FilamentComments\Tests\Fixtures\TestUser;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Schema;
 
 it('can render comments component', function () {
     Schema::create('posts', function (Blueprint $table) {

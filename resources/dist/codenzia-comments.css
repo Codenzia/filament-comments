@@ -1,0 +1,4 @@
+.tribute-container ul { background: #1f2937 !important; } /* Dark gray for better visibility */
+.tribute-container li.highlight, .tribute-container li:hover { background: #374151 !important; }
+.tribute-container li { padding: 8px 15px; color: white; }
+.tribute-container { z-index: 10000 !important; } /* Keep existing Z-index fix */

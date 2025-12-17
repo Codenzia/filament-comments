@@ -1,1 +1,30 @@
-@import '../../vendor/filament/filament/resources/css/theme.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tribute.js mentions styling */
+.filament-comments-tribute.tribute-container {
+    @apply absolute z-50 max-h-60 overflow-auto rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800;
+}
+
+.filament-comments-tribute .tribute-item {
+    @apply cursor-pointer px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700;
+}
+
+.filament-comments-tribute .tribute-highlight {
+    @apply bg-primary-100 text-primary-900 dark:bg-primary-900/30 dark:text-primary-300;
+}
+
+.filament-comments-tribute .tribute-item:first-child {
+    @apply rounded-t-lg;
+}
+
+.filament-comments-tribute .tribute-item:last-child {
+    @apply rounded-b-lg;
+}
+
+/* Style for rendered mentions in comments */
+.prose .mention {
+    @apply rounded bg-primary-100 px-1 font-medium text-primary-700 no-underline dark:bg-primary-900/30 dark:text-primary-300;
+}
+

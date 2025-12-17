@@ -3,9 +3,11 @@
 namespace Codenzia\FilamentComments;
 
 use Codenzia\FilamentComments\Commands\FilamentCommentsCommand;
+use Codenzia\FilamentComments\Forms\Components\TributeTextarea;
 use Codenzia\FilamentComments\Livewire\CommentItem;
 use Codenzia\FilamentComments\Livewire\CommentsComponent;
 use Codenzia\FilamentComments\Testing\TestsFilamentComments;
+use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
@@ -86,11 +88,9 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
                 ], 'codenzia-comments-stubs');
             }
         }
-
         // Livewire Component Registration
         Livewire::component('codenzia-comments::comments', CommentsComponent::class);
         Livewire::component('codenzia-comments::comment-item', CommentItem::class);
-
         // Testing
         Testable::mixin(new TestsFilamentComments);
     }
@@ -106,8 +106,14 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
+            // Tribute.js from CDN
+            Css::make('tributejs-styles', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.3.2/tribute.min.css'),
+            Js::make('tributejs-scripts', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.3.2/tribute.min.js'),
+            
+            // Package assets
             Css::make('codenzia-comments-styles', __DIR__ . '/../resources/dist/codenzia-comments.css'),
             Js::make('codenzia-comments-scripts', __DIR__ . '/../resources/dist/codenzia-comments.js'),
+            AlpineComponent::make('tribute-textarea', __DIR__ . '/../resources/dist/components/tribute-textarea.js'),
         ];
     }
 

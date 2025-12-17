@@ -20,13 +20,20 @@ class CommentItem extends Component implements HasForms
 
     public bool $showReplyForm = false;
 
+    public bool $showEditForm = false;
+
     public ?array $replyData = [];
+
+    public ?array $editData = [];
 
     protected $listeners = ['reactionUpdated' => '$refresh', 'commentDeleted' => '$refresh'];
 
     public function mount(): void
     {
         $this->replyForm->fill();
+        $this->editForm->fill([
+            'comment' => $this->comment->comment,
+        ]);
         // Ensure reactions are loaded
         $this->comment->load('reactions');
     }
@@ -39,7 +46,10 @@ class CommentItem extends Component implements HasForms
                     ->hiddenLabel()
                     ->required()
                     ->placeholder(__('codenzia-comments::codenzia-comments.comments.reply_placeholder'))
-                    ->extraInputAttributes(['style' => 'min-height: 4rem'])
+                    ->extraInputAttributes([
+                        'style' => 'min-height: 4rem',
+                        'data-tribute-enabled' => 'true',
+                    ])
                     ->toolbarButtons([
                         'bold',
                         'italic',
@@ -52,9 +62,66 @@ class CommentItem extends Component implements HasForms
             ->statePath('replyData');
     }
 
+    public function editForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                RichEditor::make('comment')
+                    ->hiddenLabel()
+                    ->required()
+                    ->placeholder(__('codenzia-comments::codenzia-comments.comments.edit_placeholder'))
+                    ->extraInputAttributes([
+                        'style' => 'min-height: 4rem',
+                        'data-tribute-enabled' => 'true',
+                    ])
+                    ->toolbarButtons([
+                        'bold',
+                        'italic',
+                        'underline',
+                        'strike',
+                        'bulletList',
+                        'codeBlock',
+                    ]),
+            ])
+            ->statePath('editData');
+    }
+
     public function toggleReplyForm(): void
     {
         $this->showReplyForm = ! $this->showReplyForm;
+    }
+
+    public function toggleEditForm(): void
+    {
+        $this->showEditForm = ! $this->showEditForm;
+        if ($this->showEditForm) {
+            $this->editForm->fill([
+                'comment' => $this->comment->comment,
+            ]);
+        }
+    }
+
+    public function edit(): void
+    {
+        $this->toggleEditForm();
+    }
+
+    public function updateComment(): void
+    {
+        $data = $this->editForm->getState();
+
+        $this->comment->update([
+            'comment' => $data['comment'],
+        ]);
+
+        Notification::make()
+            ->title(__('codenzia-comments::codenzia-comments.notifications.comment_updated'))
+            ->success()
+            ->send();
+
+        $this->showEditForm = false;
+        $this->comment->refresh();
+        $this->dispatch('commentDeleted'); // Refresh parent
     }
 
     public function reply(): void

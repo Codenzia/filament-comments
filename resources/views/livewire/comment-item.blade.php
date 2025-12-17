@@ -1,4 +1,4 @@
-<div class="flex gap-3">
+<div class="flex gap-3 group">
     <div class="flex-shrink-0">
         @if ($comment->commentator->avatar_url ?? null)
             <img src="{{ $comment->commentator->avatar_url }}" alt="{{ $comment->commentator->name }}" class="h-10 w-10 rounded-full">
@@ -23,22 +23,59 @@
             </div>
 
             @if (auth()->id() === $comment->user_id)
-                <button
-                    wire:click="delete"
-                    wire:confirm="{{ __('codenzia-comments::codenzia-comments.comments.delete_confirm') }}"
-                    class="text-xs text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400"
-                >
-                    <x-filament::icon
-                        icon="heroicon-o-trash"
-                        class="h-4 w-4"
-                    />
-                </button>
+                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        wire:click="edit"
+                        class="text-xs text-gray-400 hover:text-blue-600 dark:text-gray-500 dark:hover:text-blue-400"
+                        title="{{ __('codenzia-comments::codenzia-comments.comments.edit') }}"
+                    >
+                        <x-filament::icon
+                            icon="heroicon-o-pencil"
+                            class="h-4 w-4"
+                        />
+                    </button>
+                    <button
+                        wire:click="delete"
+                        wire:confirm="{{ __('codenzia-comments::codenzia-comments.comments.delete_confirm') }}"
+                        class="text-xs text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400"
+                        title="{{ __('codenzia-comments::codenzia-comments.comments.delete') }}"
+                    >
+                        <x-filament::icon
+                            icon="heroicon-o-trash"
+                            class="h-4 w-4"
+                        />
+                    </button>
+                </div>
             @endif
         </div>
 
-        <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
-            {!! $comment->comment !!}
-        </div>
+        @if ($showEditForm)
+            {{-- Edit Form --}}
+            <div class="space-y-2">
+                {{ $this->editForm }}
+                <div class="flex gap-2">
+                    <x-filament::button
+                        wire:click="updateComment"
+                        size="sm"
+                        color="primary"
+                    >
+                        {{ __('codenzia-comments::codenzia-comments.comments.save') }}
+                    </x-filament::button>
+                    <x-filament::button
+                        wire:click="toggleEditForm"
+                        size="sm"
+                        color="gray"
+                        outlined
+                    >
+                        {{ __('codenzia-comments::codenzia-comments.comments.cancel') }}
+                    </x-filament::button>
+                </div>
+            </div>
+        @else
+            <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
+                {!! $comment->comment !!}
+            </div>
+        @endif
 
         {{-- Reactions --}}
         @php

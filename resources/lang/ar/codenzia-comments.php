@@ -11,10 +11,15 @@ return [
     'comments.cancel' => 'إلغاء',
     'comments.replies_count' => '{1} رد واحد|{2} ردان|[3,10] :count ردود|[11,*] :count رد',
     'comments.delete_confirm' => 'هل أنت متأكد من حذف هذا التعليق؟',
+    'comments.edit' => 'تعديل',
+    'comments.edit_placeholder' => 'عدل تعليقك...',
+    'comments.save' => 'حفظ',
+    'comments.delete' => 'حذف',
 
     'notifications.created' => 'تم إضافة التعليق.',
     'notifications.deleted' => 'تم حذف التعليق.',
     'notifications.reply_created' => 'تم إضافة الرد.',
+    'notifications.comment_updated' => 'تم تحديث التعليق.',
     'notifications.unauthorized' => 'إجراء غير مصرح به.',
 
     'modal.heading' => 'التعليقات',

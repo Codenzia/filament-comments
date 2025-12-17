@@ -3,7 +3,7 @@
 namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
-use Filament\Forms\Components\RichEditor;
+use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -11,6 +11,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
+use App\Models\User;
 
 class CommentsComponent extends Component implements HasForms
 {
@@ -31,19 +32,19 @@ class CommentsComponent extends Component implements HasForms
     {
         return $schema
             ->components([
-                RichEditor::make('comment')
+                TributeTextarea::make('comment')
                     ->hiddenLabel()
                     ->required()
-                    ->placeholder(config('codenzia-comments.editor.placeholder', ''))
-                    ->extraInputAttributes(['style' => 'min-height: 6rem'])
-                    ->toolbarButtons([
-                        'bold',
-                        'italic',
-                        'underline',
-                        'strike',
-                        'bulletList',
-                        'codeBlock',
-                    ]),
+                    ->mentionables(      
+                        User::select('name', 'id')
+                            ->get()
+                            ->map(fn ($user) => [
+                                'key' => $user->name, 
+                                'value' => $user->name 
+                            ])
+                            ->toArray()
+                            ),       
+                    // ->placeholder(config('codenzia-comments.editor.placeholder', ''))
             ])
             ->statePath('data');
     }

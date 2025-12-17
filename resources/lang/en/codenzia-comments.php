@@ -11,10 +11,15 @@ return [
     'comments.cancel' => 'Cancel',
     'comments.replies_count' => '{1} :count reply|[2,*] :count replies',
     'comments.delete_confirm' => 'Are you sure you want to delete this comment?',
+    'comments.edit' => 'Edit',
+    'comments.edit_placeholder' => 'Edit your comment...',
+    'comments.save' => 'Save',
+    'comments.delete' => 'Delete',
 
     'notifications.created' => 'Comment added.',
     'notifications.deleted' => 'Comment deleted.',
     'notifications.reply_created' => 'Reply added.',
+    'notifications.comment_updated' => 'Comment updated.',
     'notifications.unauthorized' => 'Unauthorized action.',
 
     'modal.heading' => 'Comments',

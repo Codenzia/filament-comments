@@ -47,4 +47,13 @@ return [
         'sad' => '😢',
         'angry' => '😠',
     ],
+
+    /**
+     * Mentions configuration
+     */
+    'mentions' => [
+        'enabled' => true,
+        'min_chars' => 1,
+        'max_results' => 10,
+    ],
 ];

@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 use App\Models\User;
+use Illuminate\Support\Arr;
 
 class CommentsComponent extends Component implements HasForms
 {
@@ -21,10 +22,17 @@ class CommentsComponent extends Component implements HasForms
 
     public Model $record;
 
+    public array $mentionables = [];
+
     protected $listeners = ['commentDeleted' => '$refresh', 'reactionUpdated' => '$refresh'];
 
-    public function mount(): void
+    public function mount(Model $record, array $mentionables = []): void
     {
+        $this->record = $record;
+        $this->mentionables = collect($mentionables)->map(function ($user) {
+            $name = is_array($user) ? Arr::get($user, 'name') : $user->name;
+            return ['key' => $name, 'value' => $name];
+        })->toArray();
         $this->form->fill();
     }
 
@@ -35,18 +43,9 @@ class CommentsComponent extends Component implements HasForms
                 TributeTextarea::make('comment')
                     ->hiddenLabel()
                     ->required()
-                    //->triggerWith(['@'])
-                    ->mentionables(      
-                        User::select('name', 'id')
-                            ->get()
-                            ->map(fn ($user) => [
-                                'key' => $user->name, 
-                                'value' => $user->name 
-                            ])
-                            ->toArray()
-                            ),               
-                    // ->placeholder(config('codenzia-comments.editor.placeholder', ''))
-
+                    ->urlPattern('/users/{id}/profile')
+                    ->mentionables($this->mentionables)
+                    ->placeholder(config('codenzia-comments.editor.placeholder', ''))
             ])
             ->statePath('data');
     }

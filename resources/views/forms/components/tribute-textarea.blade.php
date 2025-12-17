@@ -23,11 +23,13 @@
             }
             
             console.log('Found editor:', editor);
+            console.log('getMentionables:', @json($getMentionables()));
             
             if (editor) {
                 const tribute = new Tribute({
                     values: @json($getMentionables()),
                     selectTemplate: function(item) {
+                        console.log(item);
                         if (typeof item === "undefined") return null;
                         return '<a href="' + item.original.link + '">@' + item.original.key + '</a>';
                     },

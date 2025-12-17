@@ -5,10 +5,10 @@ namespace Codenzia\FilamentComments\Forms;
 use Filament\Forms\Components\Textarea;
 use Closure;
 use Filament\Forms\Components\RichEditor;
-use Codenzia\FilamentComments\Traits\HasRichMentions;
+use Codenzia\FilamentComments\Traits\HasMentionable;
 class TributeTextarea extends RichEditor
 {
-    //use HasRichMentions;
+    use HasMentionable;
     protected string $view = 'codenzia-comments::forms.components.tribute-textarea';
 
     protected array | \Closure $mentionables = [];
@@ -23,9 +23,11 @@ class TributeTextarea extends RichEditor
     {
         return $this->evaluate($this->mentionables);
     }
-    
-    public function getMentionableItems(): array
+    public function urlPattern(string $pattern): static
     {
-        return $this->getMentionables();
+        $this->urlPattern = $pattern;
+        return $this;
     }
+
+
 }

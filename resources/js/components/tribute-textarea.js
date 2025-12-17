@@ -1,70 +1,57 @@
-// export default function tributeTextarea({
-//     state,
-//     mentionables = [],
-//     lookupKey = 'name',
-//     fillKey = 'username',
-// }) {
-//     return {
-//         state: state,
-//         
-//         init() {
-//             // Wait for next tick to ensure DOM is ready
-//             this.$nextTick(() => {
-//                 if (this.$refs.input && typeof Tribute !== 'undefined') {
-//                     this.initTribute();
-//                 }
-//             });
-//         },
-//         
-//         initTribute() {
-//             // Initialize Tribute
-//             const tribute = new Tribute({
-//                 values: mentionables,
-//                 lookup: lookupKey,
-//                 fillAttr: fillKey,
-//                 
-//                 // Customize the menu item UI
-//                 menuItemTemplate: function (item) {
-//                     const avatar = item.original.avatar_url || item.original.avatar;
-//                     const name = item.original[lookupKey];
-//                     return `
-//                         <div class="flex items-center gap-2 py-1">
-//                             ${avatar ? 
-//                                 `<img src="${avatar}" class="w-6 h-6 rounded-full" alt="${name}" />` :
-//                                 `<div class="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs font-medium">
-//                                     ${name.substring(0, 2).toUpperCase()}
-//                                 </div>`
-//                             }
-//                             <span class="text-sm">${name}</span>
-//                         </div>
-//                     `;
-//                 },
-//                 
-//                 // Customize what is inserted
-//                 selectTemplate: function (item) {
-//                     return '@' + item.original[fillKey];
-//                 },
-//                 
-//                 noMatchTemplate: function() {
-//                     return '<span class="text-xs text-gray-500 dark:text-gray-400 px-3 py-2">No users found</span>';
-//                 },
-//                 
-//                 containerClass: 'tribute-container',
-//                 itemClass: 'tribute-item',
-//                 selectClass: 'tribute-active',
-//                 menuShowMinLength: 1,
-//                 positionMenu: true
-//             });
-// 
-//             // Attach to the textarea
-//             tribute.attach(this.$refs.input);
-// 
-//             // Update Livewire when Tribute inserts a mention
-//             this.$refs.input.addEventListener('tribute-replaced', (e) => {
-//                 this.state = e.target.value;
-//                 // Dispatch input to ensure other scripts detect the change
-//                 this.$refs.input.dispatchEvent(new Event('input'));
-//             });
-//         }
-//     }
-// }
+export default function tributeTextareaEditor({
+    statePath = null,
+    triggers = ['@'],
+    mentionableItems = [],
+    lookupKey = 'value',
+    fillKey = null,
+    menuShowMinLength = 1,
+    menuItemLimit = 10,
+    enableDynamicSearch = false,
+    getMentionResultUsing = null,
+    rootRef = 'editor',
+} = {}) {
+    return {
+        init() {
+            const root = this.$refs?.[rootRef] || (statePath ? document.getElementById(`${statePath}-content`) : null) || this.$el;
+
+            const attachTribute = () => {
+                const target = root?.querySelector?.('[contenteditable="true"]') || root;
+                if (!target || typeof Tribute === 'undefined') return false;
+
+                const collections = (Array.isArray(triggers) ? triggers : [triggers]).map((t) => ({
+                    trigger: t,
+                    values: (text, cb) => {
+                        if (enableDynamicSearch && typeof getMentionResultUsing === 'function') {
+                            Promise.resolve(getMentionResultUsing(text, statePath)).then(cb);
+                        } else {
+                            const filtered = mentionableItems.filter((item) => {
+                                const v = (item?.[lookupKey] ?? '').toString().toLowerCase();
+                                return v.includes((text || '').toLowerCase());
+                            });
+                            cb(filtered);
+                        }
+                    },
+                    lookup: lookupKey,
+                    fillAttr: fillKey || lookupKey,
+                    menuShowMinLength,
+                    menuItemLimit,
+                }));
+
+                const tribute = new Tribute({ collection: collections });
+                tribute.attach(target);
+
+                target.addEventListener('tribute-replaced', () => {
+                    target.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+
+                return true;
+            };
+
+            let tries = 0;
+            const interval = setInterval(() => {
+                tries++;
+                if (attachTribute() || tries >= 20) clearInterval(interval);
+            }, 150);
+        },
+    };
+}

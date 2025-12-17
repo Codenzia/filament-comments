@@ -1,52 +1,43 @@
-<x-dynamic-component
-    :component="$getFieldWrapperView()"
-    :field="$field"
->
-    @once
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tributejs/5.1.3/tribute.css" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/tributejs/5.1.3/tribute.min.js"></script>
-        <style>
-        .tribute-container ul { background: #1f2937 !important; } /* Dark gray for better visibility */
-        .tribute-container li.highlight, .tribute-container li:hover { background: #374151 !important; }
-        .tribute-container li { padding: 8px 15px; color: white; }
-        .tribute-container { z-index: 10000 !important; } /* Keep existing Z-index fix */
-        </style>
-    @endonce
+@include('filament-forms::components.rich-editor')
+@push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.7.0/tribute.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare. com/ajax/libs/tributejs/3.7.0/tribute.css" />
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        setTimeout(() => {
 
-    {{-- ADD wire:ignore HERE --}}
-    <textarea
-        wire:ignore
-        id="{{ $getId() }}"
-        x-data="{ state: $wire.$entangle('{{ $getStatePath() }}') }"
-        x-model="state"
-        x-ref="textarea"
-        class="block w-full transition duration-75 rounded-lg 
-        shadow-sm disabled:opacity-70 border-gray-300 dark:border-gray-600 dark:bg-black dark:text-white"
-        rows="5"
-    ></textarea>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                const elementId = "{{ $getId() }}";
-                const element = document.getElementById(elementId);
-                const users = @js($getMentionables());
-                console.log(users);
-                
-                if (!element || !window.Tribute) return;
-
+            // Try different selectors
+            let editor = document.querySelector('[data-state-path="{{ $getStatePath() }}"] .ProseMirror');
+            
+            if (!editor) {
+                editor = document.querySelector('.tiptap.ProseMirror');
+            }
+            
+            if (!editor) {
+                editor = document.querySelector('[data-state-path="{{ $getStatePath() }}"] .tiptap');
+            }
+            
+            if (!editor) {
+                // Last resort: find by contenteditable
+                editor = document.querySelector('[data-state-path="{{ $getStatePath() }}"] [contenteditable="true"]');
+            }
+            
+            console.log('Found editor:', editor);
+            
+            if (editor) {
                 const tribute = new Tribute({
-                    values: users,
-                    // Optional: Improve behavior by requiring a space before @ to trigger
-                    // requireLeadingSpace: true, 
+                    values: @json($getMentionables()),
+                    selectTemplate: function(item) {
+                        if (typeof item === "undefined") return null;
+                        return '<a href="' + item.original.link + '">@' + item.original.key + '</a>';
+                    },
                 });
-
-                tribute.attach(element);
-
-                element.addEventListener('tribute-replaced', function(e) {
-                    element.dispatchEvent(new Event('input'));
-                });
-            }, 100);
-        });
-    </script>
-</x-dynamic-component>
+                tribute.attach(editor);
+                console.log('✅ Tribute attached successfully! ');
+            } else {
+                console.error('❌ Editor element not found');
+            }
+        }, 1000); // Increased timeout
+    });
+</script>
+@endpush

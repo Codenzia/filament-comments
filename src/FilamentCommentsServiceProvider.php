@@ -76,7 +76,10 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
             $this->getScriptData(),
             $this->getAssetPackageName()
         );
-
+        FilamentAsset::register([
+            AlpineComponent::make(id: 'codenzia-filament-comment', path: __DIR__.'/../resources/dist/js/tributejs.js'),
+            Css::make(id: 'codenzia-filament-comment', path: __DIR__.'/../resources/dist/css/codenzia-filament-comment.css')->loadedOnRequest(),
+        ], package: 'codenzia/filament-comments');
         // Icon Registration
         FilamentIcon::register($this->getIcons());
 
@@ -113,7 +116,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
             // Package assets
             Css::make('codenzia-comments-styles', __DIR__ . '/../resources/dist/codenzia-comments.css'),
             Js::make('codenzia-comments-scripts', __DIR__ . '/../resources/dist/codenzia-comments.js'),
-            AlpineComponent::make('tribute-textarea', __DIR__ . '/../resources/dist/components/tribute-textarea.js'),
+            // AlpineComponent::make('tribute-textarea', __DIR__ . '/../resources/dist/components/tribute-textarea.js'),
         ];
     }
 

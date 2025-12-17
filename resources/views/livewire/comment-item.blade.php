@@ -12,7 +12,7 @@
     </div>
 
     <div class="flex-1 space-y-2">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-start gap-5">
             <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ $comment->commentator->name }}
@@ -95,7 +95,7 @@
                     class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-colors {{ $isActive ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ring-1 ring-primary-500' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700' }}"
                     title="{{ __('codenzia-comments::codenzia-comments.reactions.' . $type) }}"
                 >
-                    <span class="text-sm">{{ $emoji }}</span>
+                    <span class="text-lg">{{ $emoji }}</span>
                     @if ($count > 0)
                         <span class="font-medium">{{ $count }}</span>
                     @endif

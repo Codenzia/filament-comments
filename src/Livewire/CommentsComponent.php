@@ -35,6 +35,7 @@ class CommentsComponent extends Component implements HasForms
                 TributeTextarea::make('comment')
                     ->hiddenLabel()
                     ->required()
+                    //->triggerWith(['@'])
                     ->mentionables(      
                         User::select('name', 'id')
                             ->get()
@@ -43,8 +44,9 @@ class CommentsComponent extends Component implements HasForms
                                 'value' => $user->name 
                             ])
                             ->toArray()
-                            ),       
+                            ),               
                     // ->placeholder(config('codenzia-comments.editor.placeholder', ''))
+
             ])
             ->statePath('data');
     }

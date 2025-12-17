@@ -42,22 +42,19 @@ class CommentItem extends Component implements HasForms
     {
         return $schema
             ->components([
-                RichEditor::make('comment')
+                \Codenzia\FilamentComments\Forms\TributeTextarea::make('comment')
                     ->hiddenLabel()
                     ->required()
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comments.reply_placeholder'))
-                    ->extraInputAttributes([
-                        'style' => 'min-height: 4rem',
-                        'data-tribute-enabled' => 'true',
-                    ])
-                    ->toolbarButtons([
-                        'bold',
-                        'italic',
-                        'underline',
-                        'strike',
-                        'bulletList',
-                        'codeBlock',
-                    ]),
+                    ->placeholder(__('codenzia-comments::codenzia-comments.comments.reply_placeholder')),
+                    // ->mentionables(
+                    //     \App\Models\User::select('name', 'id')
+                    //         ->get()
+                    //         ->map(fn ($user) => [
+                    //             'key' => $user->name,
+                    //             'value' => $user->name
+                    //         ])
+                    //         ->toArray()
+                    // ),
             ])
             ->statePath('replyData');
     }
@@ -69,19 +66,16 @@ class CommentItem extends Component implements HasForms
                 RichEditor::make('comment')
                     ->hiddenLabel()
                     ->required()
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comments.edit_placeholder'))
-                    ->extraInputAttributes([
-                        'style' => 'min-height: 4rem',
-                        'data-tribute-enabled' => 'true',
-                    ])
-                    ->toolbarButtons([
-                        'bold',
-                        'italic',
-                        'underline',
-                        'strike',
-                        'bulletList',
-                        'codeBlock',
-                    ]),
+                    ->placeholder(__('codenzia-comments::codenzia-comments.comments.edit_placeholder')),
+                    // ->mentionables(
+                    //     \App\Models\User::select('name', 'id')
+                    //         ->get()
+                    //         ->map(fn ($user) => [
+                    //             'key' => $user->name,
+                    //             'value' => $user->name
+                    //         ])
+                    //         ->toArray()
+                    // ),
             ])
             ->statePath('editData');
     }

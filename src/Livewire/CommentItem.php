@@ -3,8 +3,6 @@
 namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
-use Codenzia\FilamentComments\Models\CommentReaction;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -12,6 +10,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
+use Illuminate\Support\Arr;
 
 class CommentItem extends Component implements HasForms
 {
@@ -56,7 +55,6 @@ class CommentItem extends Component implements HasForms
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
                     ->placeholder(config('codenzia-comments.editor.placeholder', ''))                    
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comments.reply_placeholder')),
             ])
             ->statePath('replyData');
     }
@@ -65,19 +63,12 @@ class CommentItem extends Component implements HasForms
     {
         return $schema
             ->components([
-                RichEditor::make('comment')
+                TributeTextarea::make('comment')
                     ->hiddenLabel()
                     ->required()
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comments.edit_placeholder')),
-                    // ->mentionables(
-                    //     \App\Models\User::select('name', 'id')
-                    //         ->get()
-                    //         ->map(fn ($user) => [
-                    //             'key' => $user->name,
-                    //             'value' => $user->name
-                    //         ])
-                    //         ->toArray()
-                    // ),
+                    ->urlPattern('/users/{id}/profile')
+                    ->mentionables($this->mentionables)
+                    ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('editData');
     }

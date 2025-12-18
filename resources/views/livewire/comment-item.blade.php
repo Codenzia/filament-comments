@@ -154,6 +154,7 @@
                     <livewire:codenzia-comments::comment-item
                         :key="'reply-' . $reply->id"
                         :comment="$reply"
+                        :mentionables="$mentionables"
                     />
                 @endforeach
             </div>

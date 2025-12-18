@@ -31,7 +31,9 @@ class CommentsComponent extends Component implements HasForms
         $this->record = $record;
         $this->mentionables = collect($mentionables)->map(function ($user) {
             $name = is_array($user) ? Arr::get($user, 'name') : $user->name;
-            return ['key' => $name, 'value' => $name];
+            $email = is_array($user) ? Arr::get($user, 'email') : $user->email;
+            $profile_photo_path = is_array($user) ? Arr::get($user, 'profile_photo_path') : $user->profile_photo_path ?? null;
+            return ['key' => $name, 'value' => $name , 'profile_photo_path' => $profile_photo_path];
         })->toArray();
         $this->form->fill();
     }

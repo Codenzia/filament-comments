@@ -16,6 +16,7 @@
                 <livewire:codenzia-comments::comment-item
                     :key="$comment->id"
                     :comment="$comment"
+                    :mentionables="$mentionables"
                 />
             @endforeach
         </div>

@@ -11,6 +11,7 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use Codenzia\FilamentComments\Forms\TributeTextarea;
 
 class CommentItem extends Component implements HasForms
 {
@@ -26,14 +27,20 @@ class CommentItem extends Component implements HasForms
 
     public ?array $editData = [];
 
+    public array $mentionables = [];
+
     protected $listeners = ['reactionUpdated' => '$refresh', 'commentDeleted' => '$refresh'];
 
-    public function mount(): void
+    public function mount(array $mentionables = []): void
     {
         $this->replyForm->fill();
         $this->editForm->fill([
             'comment' => $this->comment->comment,
         ]);
+        $this->mentionables = collect($mentionables)->map(function ($user) {
+            $name = is_array($user) ? Arr::get($user, 'name') : $user->name;
+            return ['key' => $name, 'value' => $name];
+        })->toArray();        
         // Ensure reactions are loaded
         $this->comment->load('reactions');
     }
@@ -42,19 +49,14 @@ class CommentItem extends Component implements HasForms
     {
         return $schema
             ->components([
-                \Codenzia\FilamentComments\Forms\TributeTextarea::make('comment')
+                TributeTextarea::make('comment')
                     ->hiddenLabel()
                     ->required()
+                    ->required()
+                    ->urlPattern('/users/{id}/profile')
+                    ->mentionables($this->mentionables)
+                    ->placeholder(config('codenzia-comments.editor.placeholder', ''))                    
                     ->placeholder(__('codenzia-comments::codenzia-comments.comments.reply_placeholder')),
-                    // ->mentionables(
-                    //     \App\Models\User::select('name', 'id')
-                    //         ->get()
-                    //         ->map(fn ($user) => [
-                    //             'key' => $user->name,
-                    //             'value' => $user->name
-                    //         ])
-                    //         ->toArray()
-                    // ),
             ])
             ->statePath('replyData');
     }

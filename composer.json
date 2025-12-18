@@ -64,7 +64,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Codenzia\\FilamentComments\\FilamentCommentsServiceProvider"
+                "Codenzia\\FilamentComments\\FilamentCommentsServiceProvider",
+                "Codenzia\\FilamentComments\\EventServiceProvider"
             ],
             "aliases": {
                 "FilamentComments": "Codenzia\\FilamentComments\\Facades\\FilamentComments"

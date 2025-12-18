@@ -11,7 +11,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
-use App\Models\User;
+use \Codenzia\FilamentComments\Events\UserMentioned;
 use Illuminate\Support\Arr;
 
 class CommentsComponent extends Component implements HasForms
@@ -54,10 +54,23 @@ class CommentsComponent extends Component implements HasForms
     {
         $data = $this->form->getState();
 
-        $this->record->comments()->create([
+        $comment = $this->record->comments()->create([
             'comment' => $data['comment'],
             'user_id' => auth()->id(),
         ]);
+
+        // Detect mentions in the comment (e.g., @username)
+        preg_match_all('/@([\w.]+)/', $data['comment'], $matches);
+        $mentionedNames = $matches[1] ?? [];
+        if (!empty($mentionedNames)) {
+            $userModel = config('filament-comments.user_model') ?? \App\Models\User::class;
+            foreach ($mentionedNames as $name) {
+                $mentionedUser = $userModel::where('name', $name)->first();
+                if ($mentionedUser) {
+                    event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));
+                }
+            }
+        }
 
         Notification::make()
             ->title(__('codenzia-comments::codenzia-comments.notifications.created'))

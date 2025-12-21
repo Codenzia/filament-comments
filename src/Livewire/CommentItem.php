@@ -3,6 +3,7 @@
 namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;

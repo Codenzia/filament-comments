@@ -23,6 +23,8 @@ class CommentItem extends Component implements HasForms
 
     public bool $showEditForm = false;
 
+    public bool $showReplies = false;
+
     public ?array $replyData = [];
 
     public ?array $editData = [];
@@ -87,6 +89,11 @@ class CommentItem extends Component implements HasForms
                 'comment' => $this->comment->comment,
             ]);
         }
+    }
+
+    public function toggleReplies(): void
+    {
+        $this->showReplies = ! $this->showReplies;
     }
 
     public function edit(): void

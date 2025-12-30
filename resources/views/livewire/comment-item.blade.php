@@ -1,4 +1,4 @@
-<div class="flex gap-3 group">
+    <div class="flex gap-3 group">
     <div class="flex-shrink-0">
         @if ($comment->commentator->avatar_url ?? null)
             <img src="{{ $comment->commentator->avatar_url }}" alt="{{ $comment->commentator->name }}" class="h-10 w-10 rounded-full">
@@ -23,7 +23,7 @@
             </div>
 
             @if (auth()->id() === $comment->user_id)
-                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex items-center gap-2  group-hover:opacity-100 transition-opacity duration-200 comment-actions">
                     <button
                         wire:click="edit"
                         class="text-xs text-gray-400 hover:text-blue-600 dark:text-gray-500 dark:hover:text-blue-400"
@@ -117,9 +117,23 @@
             </button>
 
             @if ($comment->replies->count() > 0)
-                <span class="text-xs text-gray-500 dark:text-gray-400">
+                <button
+                    wire:click="toggleReplies"
+                    class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 font-medium"
+                >
+                    @if ($showReplies)
+                        <x-filament::icon
+                            icon="heroicon-o-chevron-up"
+                            class="h-3 w-3 inline-block mr-1"
+                        />
+                    @else
+                        <x-filament::icon
+                            icon="heroicon-o-chevron-down"
+                            class="h-3 w-3 inline-block mr-1"
+                        />
+                    @endif
                     {{ trans_choice('codenzia-comments::codenzia-comments.comments.replies_count', $comment->replies->count(), ['count' => $comment->replies->count()]) }}
-                </span>
+                </button>
             @endif
         </div>
 
@@ -148,7 +162,7 @@
         @endif
 
         {{-- Nested Replies --}}
-        @if ($comment->replies->count() > 0)
+        @if ($showReplies && $comment->replies->count() > 0)
             <div class="mt-4 space-y-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
                 @foreach ($comment->replies as $reply)
                     <livewire:codenzia-comments::comment-item

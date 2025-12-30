@@ -1,4 +1,4 @@
-    <div class="flex gap-3 group">
+<div class="flex gap-3 group">
     <div class="flex-shrink-0">
         @if ($comment->commentator->avatar_url ?? null)
             <img src="{{ $comment->commentator->avatar_url }}" alt="{{ $comment->commentator->name }}" class="h-10 w-10 rounded-full">

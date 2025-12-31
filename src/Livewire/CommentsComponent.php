@@ -4,6 +4,8 @@ namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -14,9 +16,10 @@ use Livewire\Component;
 use \Codenzia\FilamentComments\Events\UserMentioned;
 use Illuminate\Support\Arr;
 
-class CommentsComponent extends Component implements HasForms
+class CommentsComponent extends Component implements HasForms, HasActions
 {
     use InteractsWithForms;
+    use InteractsWithActions;
 
     public ?array $data = [];
 

@@ -174,4 +174,6 @@
             </div>
         @endif
     </div>
+
+    <x-filament-actions::modals />
 </div>

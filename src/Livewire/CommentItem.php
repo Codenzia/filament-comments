@@ -3,6 +3,8 @@
 namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -13,9 +15,10 @@ use Livewire\Component;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Illuminate\Support\Arr;
 
-class CommentItem extends Component implements HasForms
+class CommentItem extends Component implements HasForms, HasActions
 {
     use InteractsWithForms;
+    use InteractsWithActions;
 
     public Comment $comment;
 

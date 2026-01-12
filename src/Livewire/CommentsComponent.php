@@ -2,8 +2,10 @@
 
 namespace Codenzia\FilamentComments\Livewire;
 
-use Codenzia\FilamentComments\Models\Comment;
+use Codenzia\FilamentComments\Events\UserMentioned;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
+use Codenzia\FilamentComments\Models\Comment;
+use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -12,17 +14,16 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
-use \Codenzia\FilamentComments\Events\UserMentioned;
-use Illuminate\Support\Arr;
-use Codenzia\FilamentComments\Traits\ExtractsMentions;
 
-class CommentsComponent extends Component implements HasForms, HasActions
+class CommentsComponent extends Component implements HasActions, HasForms
 {
-    use InteractsWithForms;
-    use InteractsWithActions;
     use ExtractsMentions;
+    use InteractsWithActions;
+    use InteractsWithForms;
+
     public ?array $data = [];
 
     public Model $record;
@@ -60,7 +61,7 @@ class CommentsComponent extends Component implements HasForms, HasActions
                     ->required()
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
-                    ->placeholder(config('codenzia-comments.editor.placeholder', ''))
+                    ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('data');
     }
@@ -81,7 +82,7 @@ class CommentsComponent extends Component implements HasForms, HasActions
             $columnName = config('codenzia-comments.mentionable.column.label', 'name');
             foreach ($mentionedNames as $name) {
                 $mentionedUser = $userModel::where($columnName, $name)->first();
-                if($mentionedUser){
+                if ($mentionedUser) {
                     event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));
                     if ($mentionedUser && $mentionedUser->id !== auth()->id()) {
                         event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));

@@ -3,14 +3,15 @@
 namespace Codenzia\FilamentComments\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
 class UserMentionedNotification extends Notification
 {
     use Queueable;
 
     public $comment;
+
     public $byUser;
 
     public function __construct($comment, $byUser)
@@ -37,7 +38,8 @@ class UserMentionedNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
-        $body = "You were mentioned in a comment by " . $this->byUser->name . " in the comment: " . strip_tags($this->comment);
+        $body = 'You were mentioned in a comment by ' . $this->byUser->name . ' in the comment: ' . strip_tags($this->comment);
+
         return [
             'title' => 'You were mentioned in a comment',
             'body' => $body,
@@ -56,7 +58,8 @@ class UserMentionedNotification extends Notification
 
     public function toArray($notifiable)
     {
-        $body = "You were mentioned in a comment by " . $this->byUser->name . " in the comment: " . strip_tags($this->comment);
+        $body = 'You were mentioned in a comment by ' . $this->byUser->name . ' in the comment: ' . strip_tags($this->comment);
+
         return [
             'title' => 'You were mentioned in a comment',
             'body' => $body,

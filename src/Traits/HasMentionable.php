@@ -2,11 +2,7 @@
 
 namespace Codenzia\FilamentComments\Traits;
 
-use Codenzia\FilamentComments\Dtos\MentionItem;
-use Codenzia\FilamentComments\Dtos\TriggerConfig;
 use Codenzia\FilamentComments\Helpers\Helper;
-use Closure;
-use Illuminate\Contracts\Support\Arrayable;
 
 trait HasMentionable
 {

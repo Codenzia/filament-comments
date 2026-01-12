@@ -41,14 +41,14 @@ class UserMentionedNotification extends Notification
         return [
             'title' => 'You were mentioned in a comment',
             'body' => $body,
-            'icon' => 'fas fa-comment',
+            'icon' => 'heroicon-o-clipboard-document',
             'color' => 'info',
             'duration' => 'persistent',
             'format' => 'filament',
             'actions' => [
                 [
                     'name' => 'View Comment',
-                    'url' => url('/comments/' . $this->comment->id),
+                    'url' => '#',
                 ],
             ],
         ];
@@ -60,7 +60,7 @@ class UserMentionedNotification extends Notification
         return [
             'title' => 'You were mentioned in a comment',
             'body' => $body,
-            'icon' => 'fas fa-comment',
+            'icon' => 'heroicon-o-clipboard-document',
         ];
     }
 }

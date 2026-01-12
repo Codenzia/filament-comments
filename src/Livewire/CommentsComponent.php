@@ -16,12 +16,13 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use \Codenzia\FilamentComments\Events\UserMentioned;
 use Illuminate\Support\Arr;
+use Codenzia\FilamentComments\Traits\ExtractsMentions;
 
 class CommentsComponent extends Component implements HasForms, HasActions
 {
     use InteractsWithForms;
     use InteractsWithActions;
-
+    use ExtractsMentions;
     public ?array $data = [];
 
     public Model $record;
@@ -78,11 +79,13 @@ class CommentsComponent extends Component implements HasForms, HasActions
         if (! empty($mentionedNames)) {
             $userModel = $this->getUserModelClass();
             $columnName = config('codenzia-comments.mentionable.column.label', 'name');
-
             foreach ($mentionedNames as $name) {
                 $mentionedUser = $userModel::where($columnName, $name)->first();
-                if ($mentionedUser && $mentionedUser->id !== auth()->id()) {
+                if($mentionedUser){
                     event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));
+                    if ($mentionedUser && $mentionedUser->id !== auth()->id()) {
+                        event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));
+                    }
                 }
             }
         }

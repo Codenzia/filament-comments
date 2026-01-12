@@ -4,6 +4,7 @@ namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Events\UserMentioned;
+use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\RichEditor;
@@ -20,6 +21,7 @@ class CommentItem extends Component implements HasForms, HasActions
 {
     use InteractsWithForms;
     use InteractsWithActions;
+    use ExtractsMentions;
 
     public Comment $comment;
 

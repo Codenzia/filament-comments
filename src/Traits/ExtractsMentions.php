@@ -13,7 +13,7 @@ trait ExtractsMentions
         $mentions = [];
 
         // Use DOMDocument to parse HTML and extract only from tribute-mention elements
-        $dom = new \DOMDocument();
+        $dom = new \DOMDocument;
 
         // Suppress warnings for malformed HTML
         libxml_use_internal_errors(true);

@@ -83,7 +83,6 @@ class CommentsComponent extends Component implements HasActions, HasForms
             foreach ($mentionedNames as $name) {
                 $mentionedUser = $userModel::where($columnName, $name)->first();
                 if ($mentionedUser) {
-                    event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));
                     if ($mentionedUser && $mentionedUser->id !== auth()->id()) {
                         event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));
                     }

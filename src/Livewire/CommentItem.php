@@ -2,26 +2,25 @@
 
 namespace Codenzia\FilamentComments\Livewire;
 
-use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Events\UserMentioned;
+use Codenzia\FilamentComments\Forms\TributeTextarea;
+use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
-use Livewire\Component;
-use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Illuminate\Support\Arr;
+use Livewire\Component;
 
-class CommentItem extends Component implements HasForms, HasActions
+class CommentItem extends Component implements HasActions, HasForms
 {
-    use InteractsWithForms;
-    use InteractsWithActions;
     use ExtractsMentions;
+    use InteractsWithActions;
+    use InteractsWithForms;
 
     public Comment $comment;
 
@@ -49,6 +48,7 @@ class CommentItem extends Component implements HasForms, HasActions
         ]);
         $this->mentionables = collect($mentionables)->map(function ($user) {
             $name = is_array($user) ? Arr::get($user, 'name') : $user->name;
+
             return ['key' => $name, 'value' => $name];
         })->toArray();
         // Ensure reactions are loaded
@@ -65,7 +65,7 @@ class CommentItem extends Component implements HasForms, HasActions
                     ->required()
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
-                    ->placeholder(config('codenzia-comments.editor.placeholder', ''))
+                    ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('replyData');
     }

@@ -3,7 +3,6 @@
 namespace Codenzia\FilamentComments\Models;
 
 use Codenzia\FilamentComments\Events\CommentAdded;
-use Codenzia\FilamentComments\Events\UserMentioned;
 use Codenzia\FilamentComments\Events\CommentDeleted;
 use Codenzia\FilamentComments\Traits\HasComments;
 use Exception;

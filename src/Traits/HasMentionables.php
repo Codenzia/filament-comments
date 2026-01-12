@@ -15,6 +15,7 @@ trait HasMentionables
                         'id' => $item['id'] ?? null,
                     ];
                 }
+
                 return [
                     'key' => $item->name ?? $item->id ?? '',
                     'value' => $item->name ?? '',

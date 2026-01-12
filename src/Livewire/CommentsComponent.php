@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use \Codenzia\FilamentComments\Events\UserMentioned;
 use Illuminate\Support\Arr;
@@ -32,11 +33,19 @@ class CommentsComponent extends Component implements HasForms, HasActions
     public function mount(Model $record, array $mentionables = []): void
     {
         $this->record = $record;
-        $this->mentionables = collect($mentionables)->map(function ($user) {
-            $name = is_array($user) ? Arr::get($user, 'name') : $user->name;
-            $email = is_array($user) ? Arr::get($user, 'email') : $user->email;
-            $profile_photo_path = is_array($user) ? Arr::get($user, 'profile_photo_path') : $user->profile_photo_path ?? null;
-            return ['key' => $name, 'value' => $name , 'profile_photo_path' => $profile_photo_path];
+        $labelColumn = config('codenzia-comments.mentionable.column.label', 'name');
+        $emailColumn = config('codenzia-comments.mentionable.column.email', 'email');
+        $avatarColumn = config('codenzia-comments.mentionable.column.avatar', 'avatar');
+
+        $this->mentionables = collect($mentionables)->map(function ($user) use ($labelColumn, $emailColumn, $avatarColumn) {
+            $name = is_array($user) ? Arr::get($user, $labelColumn) : ($user->{$labelColumn} ?? null);
+            $email = is_array($user) ? Arr::get($user, $emailColumn) : ($user->{$emailColumn} ?? null);
+            $avatarPath = is_array($user) ? Arr::get($user, $avatarColumn) : ($user->{$avatarColumn} ?? null);
+
+            // Get full avatar URL or generate UI Avatars URL
+            $avatar = $this->getAvatarUrl($avatarPath, $name);
+
+            return ['key' => $name, 'value' => $name, 'avatar' => $avatar];
         })->toArray();
         $this->form->fill();
     }
@@ -64,14 +73,15 @@ class CommentsComponent extends Component implements HasForms, HasActions
             'user_id' => auth()->id(),
         ]);
 
-        // Detect mentions in the comment (e.g., @username)
-        preg_match_all('/@([\w.]+)/', $data['comment'], $matches);
-        $mentionedNames = $matches[1] ?? [];
-        if (!empty($mentionedNames)) {
-            $userModel = config('filament-comments.user_model') ?? \App\Models\User::class;
+        // Detect mentions in the comment and send notifications
+        $mentionedNames = $this->extractMentions($data['comment']);
+        if (! empty($mentionedNames)) {
+            $userModel = $this->getUserModelClass();
+            $columnName = config('codenzia-comments.mentionable.column.label', 'name');
+
             foreach ($mentionedNames as $name) {
-                $mentionedUser = $userModel::where('name', $name)->first();
-                if ($mentionedUser) {
+                $mentionedUser = $userModel::where($columnName, $name)->first();
+                if ($mentionedUser && $mentionedUser->id !== auth()->id()) {
                     event(new UserMentioned($mentionedUser, $comment->comment, auth()->user()));
                 }
             }
@@ -99,6 +109,36 @@ class CommentsComponent extends Component implements HasForms, HasActions
             ->title(__('codenzia-comments::codenzia-comments.notifications.deleted'))
             ->success()
             ->send();
+    }
+
+    /**
+     * Get full avatar URL or generate UI Avatars URL if null
+     */
+    protected function getAvatarUrl(?string $avatarPath, ?string $name): string
+    {
+        // If avatar path is null or empty, generate UI Avatars URL
+        if (empty($avatarPath)) {
+            $panelColor = config('filament.default_color', '000000');
+            $panelColor = str_replace('#', '', $panelColor);
+
+            return 'https://ui-avatars.com/api/?name=' . urlencode($name ?? 'User') . '&color=FFFFFF&background=' . $panelColor;
+        }
+
+        // If it's already a full URL, return it
+        if (filter_var($avatarPath, FILTER_VALIDATE_URL)) {
+            return $avatarPath;
+        }
+
+        // Convert storage path to full URL
+        if (Storage::disk('public')->exists($avatarPath)) {
+            return Storage::disk('public')->url($avatarPath);
+        }
+
+        // Fallback to UI Avatars if file doesn't exist
+        $panelColor = config('filament.default_color', '000000');
+        $panelColor = str_replace('#', '', $panelColor);
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name ?? 'User') . '&color=FFFFFF&background=' . $panelColor;
     }
 
     public function render(): View

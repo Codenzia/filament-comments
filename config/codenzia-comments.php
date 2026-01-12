@@ -21,9 +21,10 @@ return [
         'model' => \App\Models\User::class,
         'column' => [
             'id' => 'id',
-            'label' => 'name',
-            'value' => 'name',
-            'avatar' => 'name',
+            'label' => 'name', // Column name for user name/label
+            'value' => 'name', // Column name for user value (used in mentions)
+            'email' => 'email', // Column name for user email
+            'avatar' => 'profile_photo_path', // Column or accessor for user avatar (e.g., 'avatar_url', 'profile_photo_path')
         ],
         'url' => 'admin/users/{id}', // this will be used to generate the url for the mention item
     ],
@@ -41,7 +42,7 @@ return [
 
     'editor' => [
         'placeholder' => 'Type your comment here...',
-        'height' => 200,
+        'height' => 100,
     ],
 
     /**

@@ -21,6 +21,7 @@ return [
     'notifications.reply_created' => 'Reply added.',
     'notifications.comment_updated' => 'Comment updated.',
     'notifications.unauthorized' => 'Unauthorized action.',
+    'notifications.user_mentioned_title' => ':name mentioned you in a comment',
 
     'modal.heading' => 'Comments',
 

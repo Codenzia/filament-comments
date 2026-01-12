@@ -26,19 +26,41 @@ class UserMentionedNotification extends Notification
 
     public function toMail($notifiable)
     {
+        $commentText = strip_tags($this->comment);
+
         return (new MailMessage)
             ->greeting('Hello!')
             ->line('You were mentioned in a comment by ' . $this->byUser->name)
-            ->line('Comment: ' . $this->comment)
+            ->line('Comment: ' . $commentText)
             ->action('View Comment', url('/'));
+    }
+
+    public function toDatabase(object $notifiable): array
+    {
+        $body = "You were mentioned in a comment by " . $this->byUser->name . " in the comment: " . strip_tags($this->comment);
+        return [
+            'title' => 'You were mentioned in a comment',
+            'body' => $body,
+            'icon' => 'fas fa-comment',
+            'color' => 'info',
+            'duration' => 'persistent',
+            'format' => 'filament',
+            'actions' => [
+                [
+                    'name' => 'View Comment',
+                    'url' => url('/comments/' . $this->comment->id),
+                ],
+            ],
+        ];
     }
 
     public function toArray($notifiable)
     {
+        $body = "You were mentioned in a comment by " . $this->byUser->name . " in the comment: " . strip_tags($this->comment);
         return [
-            'by_user_id' => $this->byUser->id,
-            'by_user_name' => $this->byUser->name,
-            'comment' => $this->comment,
+            'title' => 'You were mentioned in a comment',
+            'body' => $body,
+            'icon' => 'fas fa-comment',
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace Codenzia\FilamentComments;
 
 use Codenzia\FilamentComments\Commands\FilamentCommentsCommand;
+use Codenzia\FilamentComments\EventServiceProvider;
 use Codenzia\FilamentComments\Forms\Components\TributeTextarea;
 use Codenzia\FilamentComments\Livewire\CommentItem;
 use Codenzia\FilamentComments\Livewire\CommentsComponent;
@@ -62,7 +63,10 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
         }
     }
 
-    public function packageRegistered(): void {}
+    public function packageRegistered(): void
+    {
+        $this->app->register(EventServiceProvider::class);
+    }
 
     public function packageBooted(): void
     {

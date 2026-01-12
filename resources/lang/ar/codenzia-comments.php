@@ -21,6 +21,7 @@ return [
     'notifications.reply_created' => 'تم إضافة الرد.',
     'notifications.comment_updated' => 'تم تحديث التعليق.',
     'notifications.unauthorized' => 'إجراء غير مصرح به.',
+    'notifications.user_mentioned_title' => 'ذكرك :name في تعليق',
 
     'modal.heading' => 'التعليقات',
 

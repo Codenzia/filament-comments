@@ -20,6 +20,10 @@
             console.log('Found editor:', editor);
             console.log('getMentionables:', @json($getMentionables()));
             if (editor) {
+                // Set editor height
+                const editorHeight = {{ config('codenzia-comments.editor.height', 100) }};
+                editor.style.minHeight = editorHeight + 'px';
+
                 const tribute = new Tribute({
                     values: @json($getMentionables()),
                     selectTemplate: function(item) {
@@ -29,10 +33,9 @@
                     },
                     menuItemTemplate: function(item) {
                         // Custom dropdown item: avatar, name, username
-                        const avatar = item.original.profile_photo_path ? '<img src="' + item.original.profile_photo_path + '" style="width:32px;height:32px;border-radius:50%;margin-right:12px;object-fit:cover;vertical-align:middle;">' : '';
                         return `
                             <div style="display:flex;align-items:center;padding:8px 12px;">
-                                ${avatar}
+                                <img src="${item.original.avatar}" style="width:32px;height:32px;border-radius:50%;margin-right:12px;object-fit:cover;vertical-align:middle;">
                                 <div style="display:flex;flex-direction:column;">
                                     <span style="font-weight:600;color:#f59e1b;">${item.original.key}</span>
                                     <span style="font-size:14px;color:#bdbdbd;">@${item.original.value}</span>
@@ -44,6 +47,7 @@
                     menuShowMinLength: 1
                 });
                 tribute.attach(editor);
+
                 // Custom highlight style
                 const style = document.createElement('style');
                 style.innerHTML = `

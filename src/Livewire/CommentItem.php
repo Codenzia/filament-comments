@@ -3,6 +3,7 @@
 namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Models\Comment;
+use Codenzia\FilamentComments\Events\UserMentioned;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\RichEditor;
@@ -28,6 +29,8 @@ class CommentItem extends Component implements HasForms, HasActions
 
     public bool $showReplies = false;
 
+    public bool $showReactionPicker = false;
+
     public ?array $replyData = [];
 
     public ?array $editData = [];
@@ -45,7 +48,7 @@ class CommentItem extends Component implements HasForms, HasActions
         $this->mentionables = collect($mentionables)->map(function ($user) {
             $name = is_array($user) ? Arr::get($user, 'name') : $user->name;
             return ['key' => $name, 'value' => $name];
-        })->toArray();        
+        })->toArray();
         // Ensure reactions are loaded
         $this->comment->load('reactions');
     }
@@ -60,7 +63,7 @@ class CommentItem extends Component implements HasForms, HasActions
                     ->required()
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
-                    ->placeholder(config('codenzia-comments.editor.placeholder', ''))                    
+                    ->placeholder(config('codenzia-comments.editor.placeholder', ''))
             ])
             ->statePath('replyData');
     }
@@ -99,6 +102,11 @@ class CommentItem extends Component implements HasForms, HasActions
         $this->showReplies = ! $this->showReplies;
     }
 
+    public function toggleReactionPicker(): void
+    {
+        $this->showReactionPicker = ! $this->showReactionPicker;
+    }
+
     public function edit(): void
     {
         $this->toggleEditForm();
@@ -126,12 +134,26 @@ class CommentItem extends Component implements HasForms, HasActions
     {
         $data = $this->replyForm->getState();
 
-        $this->comment->replies()->create([
+        $reply = $this->comment->replies()->create([
             'comment' => $data['comment'],
             'user_id' => auth()->id(),
             'commentable_id' => $this->comment->commentable_id,
             'commentable_type' => $this->comment->commentable_type,
         ]);
+
+        // Detect mentions in the reply and send notifications
+        $mentionedNames = $this->extractMentions($data['comment']);
+        if (! empty($mentionedNames)) {
+            $userModel = $this->getUserModelClass();
+            $columnName = config('codenzia-comments.mentionable.column.label', 'name');
+
+            foreach ($mentionedNames as $name) {
+                $mentionedUser = $userModel::where($columnName, $name)->first();
+                if ($mentionedUser && $mentionedUser->id !== auth()->id()) {
+                    event(new UserMentioned($mentionedUser, $reply->comment, auth()->user()));
+                }
+            }
+        }
 
         Notification::make()
             ->title(__('codenzia-comments::codenzia-comments.notifications.reply_created'))
@@ -162,6 +184,9 @@ class CommentItem extends Component implements HasForms, HasActions
                 'reaction_type' => $reactionType,
             ]);
         }
+
+        // Close the reaction picker
+        $this->showReactionPicker = false;
 
         // Refresh the comment to get updated reactions
         $this->comment->refresh();

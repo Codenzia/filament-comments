@@ -1,7 +1,11 @@
 <div class="flex gap-3 group">
     <div class="flex-shrink-0">
-        @if ($comment->commentator->avatar_url ?? null)
-            <img src="{{ $comment->commentator->avatar_url }}" alt="{{ $comment->commentator->name }}" class="h-10 w-10 rounded-full">
+        @php
+            $avatarColumn = config('codenzia-comments.mentionable.column.avatar', 'avatar_url');
+            $avatarPath = $comment->commentator->{$avatarColumn} ?? null;
+        @endphp
+        @if ($avatarPath)
+            <img src="{{ asset('storage/' . $avatarPath) }}" alt="{{ $comment->commentator->name }}" class="h-10 w-10 rounded-full">
         @else
             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
                 <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -23,7 +27,7 @@
             </div>
 
             @if (auth()->id() === $comment->user_id)
-                <div class="flex items-center gap-2  group-hover:opacity-100 transition-opacity duration-200 comment-actions">
+                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 comment-actions">
                     <button
                         wire:click="edit"
                         class="text-xs text-gray-400 hover:text-blue-600 dark:text-gray-500 dark:hover:text-blue-400"

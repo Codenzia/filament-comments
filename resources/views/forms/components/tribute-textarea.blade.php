@@ -7,38 +7,16 @@
         const statePath = '{{ $getStatePath() }}';
         const mentionables = @json($getMentionables());
 
-        function findEditor() {
-            console.log('🔍 Searching for editor with state path:', statePath);
-
-            // Try different selectors with detailed logging
-            const selectors = [
-                '[data-state-path="' + statePath + '"] .ProseMirror',
-                '[data-state-path="' + statePath + '"] .tiptap.ProseMirror',
-                '[data-state-path="' + statePath + '"] .tiptap',
-                '[data-state-path="' + statePath + '"] [contenteditable="true"]',
-                '.ProseMirror[contenteditable="true"]',
-                '.tiptap.ProseMirror',
-            ];
-
-            for (let selector of selectors) {
-                const editor = document.querySelector(selector);
-                if (editor) {
-                    console.log('✅ Found editor using selector:', selector);
-                    return editor;
-                }
-                console.log('❌ No match for selector:', selector);
-            }
-
-            console.error('❌ Editor element not found with any selector');
-            console.log('Available elements with data-state-path:', document.querySelectorAll('[data-state-path]'));
-            console.log('Available contenteditable elements:', document.querySelectorAll('[contenteditable="true"]'));
-            return null;
+        function findAllEditors() {
+            // Find ALL contenteditable editors (including reply/edit forms)
+            const editors = document.querySelectorAll('.ProseMirror[contenteditable="true"]');
+            console.log('🔍 Found ' + editors.length + ' editor(s)');
+            return editors;
         }
 
         function attachTribute(editor) {
             // Check if tribute is already attached
             if (editor.tribute) {
-                console.log('⚠️ Tribute already attached, skipping...');
                 return;
             }
 
@@ -81,25 +59,32 @@
                 document.head.appendChild(style);
             }
 
-            console.log('✅ Tribute attached successfully!');
+            console.log('✅ Tribute attached to editor');
         }
 
-        function initializeTribute() {
+        function initializeAllTributes() {
             setTimeout(() => {
-                const editor = findEditor();
-                if (editor) {
+                const editors = findAllEditors();
+                editors.forEach(editor => {
                     attachTribute(editor);
-                }
+                });
             }, 500);
         }
 
-        // Use MutationObserver to watch for editor appearance
-        function observeEditor() {
+        // Use MutationObserver to watch for ALL new editors
+        function observeEditors() {
             const observer = new MutationObserver((mutations) => {
-                const editor = findEditor();
-                if (editor && !editor.tribute) {
-                    console.log('🎯 Editor detected via MutationObserver');
-                    attachTribute(editor);
+                // Find any new editors that don't have tribute yet
+                const editors = findAllEditors();
+                let attached = 0;
+                editors.forEach(editor => {
+                    if (!editor.tribute) {
+                        attachTribute(editor);
+                        attached++;
+                    }
+                });
+                if (attached > 0) {
+                    console.log('🎯 Attached tribute to ' + attached + ' new editor(s)');
                 }
             });
 
@@ -108,26 +93,28 @@
                 subtree: true
             });
 
-            // Stop observing after 30 seconds
-            setTimeout(() => observer.disconnect(), 30000);
+            // Don't disconnect - keep watching for new editors
+            console.log('👀 Watching for new editors...');
         }
 
         // Initialize on various Livewire events
         document.addEventListener('livewire:initialized', () => {
             console.log('🚀 Livewire initialized');
-            initializeTribute();
-            observeEditor();
+            initializeAllTributes();
+            observeEditors();
         });
 
         document.addEventListener('livewire:navigated', () => {
             console.log('🚀 Livewire navigated');
-            initializeTribute();
+            initializeAllTributes();
         });
 
         // Also listen for Livewire component updates
         if (typeof Livewire !== 'undefined') {
             Livewire.hook('commit', () => {
-                initializeTribute();
+                setTimeout(() => {
+                    initializeAllTributes();
+                }, 200);
             });
         }
     })();

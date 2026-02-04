@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        $tableName = config('codenzia-comments.channels_table_name', 'comment_channels');
+
+        Schema::create($tableName, function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->boolean('is_default')->default(false);
+            $table->json('permissions')->nullable();
+            $table->timestamps();
+        });
+
+        \Illuminate\Support\Facades\DB::table($tableName)->insert([
+            'name' => 'General',
+            'slug' => 'general',
+            'description' => 'General discussion channel',
+            'is_default' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function down()
+    {
+        $tableName = config('codenzia-comments.channels_table_name', 'comment_channels');
+
+        Schema::dropIfExists($tableName);
+    }
+};

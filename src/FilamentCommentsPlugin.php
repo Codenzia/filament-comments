@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments;
 
+use Codenzia\FilamentComments\Filament\Resources;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
@@ -14,7 +15,8 @@ class FilamentCommentsPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        //
+        $panel
+            ->discoverResources(in: __DIR__ . '/Filament/Resources', for: 'Codenzia\\FilamentComments\\Filament\\Resources');
     }
 
     public function boot(Panel $panel): void

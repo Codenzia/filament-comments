@@ -15,6 +15,7 @@ class Comment extends Model
     protected $fillable = [
         'comment',
         'user_id',
+        'channel_id',
         'is_approved',
         'parent_id',
     ];
@@ -22,6 +23,11 @@ class Comment extends Model
     protected $casts = [
         'is_approved' => 'boolean',
     ];
+
+    public function channel()
+    {
+        return $this->belongsTo(CommentChannel::class, 'channel_id');
+    }
 
     public function getTable()
     {

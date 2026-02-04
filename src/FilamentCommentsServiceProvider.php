@@ -2,7 +2,7 @@
 
 namespace Codenzia\FilamentComments;
 
-use Codenzia\FilamentComments\Commands\FilamentCommentsCommand;
+use Codenzia\FilamentComments\Commands\InstallCommand;
 use Codenzia\FilamentComments\Livewire\CommentItem;
 use Codenzia\FilamentComments\Livewire\CommentsComponent;
 use Codenzia\FilamentComments\Testing\TestsFilamentComments;
@@ -15,7 +15,6 @@ use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
-use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -33,14 +32,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package->name(static::$name)
-            ->hasCommands($this->getCommands())
-            ->hasInstallCommand(function (InstallCommand $command) {
-                $command
-                    ->publishConfigFile()
-                    ->publishMigrations()
-                    ->askToRunMigrations()
-                    ->askToStarRepoOnGitHub('codenzia/codenzia-comments');
-            });
+            ->hasCommands($this->getCommands());
 
         $configFileName = $package->shortName();
 
@@ -128,7 +120,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            FilamentCommentsCommand::class,
+            InstallCommand::class,
         ];
     }
 
@@ -162,6 +154,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
+            'create_codenzia_comments_channels_table',
             'create_codenzia_comments_table',
             'create_codenzia_comments_reactions_table',
         ];

@@ -17,6 +17,17 @@ return [
      * The table name to use for the comment reactions.
      */
     'reactions_table_name' => 'comments_reactions',
+
+    /*
+     * The table name to use for the comment channels.
+     */
+    'channels_table_name' => 'comment_channels',
+
+    /**
+     * The navigation group name for the Filament resource.
+     */
+    'navigation_group' => 'Group Discussions',
+
     'mentionable' => [
         'model' => \App\Models\User::class,
         'column' => [

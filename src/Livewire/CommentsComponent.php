@@ -5,6 +5,7 @@ namespace Codenzia\FilamentComments\Livewire;
 use Codenzia\FilamentComments\Events\UserMentioned;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Codenzia\FilamentComments\Models\Comment;
+use Codenzia\FilamentComments\Models\CommentChannel;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -30,11 +31,17 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public array $mentionables = [];
 
+    public ?int $activeChannelId = null;
+
     protected $listeners = ['commentDeleted' => '$refresh', 'reactionUpdated' => '$refresh'];
 
     public function mount(Model $record, array $mentionables = []): void
     {
         $this->record = $record;
+        
+        $availableChannels = $this->getAvailableChannels();
+        $this->activeChannelId = $availableChannels->where('is_default', true)->first()?->id 
+            ?? $availableChannels->first()?->id;
 
         if (empty($mentionables)) {
             $userModel = config('codenzia-comments.mentionable.model');
@@ -92,6 +99,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $comment = $this->record->comments()->create([
             'comment' => $data['comment'],
             'user_id' => auth()->id(),
+            'channel_id' => $this->activeChannelId,
         ]);
 
         // Detect mentions in the comment and send notifications
@@ -163,14 +171,47 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return 'https://ui-avatars.com/api/?name=' . urlencode($name ?? 'User') . '&color=FFFFFF&background=' . $panelColor;
     }
 
+    public function setActiveChannel(int $id): void
+    {
+        $this->activeChannelId = $id;
+    }
+
+    public function getAvailableChannels()
+    {
+        return CommentChannel::all()->filter(function ($channel) {
+            if (empty($channel->permissions)) {
+                return true;
+            }
+
+            foreach ($channel->permissions as $permission) {
+                if (auth()->user()?->can($permission)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+
     public function render(): View
     {
+        $availableChannels = $this->getAvailableChannels();
+
+        if ($this->activeChannelId && ! $availableChannels->pluck('id')->contains($this->activeChannelId)) {
+            $this->activeChannelId = $availableChannels->first()?->id;
+        }
+
+        $query = $this->record->comments()
+            ->whereNull('parent_id')
+            ->with(['commentator', 'replies.commentator', 'reactions', 'replies.reactions']);
+
+        if ($this->activeChannelId) {
+            $query->where('channel_id', $this->activeChannelId);
+        }
+
         return view('codenzia-comments::livewire.comments', [
-            'comments' => $this->record->comments()
-                ->whereNull('parent_id')
-                ->with(['commentator', 'replies.commentator', 'reactions', 'replies.reactions'])
-                ->latest()
-                ->get(),
+            'comments' => $query->latest()->get(),
+            'channels' => $availableChannels,
         ]);
     }
 }

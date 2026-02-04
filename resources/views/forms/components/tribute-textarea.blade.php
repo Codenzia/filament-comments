@@ -8,15 +8,16 @@
         const mentionables = @json($getMentionables());
 
         function findAllEditors() {
-            // Find ALL contenteditable editors (including reply/edit forms)
-            const editors = document.querySelectorAll('.ProseMirror[contenteditable="true"]');
-            console.log('🔍 Found ' + editors.length + ' editor(s)');
-            return editors;
+            return document.querySelectorAll('.ProseMirror[contenteditable="true"]');
         }
 
         function attachTribute(editor) {
-            // Check if tribute is already attached
             if (editor.tribute) {
+                return;
+            }
+
+            if (typeof Tribute === 'undefined') {
+                console.error('Tribute Debug: Tribute library is not loaded!');
                 return;
             }
 
@@ -24,26 +25,72 @@
             const editorHeight = {{ config('codenzia-comments.editor.height', 100) }};
             editor.style.minHeight = editorHeight + 'px';
 
+            let lastNonEmptySearch = '';
+
             const tribute = new Tribute({
-                values: mentionables,
-                selectTemplate: function(item) {
-                    if (typeof item === "undefined") return null;
-                    return '<a href="' + (item.original.link || '#') + '" class="tribute-mention" style="color: #f59e1b; font-weight: bold;">@' + item.original.key + '</a>';
-                },
-                menuItemTemplate: function(item) {
-                    return `
-                        <div style="display:flex;align-items:center;padding:8px 12px;">
-                            <img src="${item.original.avatar}" style="width:32px;height:32px;border-radius:50%;margin-right:12px;object-fit:cover;vertical-align:middle;">
-                            <div style="display:flex;flex-direction:column;">
-                                <span style="font-weight:600;color:#f59e1b;">${item.original.key}</span>
-                                <span style="font-size:14px;color:#bdbdbd;">@${item.original.value}</span>
+                collection: [{
+                    trigger: '@',
+                    lookup: 'key',
+                    fillAttr: 'key',
+                    allowSpaces: false,
+                    menuShowMinLength: 0,
+                    values: function (text, cb) {
+                        const search = (text || '').toLowerCase();
+                        console.log('Tribute Debug: Searching for:', search);
+                        console.log('Tribute Debug: Last non-empty:', lastNonEmptySearch);
+
+                        if (!search) {
+                            if (lastNonEmptySearch.length > 0) {
+                                // Ignore empty search after typing
+                                console.log('Tribute Debug: Ignoring empty search');
+                                return;
+                            }
+                            cb(mentionables);
+                            console.log('Tribute Debug: No search, returning all mentionables');
+                        } else {
+                            lastNonEmptySearch = search;
+                            const filtered = mentionables.filter(item =>
+                                item.key.toLowerCase().includes(search)
+                            );
+                            cb(filtered);
+                            console.log('Tribute Debug: Filtered:', filtered);
+                        }
+                    },
+                    selectTemplate: function(item) {
+                        if (typeof item === "undefined" || !item) return null;
+                        const link = item.original.link || '#';
+                        lastNonEmptySearch = '';
+                        return '<a href="' + link + '" class="tribute-mention" style="color: #f59e1b; font-weight: bold;">@' + item.original.key + '</a>&nbsp;';
+                    },
+                    menuItemTemplate: function(item) {
+                        return `
+                            <div style="display:flex;align-items:center;padding:8px 12px;">
+                                <img src="${item.original.avatar}" style="width:32px;height:32px;border-radius:50%;margin-right:12px;object-fit:cover;vertical-align:middle;">
+                                <div style="display:flex;flex-direction:column;">
+                                    <span style="font-weight:600;color:#f59e1b;">${item.original.key}</span>
+                                    <span style="font-size:14px;color:#bdbdbd;">@${item.original.key}</span>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                },
-                menuShowMinLength: 1
+                        `;
+                    },
+                }]
             });
+
             tribute.attach(editor);
+            editor.tribute = tribute;
+
+            editor.addEventListener('tribute-replaced', function (e) {
+                lastNonEmptySearch = '';
+                tribute.hideMenu();
+
+                // Filament v4 uses different event system
+                const event = new Event('input', { bubbles: true });
+                editor.dispatchEvent(event);
+
+                // Also trigger change for Livewire
+                const changeEvent = new Event('change', { bubbles: true });
+                editor.dispatchEvent(changeEvent);
+            });
 
             // Add custom highlight style only once
             if (!document.getElementById('tribute-custom-style')) {
@@ -55,68 +102,69 @@
                         color: #fff !important;
                         border-radius: 12px !important;
                     }
+                    .tribute-container {
+                        z-index: 999999 !important;
+                    }
                 `;
                 document.head.appendChild(style);
             }
-
-            console.log('✅ Tribute attached to editor');
         }
 
         function initializeAllTributes() {
-            setTimeout(() => {
-                const editors = findAllEditors();
-                editors.forEach(editor => {
+            const editors = findAllEditors();
+            editors.forEach(editor => {
+                if (!editor.tribute) {
                     attachTribute(editor);
-                });
-            }, 500);
+                }
+            });
         }
 
         // Use MutationObserver to watch for ALL new editors
         function observeEditors() {
             const observer = new MutationObserver((mutations) => {
-                // Find any new editors that don't have tribute yet
-                const editors = findAllEditors();
-                let attached = 0;
-                editors.forEach(editor => {
-                    if (!editor.tribute) {
-                        attachTribute(editor);
-                        attached++;
-                    }
-                });
-                if (attached > 0) {
-                    console.log('🎯 Attached tribute to ' + attached + ' new editor(s)');
-                }
+                initializeAllTributes();
             });
 
             observer.observe(document.body, {
                 childList: true,
                 subtree: true
             });
-
-            // Don't disconnect - keep watching for new editors
-            console.log('👀 Watching for new editors...');
         }
 
-        // Initialize on various Livewire events
-        document.addEventListener('livewire:initialized', () => {
-            console.log('🚀 Livewire initialized');
+        // Filament v4 initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial setup
             initializeAllTributes();
             observeEditors();
         });
 
-        document.addEventListener('livewire:navigated', () => {
-            console.log('🚀 Livewire navigated');
-            initializeAllTributes();
+        // Livewire v3 (used in Filament v4) hooks
+        document.addEventListener('livewire:navigated', function() {
+            setTimeout(() => {
+                initializeAllTributes();
+            }, 100);
         });
 
-        // Also listen for Livewire component updates
-        if (typeof Livewire !== 'undefined') {
-            Livewire.hook('commit', () => {
+        document.addEventListener('livewire:init', function() {
+            Livewire.hook('morph.updated', ({ el, component }) => {
                 setTimeout(() => {
                     initializeAllTributes();
-                }, 200);
+                }, 100);
             });
-        }
+
+            Livewire.hook('commit', ({ component, commit, respond }) => {
+                setTimeout(() => {
+                    initializeAllTributes();
+                }, 100);
+            });
+        });
+
+        // Alpine.js compatibility
+        document.addEventListener('alpine:init', function() {
+            setTimeout(() => {
+                initializeAllTributes();
+            }, 100);
+        });
     })();
 </script>
 @endpush

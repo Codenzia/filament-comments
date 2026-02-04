@@ -112,8 +112,8 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     {
         return [
             // Tribute.js from CDN
-            Css::make('tributejs-styles', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.3.2/tribute.min.css'),
-            Js::make('tributejs-scripts', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.3.2/tribute.min.js'),
+            Css::make('tributejs-styles', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.7.0/tribute.css'),
+            Js::make('tributejs-scripts', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.7.0/tribute.min.js'),
 
             // Package assets
             Css::make('codenzia-comments-styles', __DIR__ . '/../resources/dist/codenzia-comments.css'),

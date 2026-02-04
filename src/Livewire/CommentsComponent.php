@@ -35,19 +35,38 @@ class CommentsComponent extends Component implements HasActions, HasForms
     public function mount(Model $record, array $mentionables = []): void
     {
         $this->record = $record;
+
+        if (empty($mentionables)) {
+            $userModel = config('codenzia-comments.mentionable.model');
+            if ($userModel && class_exists($userModel)) {
+                $mentionables = $userModel::all();
+            }
+        }
+
         $labelColumn = config('codenzia-comments.mentionable.column.label', 'name');
         $emailColumn = config('codenzia-comments.mentionable.column.email', 'email');
         $avatarColumn = config('codenzia-comments.mentionable.column.avatar', 'avatar');
+        $idColumn = config('codenzia-comments.mentionable.column.id', 'id');
 
-        $this->mentionables = collect($mentionables)->map(function ($user) use ($labelColumn, $emailColumn, $avatarColumn) {
+        $this->mentionables = collect($mentionables)->map(function ($user) use ($labelColumn, $emailColumn, $avatarColumn, $idColumn) {
             $name = is_array($user) ? Arr::get($user, $labelColumn) : ($user->{$labelColumn} ?? null);
             $email = is_array($user) ? Arr::get($user, $emailColumn) : ($user->{$emailColumn} ?? null);
             $avatarPath = is_array($user) ? Arr::get($user, $avatarColumn) : ($user->{$avatarColumn} ?? null);
+            $id = is_array($user) ? Arr::get($user, $idColumn) : ($user->{$idColumn} ?? null);
 
             // Get full avatar URL or generate UI Avatars URL
             $avatar = $this->getAvatarUrl($avatarPath, $name);
 
-            return ['key' => $name, 'value' => $name, 'avatar' => $avatar];
+            $urlPattern = config('codenzia-comments.mentionable.url', 'admin/users/{id}');
+            $link = str_replace('{id}', $id, $urlPattern);
+
+            return [
+                'id' => $id,
+                'key' => $name,
+                'value' => $name,
+                'avatar' => $avatar,
+                'link' => url($link),
+            ];
         })->toArray();
         $this->form->fill();
     }

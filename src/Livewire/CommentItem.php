@@ -46,11 +46,7 @@ class CommentItem extends Component implements HasActions, HasForms
         $this->editForm->fill([
             'comment' => $this->comment->comment,
         ]);
-        $this->mentionables = collect($mentionables)->map(function ($user) {
-            $name = is_array($user) ? Arr::get($user, 'name') : $user->name;
-
-            return ['key' => $name, 'value' => $name];
-        })->toArray();
+        $this->mentionables = $mentionables;
         // Ensure reactions are loaded
         $this->comment->load('reactions');
     }

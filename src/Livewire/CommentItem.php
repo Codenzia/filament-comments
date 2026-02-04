@@ -13,7 +13,6 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Arr;
 use Livewire\Component;
 
 class CommentItem extends Component implements HasActions, HasForms

@@ -2,8 +2,6 @@
 
 namespace Codenzia\FilamentComments\Traits;
 
-use Codenzia\FilamentComments\Helpers\Helper;
-
 trait HasMentionable
 {
     public function getMentionableItems(?string $searchKey): array

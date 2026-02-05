@@ -38,11 +38,11 @@ class CommentsComponent extends Component implements HasActions, HasForms
     public function mount(Model $record, array $mentionables = [], ?int $activeChannelId = null): void
     {
         $this->record = $record;
-        
+
         $availableChannels = $this->getAvailableChannels();
-        
-        $this->activeChannelId = $activeChannelId 
-            ?? $availableChannels->where('is_default', true)->first()?->id 
+
+        $this->activeChannelId = $activeChannelId
+            ?? $availableChannels->where('is_default', true)->first()?->id
             ?? $availableChannels->first()?->id;
 
         if (empty($mentionables)) {

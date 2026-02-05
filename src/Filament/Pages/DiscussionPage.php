@@ -4,13 +4,13 @@ namespace Codenzia\FilamentComments\Filament\Pages;
 
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Navigation\NavigationItem;
-use Filament\Panel;
 use Filament\Pages\Page;
+use Filament\Panel;
 use Illuminate\Contracts\Support\Htmlable;
 
 class DiscussionPage extends Page
 {
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-hashtag';
+    protected static \BackedEnum | string | null $navigationIcon = 'heroicon-o-hashtag';
 
     protected string $view = 'codenzia-comments::filament.pages.discussion-page';
 
@@ -25,7 +25,7 @@ class DiscussionPage extends Page
 
     public static function getRoutePath(Panel $panel): string
     {
-        return '/'.static::getSlug($panel).'/{record}';
+        return '/' . static::getSlug($panel) . '/{record}';
     }
 
     public static function getNavigationItems(): array

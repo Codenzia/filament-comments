@@ -30,7 +30,7 @@ class FilamentCommentsPlugin implements Plugin
     {
         $panel->navigationItems($this->getNavigationItems());
 
-        // Explicitly register the parameterized route for DiscussionPage if needed, 
+        // Explicitly register the parameterized route for DiscussionPage if needed,
         // though Filament usually handles this via getRoutePart if it were a resource.
         // For standalone pages with parameters, we often need to ensure the route exists.
     }

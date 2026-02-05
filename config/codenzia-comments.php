@@ -26,7 +26,7 @@ return [
     /**
      * The navigation group name for the Filament resource.
      */
-    'navigation_group' => 'Group Discussions',
+    'navigation_group' => 'Channels',
 
     'mentionable' => [
         'model' => \App\Models\User::class,

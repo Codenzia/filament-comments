@@ -32,6 +32,8 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
 
     protected string $view = 'codenzia-comments::filament.pages.manage-channels-page';
 
+    protected static ?string $slug = 'manage-channels';
+
     protected static ?string $navigationLabel = 'Manage Channels';
 
     protected static bool $shouldRegisterNavigation = false;
@@ -46,7 +48,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
         return $table
             ->query(CommentChannel::query())
             ->columns([
-                TextColumn::make('name')->searchable(),
+                TextColumn::make('name'),
                 TextColumn::make('slug'),
                 IconColumn::make('is_default')->boolean()->label('Default'),
             ])

@@ -3,9 +3,10 @@
 namespace Codenzia\FilamentComments\Filament\Pages;
 
 use Codenzia\FilamentComments\Models\CommentChannel;
+use Filament\Navigation\NavigationItem;
+use Filament\Panel;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
-use Filament\Navigation\NavigationItem;
 
 class DiscussionPage extends Page
 {
@@ -15,7 +16,17 @@ class DiscussionPage extends Page
 
     protected static bool $shouldRegisterNavigation = false;
 
-    public CommentChannel $record;
+    /** Route parameter from URL – do not use for the model. */
+    public int | string | null $record = null;
+
+    public ?CommentChannel $channel = null;
+
+    protected static ?string $slug = 'discussion-page';
+
+    public static function getRoutePath(Panel $panel): string
+    {
+        return '/'.static::getSlug($panel).'/{record}';
+    }
 
     public static function getNavigationItems(): array
     {
@@ -26,8 +37,8 @@ class DiscussionPage extends Page
         $items[] = NavigationItem::make('Manage Channels')
             ->group($group)
             ->icon('heroicon-o-cog-6-tooth')
-            ->url(static::getUrl('index'))
-            ->isActiveWhen(fn () => request()->routeIs(static::getRouteBaseName() . '.index') || request()->routeIs(static::getRouteBaseName() . '.create') || request()->routeIs(static::getRouteBaseName() . '.edit'));
+            ->url(ManageChannelsPage::getUrl())
+            ->isActiveWhen(fn () => request()->routeIs(ManageChannelsPage::getRouteName()));
 
         try {
             // Fetch channels to list them in navigation
@@ -37,8 +48,8 @@ class DiscussionPage extends Page
                 $items[] = NavigationItem::make($channel->name)
                     ->group($group)
                     ->icon('heroicon-o-hashtag')
-                    ->url(static::getUrl('view-comments', ['record' => $channel]))
-                    ->isActiveWhen(fn () => request()->routeIs(static::getRouteBaseName() . '.view-comments') && request()->route('record') == $channel->id);
+                    ->url(static::getUrl(['record' => $channel->id]))
+                    ->isActiveWhen(fn () => request()->routeIs(static::getRouteName()) && (string) request()->route('record') === (string) $channel->id);
             }
         } catch (\Exception $e) {
             // Fallback if table doesn't exist
@@ -47,18 +58,21 @@ class DiscussionPage extends Page
         return $items;
     }
 
-    public function mount(int | string $record): void
+    public function mount(int | string | null $record = null): void
     {
-        $this->record = CommentChannel::findOrFail($record);
+        if ($record === null) {
+            abort(404);
+        }
+        $this->channel = CommentChannel::findOrFail($record);
     }
 
     public function getTitle(): string | Htmlable
     {
-        return $this->record->name;
+        return $this->channel?->name ?? '';
     }
 
     public function getHeading(): string | Htmlable
     {
-        return $this->record->name;
+        return $this->channel?->name ?? '';
     }
 }

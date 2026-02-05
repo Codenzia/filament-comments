@@ -12,7 +12,7 @@ return new class extends Migration
 
         Schema::create($tableName, function (Blueprint $table) use ($tableName) {
             $table->id();
-            $table->morphs('commentable');
+            $table->nullableMorphs('commentable');
             $table->text('comment');
             $table->boolean('is_approved')->default(false);
             $table->unsignedBigInteger('user_id')->nullable();

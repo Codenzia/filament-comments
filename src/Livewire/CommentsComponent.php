@@ -35,12 +35,14 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     protected $listeners = ['commentDeleted' => '$refresh', 'reactionUpdated' => '$refresh'];
 
-    public function mount(Model $record, array $mentionables = []): void
+    public function mount(Model $record, array $mentionables = [], ?int $activeChannelId = null): void
     {
         $this->record = $record;
         
         $availableChannels = $this->getAvailableChannels();
-        $this->activeChannelId = $availableChannels->where('is_default', true)->first()?->id 
+        
+        $this->activeChannelId = $activeChannelId 
+            ?? $availableChannels->where('is_default', true)->first()?->id 
             ?? $availableChannels->first()?->id;
 
         if (empty($mentionables)) {

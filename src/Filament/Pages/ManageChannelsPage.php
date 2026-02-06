@@ -3,19 +3,17 @@
 namespace Codenzia\FilamentComments\Filament\Pages;
 
 use Codenzia\FilamentComments\Models\CommentChannel;
-use Filament\Schemas\Components\Section;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Actions\EditAction;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
+use Filament\Schemas\Components\Section;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -28,7 +26,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static \BackedEnum | string | null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected string $view = 'codenzia-comments::filament.pages.manage-channels-page';
 

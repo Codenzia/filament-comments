@@ -9,12 +9,10 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -54,7 +52,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                     ->slideOver()
                     ->form($this->getChannelFormSchema())
                     ->using(fn (CommentChannel $record, array $data) => $record->update($data)),
-                DeleteAction::make()
+                DeleteAction::make(),
             ])
             ->headerActions([
                 CreateAction::make()

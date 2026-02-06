@@ -10,24 +10,16 @@ class CommentChannel extends Model
         'name',
         'slug',
         'description',
-        'is_default',
         'permissions',
     ];
 
     protected $casts = [
-        'is_default' => 'boolean',
         'permissions' => 'array',
     ];
 
     public static function boot()
     {
         parent::boot();
-
-        static::deleting(function ($channel) {
-            if ($channel->is_default) {
-                return false;
-            }
-        });
     }
 
     public function getTable()

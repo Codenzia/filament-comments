@@ -15,8 +15,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->boolean('is_default')->default(false);
-            $table->json('permissions')->nullable();
             $table->timestamps();
         });
 
@@ -24,7 +22,6 @@ return new class extends Migration
             'name' => 'General',
             'slug' => 'general',
             'description' => 'General discussion channel',
-            'is_default' => true,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

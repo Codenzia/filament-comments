@@ -50,17 +50,18 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
             ->columns([
                 TextColumn::make('name'),
                 TextColumn::make('slug'),
-                IconColumn::make('is_default')->boolean()->label('Default'),
             ])
             ->actions([
                 EditAction::make()
+                    ->slideOver()
                     ->form($this->getChannelFormSchema())
                     ->using(fn (CommentChannel $record, array $data) => $record->update($data)),
                 DeleteAction::make()
-                    ->hidden(fn (CommentChannel $record) => $record->is_default),
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->slideOver()
+                    ->label('Create Channel')
                     ->form($this->getChannelFormSchema())
                     ->using(fn (array $data) => CommentChannel::create($data)),
             ]);
@@ -78,7 +79,6 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                     ->required()
                     ->unique(CommentChannel::class, 'slug', ignoreRecord: true),
                 Textarea::make('description')->columnSpanFull(),
-                Toggle::make('is_default')->label('Default Channel'),
                 TagsInput::make('permissions')
                     ->placeholder('Add roles/permissions'),
             ])->columns(2),

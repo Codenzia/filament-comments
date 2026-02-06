@@ -1,4 +1,4 @@
-<div class="flex gap-3 group">
+<div class="flex gap-3 group comment-item">
     <div class="flex-shrink-0">
         @php
             $avatarColumn = config('codenzia-comments.mentionable.column.avatar', 'avatar_url');

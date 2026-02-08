@@ -3,7 +3,10 @@
 return [
     'comments' => 'التعليقات',
     'comments.add' => 'إضافة تعليق',
-    'comments.empty' => 'لا توجد تعليقات بعد.',
+    'comments.empty' => 'كن أول من يبدأ المحادثة.',
+    'comments.empty_title' => 'لا توجد تعليقات بعد',
+    'comments.edited' => 'معدّل',
+    'comments.mention_hint' => 'اكتب @ للإشارة إلى شخص',
     'comments.placeholder' => 'أضف تعليقًا...',
     'comments.reply' => 'رد',
     'comments.reply_placeholder' => 'اكتب ردًا...',

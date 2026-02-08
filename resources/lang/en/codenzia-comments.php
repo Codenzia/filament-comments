@@ -3,7 +3,10 @@
 return [
     'comments' => 'Comments',
     'comments.add' => 'Add comment',
-    'comments.empty' => 'No comments yet.',
+    'comments.empty' => 'Be the first to start the conversation.',
+    'comments.empty_title' => 'No comments yet',
+    'comments.edited' => 'edited',
+    'comments.mention_hint' => 'Type @ to mention someone',
     'comments.placeholder' => 'Add a comment...',
     'comments.reply' => 'Reply',
     'comments.reply_placeholder' => 'Write a reply...',

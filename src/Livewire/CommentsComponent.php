@@ -170,6 +170,27 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return $channel->members()->where('user_id', auth()->id())->exists();
     }
 
+    public function joinChannel(): void
+    {
+        if (! $this->activeChannelId) {
+            return;
+        }
+
+        $channel = CommentChannel::find($this->activeChannelId);
+
+        if (! $channel) {
+            return;
+        }
+
+        $channel->members()->syncWithoutDetaching([auth()->id()]);
+
+        Notification::make()
+            ->title(__('Joined successfully'))
+            ->body(__('You are now a member of ' . $channel->name))
+            ->success()
+            ->send();
+    }
+
     public function delete(int $id): void
     {
         $comment = Comment::find($id);

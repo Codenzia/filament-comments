@@ -10,19 +10,25 @@ class CommentChannel extends Model
         'name',
         'slug',
         'description',
-        'permissions',
         'icon',
         'visibility',
         'project_id',
-    ];
-
-    protected $casts = [
-        'permissions' => 'array',
+        'created_by',
     ];
 
     public static function boot()
     {
         parent::boot();
+
+        static::creating(function ($channel) {
+            $channel->created_by = auth()->id();
+        });
+
+        static::created(function (CommentChannel $channel) {
+            if (auth()->check() && ! $channel->members()->where('users.id', auth()->id())->exists()) {
+                $channel->members()->attach(auth()->id());
+            }
+        });
     }
 
     public function getTable()
@@ -38,6 +44,7 @@ class CommentChannel extends Model
     public function members()
     {
         $userModel = config('codenzia-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userInstance = new $userModel;
 
         return $this->belongsToMany(
             $userModel,
@@ -45,5 +52,12 @@ class CommentChannel extends Model
             'channel_id',
             'user_id'
         )->withTimestamps();
+    }
+
+    public function project()
+    {
+        $projectModel = config('codenzia-comments.project_model', \App\Models\Project::class);
+
+        return $this->belongsTo($projectModel, 'project_id');
     }
 }

@@ -6,15 +6,14 @@ use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\Select;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -27,7 +26,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
-    protected static \BackedEnum | string | null $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected string $view = 'codenzia-comments::filament.pages.manage-channels-page';
 
@@ -47,27 +46,54 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
         return $table
             ->query(CommentChannel::query())
             ->columns([
+                IconColumn::make('icon')
+                    ->icon(fn (?string $state): string => $state ?: 'heroicon-o-hashtag')
+                    ->label('Icon'),
                 TextColumn::make('name'),
                 TextColumn::make('slug'),
             ])
             ->actions([
                 EditAction::make()
                     ->slideOver()
-                    ->form($this->getChannelFormSchema())
-                    ->using(fn (CommentChannel $record, array $data) => $record->update($data)),
-                DeleteAction::make()
+                    ->form(static::getChannelFormSchema())
+                    ->fillForm(fn (CommentChannel $record): array => [
+                        ...$record->toArray(),
+                        'members' => $record->members()->pluck('users.id')->toArray(),
+                    ])
+                    ->using(function (CommentChannel $record, array $data): void {
+                        $members = $data['members'] ?? [];
+                        unset($data['members']);
+                        $record->update($data);
+                        $record->members()->sync($members);
+                    }),
+                DeleteAction::make(),
             ])
             ->headerActions([
                 CreateAction::make()
                     ->slideOver()
                     ->label('Create Channel')
-                    ->form($this->getChannelFormSchema())
-                    ->using(fn (array $data) => CommentChannel::create($data)),
+                    ->form(static::getChannelFormSchema())
+                    ->using(function (array $data): CommentChannel {
+                        $members = collect($data['members'] ?? [])
+                            ->push(auth()->id())
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->toArray();
+                        unset($data['members']);
+                        $channel = CommentChannel::create($data);
+                        $channel->members()->sync($members);
+
+                        return $channel;
+                    }),
             ]);
     }
 
-    protected function getChannelFormSchema(): array
+    public static function getChannelFormSchema(): array
     {
+        $projectModel = config('codenzia-comments.project_model');
+        $userModel = config('codenzia-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+
         return [
             Section::make()->schema([
                 TextInput::make('name')
@@ -77,22 +103,49 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                 TextInput::make('slug')
                     ->required()
                     ->unique(CommentChannel::class, 'slug', ignoreRecord: true),
-                TextInput::make('icon'),
+                Select::make('icon')
+                    ->label('Icon')
+                    ->searchable()
+                    ->allowHtml()
+                    ->options(function (): array {
+                        return collect(Heroicon::cases())
+                            ->filter(fn (Heroicon $case): bool => str_starts_with($case->value, 'o-'))
+                            ->mapWithKeys(function (Heroicon $case): array {
+                                $value = 'heroicon-'.$case->value;
+                                $label = str($case->name)->after('Outlined')->headline()->toString();
+                                $svg = \Illuminate\Support\Facades\Blade::render(
+                                    '<x-filament::icon :icon="$icon" class="h-5 w-5" />',
+                                    ['icon' => $value],
+                                );
+
+                                return [$value => '<div class="flex items-center gap-2">'.$svg.'<span>'.e($label).'</span></div>'];
+                            })
+                            ->toArray();
+                    }),
                 Select::make('visibility')
                     ->options([
-                        'public' => 'Public',
-                        'private' => 'Private',
+                    'public' => 'Public',
+                    'private' => 'Private',
                     ])
                     ->default('public')
                     ->required(),
-                TextInput::make('project_id')
-                    ->numeric(),
+                Select::make('project_id')
+                    ->label('Project')
+                    ->options(fn () => $projectModel && class_exists($projectModel)
+                    ? $projectModel::query()->pluck('title', 'id')
+                    : [])
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn () => $projectModel && class_exists($projectModel)),
                 Textarea::make('description')->columnSpanFull(),
                 Select::make('members')
-                    ->relationship('members', 'name')
+                    ->options(fn () => $userModel && class_exists($userModel)
+                    ? $userModel::query()->pluck('name', 'id')
+                    : [])
                     ->multiple()
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->visible(fn () => $userModel && class_exists($userModel)),
             ])->columns(2),
         ];
     }

@@ -51,6 +51,11 @@ return [
      */
     'user_model' => null,
 
+    /*
+     * The project model that should be used for channel association.
+     */
+    'project_model' => \App\Models\Project::class,
+
     /**
      * Determines if replies will be deleted when comments are deleted
      */

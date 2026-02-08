@@ -45,9 +45,16 @@ class FilamentCommentsPlugin implements Plugin
             foreach ($channels as $channel) {
                 $items[] = NavigationItem::make($channel->name)
                     ->group($group)
-                    ->icon('heroicon-o-hashtag')
+                    ->icon($channel->icon ?: 'heroicon-o-hashtag')
                     ->url(DiscussionPage::getUrl(['record' => $channel->id]))
-                    ->isActiveWhen(fn () => request()->routeIs(DiscussionPage::getRouteName()) && request()->route('record') == $channel->id);
+                    ->isActiveWhen(fn () => request()->routeIs(DiscussionPage::getRouteName()) && request()->route('record') == $channel->id)
+                    ->visible(function () use ($channel): bool {
+                        if ($channel->visibility === 'public') {
+                            return true;
+                        }
+
+                        return $channel->members()->where('users.id', auth()->id())->exists();
+                    });
             }
         } catch (\Exception $e) {
             // Table might not exist yet

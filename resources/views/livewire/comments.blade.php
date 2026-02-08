@@ -3,9 +3,8 @@
     @if ($canPost)
         <div class="relative mb-6">
             {{ $this->form }}
-            <div class="mt-2 flex items-center justify-between">
+            <div class="mt-4 flex items-center justify-between">
                 <p class="text-xs text-gray-400 dark:text-gray-500">
-                    <x-filament::icon icon="heroicon-o-at-symbol" class="inline-block h-3.5 w-3.5 -mt-0.5" />
                     {{ 'Type @ to mention someone' }}
                 </p>
                 <x-filament::button

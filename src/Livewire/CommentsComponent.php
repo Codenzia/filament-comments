@@ -89,9 +89,23 @@ class CommentsComponent extends Component implements HasActions, HasForms
                     ->required()
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
+                    ->channelMentionables($this->getChannelMentionables())
                     ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('data');
+    }
+
+    protected function getChannelMentionables(): array
+    {
+        return $this->getAvailableChannels()->map(function ($channel) {
+            return [
+                'id' => $channel->id,
+                'key' => $channel->name,
+                'value' => $channel->name,
+                'slug' => $channel->slug,
+                'link' => \Codenzia\FilamentComments\Filament\Pages\DiscussionPage::getUrl(['record' => $channel->id]),
+            ];
+        })->toArray();
     }
 
     public function create(): void
@@ -214,6 +228,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return view('codenzia-comments::livewire.comments', [
             'comments' => $query->latest()->get(),
             'channels' => $availableChannels,
+            'channelMentionables' => $this->getChannelMentionables(),
         ]);
     }
 }

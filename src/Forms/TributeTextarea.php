@@ -13,6 +13,12 @@ class TributeTextarea extends RichEditor
 
     protected array | \Closure $mentionables = [];
 
+    protected array | \Closure $channelMentionables = [];
+
+    protected string | \Closure $triggerWith = '@';
+
+    protected string | \Closure $pluck = 'key';
+
     public function mentionables(array | \Closure $items): static
     {
         $this->mentionables = $items;
@@ -23,6 +29,42 @@ class TributeTextarea extends RichEditor
     public function getMentionables(): array
     {
         return $this->evaluate($this->mentionables);
+    }
+
+    public function channelMentionables(array | \Closure $items): static
+    {
+        $this->channelMentionables = $items;
+
+        return $this;
+    }
+
+    public function getChannelMentionables(): array
+    {
+        return $this->evaluate($this->channelMentionables);
+    }
+
+    public function triggerWith(string | \Closure $trigger): static
+    {
+        $this->triggerWith = $trigger;
+
+        return $this;
+    }
+
+    public function getTriggerWith(): string
+    {
+        return $this->evaluate($this->triggerWith);
+    }
+
+    public function pluck(string | \Closure $pluck): static
+    {
+        $this->pluck = $pluck;
+
+        return $this;
+    }
+
+    public function getPluck(): string
+    {
+        return $this->evaluate($this->pluck);
     }
 
     public function urlPattern(string $pattern): static

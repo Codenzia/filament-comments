@@ -217,6 +217,7 @@
                         :key="'reply-' . $reply->id"
                         :comment="$reply"
                         :mentionables="$mentionables"
+                        :channelMentionables="$channelMentionables"
                     />
                 @endforeach
             </div>

@@ -37,15 +37,18 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public array $mentionables = [];
 
+    public array $channelMentionables = [];
+
     protected $listeners = ['reactionUpdated' => '$refresh', 'commentDeleted' => '$refresh'];
 
-    public function mount(array $mentionables = []): void
+    public function mount(array $mentionables = [], array $channelMentionables = []): void
     {
         $this->replyForm->fill();
         $this->editForm->fill([
             'comment' => $this->comment->comment,
         ]);
         $this->mentionables = $mentionables;
+        $this->channelMentionables = $channelMentionables;
         // Ensure reactions are loaded
         $this->comment->load('reactions');
     }
@@ -57,9 +60,9 @@ class CommentItem extends Component implements HasActions, HasForms
                 TributeTextarea::make('comment')
                     ->hiddenLabel()
                     ->required()
-                    ->required()
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
+                    ->channelMentionables($this->channelMentionables)
                     ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('replyData');
@@ -74,6 +77,7 @@ class CommentItem extends Component implements HasActions, HasForms
                     ->required()
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
+                    ->channelMentionables($this->channelMentionables)
                     ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('editData');

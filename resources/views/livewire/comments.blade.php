@@ -16,6 +16,7 @@
                     :key="$comment->id"
                     :comment="$comment"
                     :mentionables="$mentionables"
+                    :channelMentionables="$channelMentionables"
                 />
             @endforeach
         </div>

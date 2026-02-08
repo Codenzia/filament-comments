@@ -6,7 +6,7 @@
     (function() {
         const statePath = '{{ $getStatePath() }}';
         const mentionables = @json($getMentionables());
-
+        const channelMentionables = @json($getChannelMentionables());
         function findAllEditors() {
             return document.querySelectorAll('.ProseMirror[contenteditable="true"]');
         }
@@ -28,39 +28,33 @@
             let lastNonEmptySearch = '';
 
             const tribute = new Tribute({
-                collection: [{
+                collection: [
+                    {
                     trigger: '@',
                     lookup: 'key',
                     fillAttr: 'key',
-                    allowSpaces: false,
+                    allowSpaces: true,
+                    requireLeadingSpace: false,
                     menuShowMinLength: 0,
                     values: function (text, cb) {
                         const search = (text || '').toLowerCase();
-                        console.log('Tribute Debug: Searching for:', search);
-                        console.log('Tribute Debug: Last non-empty:', lastNonEmptySearch);
-
                         if (!search) {
                             if (lastNonEmptySearch.length > 0) {
-                                // Ignore empty search after typing
-                                console.log('Tribute Debug: Ignoring empty search');
                                 return;
                             }
                             cb(mentionables);
-                            console.log('Tribute Debug: No search, returning all mentionables');
                         } else {
                             lastNonEmptySearch = search;
                             const filtered = mentionables.filter(item =>
                                 item.key.toLowerCase().includes(search)
                             );
                             cb(filtered);
-                            console.log('Tribute Debug: Filtered:', filtered);
                         }
                     },
                     selectTemplate: function(item) {
-                        if (typeof item === "undefined" || !item) return null;
-                        const link = item.original.link || '#';
+                        if (!item) return null;
                         lastNonEmptySearch = '';
-                        return '<a href="' + link + '" class="tribute-mention" style="color: #f59e1b; font-weight: bold;">@' + item.original.key + '</a>&nbsp;';
+                        return '@' + item.original.key + ' ';
                     },
                     menuItemTemplate: function(item) {
                         return `
@@ -73,7 +67,35 @@
                             </div>
                         `;
                     },
-                }]
+                },
+                {
+                        trigger: '#',
+                        lookup: 'key',
+                        fillAttr: 'key',
+                        values: channelMentionables,
+                        requireLeadingSpace: true,
+                        selectTemplate: function(item) {
+                            if (typeof item === "undefined") return null;
+                            if (this.range.isContentEditable(this.current.element)) {
+                                return (
+                                    '<span contenteditable="false"><a href="' + (item.original.link || '#') + '" class="tribute-channel" style="color: #f59e1b; font-weight: bold;">#' +
+                                    item.original.key +
+                                    "</a></span>&nbsp;"
+                                );
+                            }
+                            return "#" + item.original.key;
+                        },
+                        menuItemTemplate: function(item) {
+                            return `
+                                <div style="display:flex;align-items:center;padding:8px 12px;">
+                                    <div style="display:flex;flex-direction:column;">
+                                        <span style="font-weight:600;color:#f59e1b;"># ${item.original.key}</span>
+                                    </div>
+                                </div>
+                            `;
+                        },
+                    }
+            ]
             });
 
             tribute.attach(editor);
@@ -119,7 +141,6 @@
             });
         }
 
-        // Use MutationObserver to watch for ALL new editors
         function observeEditors() {
             const observer = new MutationObserver((mutations) => {
                 initializeAllTributes();
@@ -131,40 +152,11 @@
             });
         }
 
-        // Filament v4 initialization
         document.addEventListener('DOMContentLoaded', function() {
-            // Initial setup
             initializeAllTributes();
             observeEditors();
         });
 
-        // Livewire v3 (used in Filament v4) hooks
-        document.addEventListener('livewire:navigated', function() {
-            setTimeout(() => {
-                initializeAllTributes();
-            }, 100);
-        });
-
-        document.addEventListener('livewire:init', function() {
-            Livewire.hook('morph.updated', ({ el, component }) => {
-                setTimeout(() => {
-                    initializeAllTributes();
-                }, 100);
-            });
-
-            Livewire.hook('commit', ({ component, commit, respond }) => {
-                setTimeout(() => {
-                    initializeAllTributes();
-                }, 100);
-            });
-        });
-
-        // Alpine.js compatibility
-        document.addEventListener('alpine:init', function() {
-            setTimeout(() => {
-                initializeAllTributes();
-            }, 100);
-        });
     })();
 </script>
 @endpush

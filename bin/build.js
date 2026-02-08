@@ -46,5 +46,11 @@ const defaultOptions = {
 compile({
     ...defaultOptions,
     entryPoints: ['./resources/js/index.js'],
-    outfile: './resources/dist/filament-comments.js',
+    outfile: './resources/dist/codenzia-comments.js',
+})
+
+compile({
+    ...defaultOptions,
+    entryPoints: ['./resources/js/components/tribute-textarea.js'],
+    outfile: './resources/dist/js/tributejs.js',
 })

@@ -70,10 +70,12 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
             $this->getScriptData(),
             $this->getAssetPackageName()
         );
+
         FilamentAsset::register([
             AlpineComponent::make(id: 'codenzia-filament-comment', path: __DIR__ . '/../resources/dist/js/tributejs.js'),
-            Css::make(id: 'codenzia-filament-comment', path: __DIR__ . '/../resources/dist/css/codenzia-filament-comment.css')->loadedOnRequest(),
+            Css::make(id: 'codenzia-filament-comment-css', path: __DIR__ . '/../resources/dist/css/codenzia-filament-comment.css'),
         ], package: 'codenzia/filament-comments');
+
         // Icon Registration
         FilamentIcon::register($this->getIcons());
 
@@ -103,14 +105,9 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // Tribute.js from CDN
-            Css::make('tributejs-styles', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.7.0/tribute.css'),
-            Js::make('tributejs-scripts', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/3.7.0/tribute.min.js'),
-
             // Package assets
             Css::make('codenzia-comments-styles', __DIR__ . '/../resources/dist/codenzia-comments.css'),
             Js::make('codenzia-comments-scripts', __DIR__ . '/../resources/dist/codenzia-comments.js'),
-            // AlpineComponent::make('tribute-textarea', __DIR__ . '/../resources/dist/components/tribute-textarea.js'),
         ];
     }
 

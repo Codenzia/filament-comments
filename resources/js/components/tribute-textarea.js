@@ -1,57 +1,168 @@
-export default function tributeTextareaEditor({
-    statePath = null,
-    triggers = ['@'],
-    mentionableItems = [],
-    lookupKey = 'value',
-    fillKey = null,
-    menuShowMinLength = 1,
-    menuItemLimit = 10,
-    enableDynamicSearch = false,
-    getMentionResultUsing = null,
-    rootRef = 'editor',
-} = {}) {
+import Tribute from "tributejs";
+
+export default function tributeTextarea({
+    mentionables = [],
+    channelMentionables = [],
+    editorHeight = 100,
+}) {
     return {
+        _tribute: null,
+        _observer: null,
+        _editor: null,
+
         init() {
-            const root = this.$refs?.[rootRef] || (statePath ? document.getElementById(`${statePath}-content`) : null) || this.$el;
+            this.$nextTick(() => this._findAndAttach());
+        },
 
-            const attachTribute = () => {
-                const target = root?.querySelector?.('[contenteditable="true"]') || root;
-                if (!target || typeof Tribute === 'undefined') return false;
+        destroy() {
+            if (this._observer) {
+                this._observer.disconnect();
+                this._observer = null;
+            }
+            if (this._tribute && this._editor) {
+                try {
+                    this._tribute.detach(this._editor);
+                } catch (e) {}
+            }
+        },
 
-                const collections = (Array.isArray(triggers) ? triggers : [triggers]).map((t) => ({
-                    trigger: t,
-                    values: (text, cb) => {
-                        if (enableDynamicSearch && typeof getMentionResultUsing === 'function') {
-                            Promise.resolve(getMentionResultUsing(text, statePath)).then(cb);
+        _findAndAttach() {
+            const editor = this.$el.querySelector('.ProseMirror[contenteditable="true"]');
+            if (editor) {
+                this._attachTribute(editor);
+                return;
+            }
+
+            // ProseMirror may not be ready yet — observe until it appears
+            this._observer = new MutationObserver(() => {
+                const ed = this.$el.querySelector('.ProseMirror[contenteditable="true"]');
+                if (ed) {
+                    this._observer.disconnect();
+                    this._observer = null;
+                    this._attachTribute(ed);
+                }
+            });
+            this._observer.observe(this.$el, { childList: true, subtree: true });
+        },
+
+        _attachTribute(editor) {
+            if (editor._tributeAttached) return;
+
+            this._editor = editor;
+            editor.style.minHeight = editorHeight + 'px';
+
+            const collections = [];
+
+            // @ user mentions
+            if (mentionables.length > 0) {
+                collections.push({
+                    trigger: '@',
+                    lookup: 'key',
+                    fillAttr: 'key',
+                    allowSpaces: false,
+                    requireLeadingSpace: false,
+                    menuShowMinLength: 0,
+                    menuContainer: document.body,
+                    values: function (text, cb) {
+                        const search = (text || '').toLowerCase();
+                        if (!search) {
+                            cb(mentionables);
                         } else {
-                            const filtered = mentionableItems.filter((item) => {
-                                const v = (item?.[lookupKey] ?? '').toString().toLowerCase();
-                                return v.includes((text || '').toLowerCase());
-                            });
-                            cb(filtered);
+                            cb(mentionables.filter(function (item) {
+                                return item.key.toLowerCase().includes(search);
+                            }));
                         }
                     },
-                    lookup: lookupKey,
-                    fillAttr: fillKey || lookupKey,
-                    menuShowMinLength,
-                    menuItemLimit,
-                }));
-
-                const tribute = new Tribute({ collection: collections });
-                tribute.attach(target);
-
-                target.addEventListener('tribute-replaced', () => {
-                    target.dispatchEvent(new Event('input', { bubbles: true }));
+                    selectTemplate: function (item) {
+                        if (typeof item === 'undefined' || !item) return null;
+                        const key = item.original.key;
+                        const link = item.original.link || '#';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-mention" style="color:#f59e1b;font-weight:bold;">@' + key + '</a></span>\u00A0';
+                    },
+                    menuItemTemplate: function (item) {
+                        var avatar = item.original.avatar
+                            ? '<img src="' + item.original.avatar + '" class="mention-item__avatar" alt="' + item.original.key + '"/>'
+                            : '';
+                        return '<div class="mention-item">' +
+                            avatar +
+                            '<div class="mention-item__info">' +
+                            '<div class="mention-item__info-label">' + item.original.key + '</div>' +
+                            '<div class="mention-item__info-hint">@' + item.original.key + '</div>' +
+                            '</div></div>';
+                    },
+                    noMatchTemplate: function () {
+                        return '<span class="no-match">No users found</span>';
+                    },
                 });
+            }
 
-                return true;
-            };
+            // # channel mentions
+            if (channelMentionables.length > 0) {
+                collections.push({
+                    trigger: '#',
+                    lookup: 'key',
+                    fillAttr: 'key',
+                    allowSpaces: false,
+                    requireLeadingSpace: true,
+                    menuContainer: document.body,
+                    values: channelMentionables,
+                    selectTemplate: function (item) {
+                        if (typeof item === 'undefined' || !item) return null;
+                        var key = item.original.key;
+                        var link = item.original.link || '#';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-channel" style="color:#f59e1b;font-weight:bold;">#' + key + '</a></span>\u00A0';
+                    },
+                    menuItemTemplate: function (item) {
+                        return '<div class="mention-item">' +
+                            '<div class="mention-item__info">' +
+                            '<div class="mention-item__info-label"># ' + item.original.key + '</div>' +
+                            '</div></div>';
+                    },
+                    noMatchTemplate: function () {
+                        return '<span class="no-match">No channels found</span>';
+                    },
+                });
+            }
 
-            let tries = 0;
-            const interval = setInterval(() => {
-                tries++;
-                if (attachTribute() || tries >= 20) clearInterval(interval);
-            }, 150);
+            if (collections.length === 0) return;
+
+            var tribute = new Tribute({ collection: collections });
+            tribute.attach(editor);
+
+            editor._tributeAttached = true;
+            this._tribute = tribute;
+
+            // Sync Tribute replacements with Livewire / ProseMirror
+            editor.addEventListener('tribute-replaced', function () {
+                editor.dispatchEvent(new Event('input', { bubbles: true }));
+                editor.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+
+            // Manage active class for CSS transitions
+            editor.addEventListener('tribute-active-true', function () {
+                if (tribute.menu) {
+                    tribute.menu.classList.add('tribute-active');
+                }
+            });
+            editor.addEventListener('tribute-active-false', function () {
+                if (tribute.menu) {
+                    tribute.menu.classList.remove('tribute-active');
+                }
+            });
+
+            // Keyboard scroll support for the dropdown
+            editor.addEventListener('keydown', function (event) {
+                if (!tribute.isActive) return;
+                var activeItem = tribute.menu ? tribute.menu.querySelector('.highlight') : null;
+                if (!activeItem) return;
+                if (event.key === 'ArrowDown') {
+                    var next = activeItem.nextElementSibling;
+                    if (next) next.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else if (event.key === 'ArrowUp') {
+                    var prev = activeItem.previousElementSibling;
+                    if (prev) prev.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
         },
     };
 }

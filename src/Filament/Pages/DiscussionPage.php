@@ -52,6 +52,20 @@ class DiscussionPage extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('leaveChannel')
+                ->label('Leave Channel')
+                ->icon('heroicon-o-arrow-right-start-on-rectangle')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading('Leave Channel')
+                ->modalDescription('Are you sure you want to leave this channel? You will no longer see it in your sidebar.')
+                ->modalSubmitActionLabel('Leave')
+                ->visible(fn (): bool => $this->channel->members()->where('users.id', auth()->id())->exists())
+                ->action(function (): void {
+                    $this->channel->members()->detach(auth()->id());
+
+                    $this->redirect(filament()->getCurrentPanel()->getUrl());
+                }),
             Action::make('editChannel')
                 ->label('Settings')
                 ->icon('heroicon-o-cog-6-tooth')

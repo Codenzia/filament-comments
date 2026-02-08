@@ -152,6 +152,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     {
         return [
             'create_codenzia_comments_channels_table',
+            'create_codenzia_comments_channel_members_table',
             'create_codenzia_comments_table',
             'create_codenzia_comments_reactions_table',
         ];

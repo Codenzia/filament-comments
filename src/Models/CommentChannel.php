@@ -11,6 +11,9 @@ class CommentChannel extends Model
         'slug',
         'description',
         'permissions',
+        'icon',
+        'visibility',
+        'project_id',
     ];
 
     protected $casts = [
@@ -30,5 +33,17 @@ class CommentChannel extends Model
     public function comments()
     {
         return $this->hasMany(Comment::class, 'channel_id');
+    }
+
+    public function members()
+    {
+        $userModel = config('codenzia-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+
+        return $this->belongsToMany(
+            $userModel,
+            config('codenzia-comments.channel_members_table_name', 'comment_channel_members'),
+            'channel_id',
+            'user_id'
+        )->withTimestamps();
     }
 }

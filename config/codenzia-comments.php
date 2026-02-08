@@ -23,6 +23,11 @@ return [
      */
     'channels_table_name' => 'comment_channels',
 
+    /*
+     * The table name to use for the comment channel members.
+     */
+    'channel_members_table_name' => 'comment_channel_members',
+
     /**
      * The navigation group name for the Filament resource.
      */

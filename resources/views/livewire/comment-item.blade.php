@@ -153,16 +153,18 @@
 
             {{-- Reply Button --}}
             <div class="flex items-center gap-3">
-                <button
-                    wire:click="toggleReplyForm"
-                    class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 font-medium"
-                >
-                    <x-filament::icon
-                        icon="heroicon-o-chat-bubble-left"
-                        class="h-3 w-3 inline-block mr-1"
-                    />
-                    {{ __('codenzia-comments::codenzia-comments.comments.reply') }}
-                </button>
+                @if ($canReply)
+                    <button
+                        wire:click="toggleReplyForm"
+                        class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 font-medium"
+                    >
+                        <x-filament::icon
+                            icon="heroicon-o-chat-bubble-left"
+                            class="h-3 w-3 inline-block mr-1"
+                        />
+                        {{ __('codenzia-comments::codenzia-comments.comments.reply') }}
+                    </button>
+                @endif
 
                 @if ($comment->replies->count() > 0)
                     <button

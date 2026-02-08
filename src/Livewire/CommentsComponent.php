@@ -110,6 +110,16 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function create(): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title('Unauthorized')
+                ->body('Only members can post in this channel.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $data = $this->form->getState();
 
         $comment = $this->record->comments()->create([
@@ -139,6 +149,25 @@ class CommentsComponent extends Component implements HasActions, HasForms
             ->send();
 
         $this->form->fill();
+    }
+
+    public function canUserPostInChannel(): bool
+    {
+        if (! $this->activeChannelId) {
+            return true;
+        }
+
+        $channel = CommentChannel::find($this->activeChannelId);
+
+        if (! $channel) {
+            return false;
+        }
+
+        if ($channel->visibility === 'public') {
+            return true;
+        }
+
+        return $channel->members()->where('user_id', auth()->id())->exists();
     }
 
     public function delete(int $id): void
@@ -229,6 +258,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
             'comments' => $query->latest()->get(),
             'channels' => $availableChannels,
             'channelMentionables' => $this->getChannelMentionables(),
+            'canPost' => $this->canUserPostInChannel(),
         ]);
     }
 }

@@ -133,6 +133,16 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function reply(): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title('Unauthorized')
+                ->body('Only members can post in this channel.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $data = $this->replyForm->getState();
 
         $reply = $this->comment->replies()->create([
@@ -140,6 +150,7 @@ class CommentItem extends Component implements HasActions, HasForms
             'user_id' => auth()->id(),
             'commentable_id' => $this->comment->commentable_id,
             'commentable_type' => $this->comment->commentable_type,
+            'channel_id' => $this->comment->channel_id,
         ]);
 
         // Detect mentions in the reply and send notifications
@@ -164,6 +175,21 @@ class CommentItem extends Component implements HasActions, HasForms
         $this->showReplyForm = false;
         $this->replyForm->fill();
         $this->dispatch('commentDeleted'); // Refresh parent
+    }
+
+    public function canUserPostInChannel(): bool
+    {
+        $channel = $this->comment->channel;
+
+        if (! $channel) {
+            return true;
+        }
+
+        if ($channel->visibility === 'public') {
+            return true;
+        }
+
+        return $channel->members()->where('user_id', auth()->id())->exists();
     }
 
     public function toggleReaction(string $reactionType): void
@@ -222,6 +248,8 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function render(): View
     {
-        return view('codenzia-comments::livewire.comment-item');
+        return view('codenzia-comments::livewire.comment-item', [
+            'canReply' => $this->canUserPostInChannel(),
+        ]);
     }
 }

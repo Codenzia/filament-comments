@@ -1,13 +1,19 @@
 <div class="flex flex-col h-full space-y-4">
-    <div class="space-y-4 mb-8">
-        {{ $this->form  }}
-        <x-filament::button
-            wire:click="create"
-            color="primary"
-        >
-            {{ __('codenzia-comments::codenzia-comments.comments.add') }}
-        </x-filament::button>
-    </div>
+    @if ($canPost)
+        <div class="space-y-4 mb-8">
+            {{ $this->form  }}
+            <x-filament::button
+                wire:click="create"
+                color="primary"
+            >
+                {{ __('codenzia-comments::codenzia-comments.comments.add') }}
+            </x-filament::button>
+        </div>
+    @else
+        <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300" role="alert">
+            {{ __('Only members of this channel can post comments.') }}
+        </div>
+    @endif
 
     @if ($comments->count())
         <div class="space-y-6">

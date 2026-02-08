@@ -14,6 +14,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -76,9 +77,22 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                 TextInput::make('slug')
                     ->required()
                     ->unique(CommentChannel::class, 'slug', ignoreRecord: true),
+                TextInput::make('icon'),
+                Select::make('visibility')
+                    ->options([
+                        'public' => 'Public',
+                        'private' => 'Private',
+                    ])
+                    ->default('public')
+                    ->required(),
+                TextInput::make('project_id')
+                    ->numeric(),
                 Textarea::make('description')->columnSpanFull(),
-                TagsInput::make('permissions')
-                    ->placeholder('Add roles/permissions'),
+                Select::make('members')
+                    ->relationship('members', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->searchable(),
             ])->columns(2),
         ];
     }

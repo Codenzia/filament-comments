@@ -13,8 +13,11 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+<<<<<<< HEAD
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
+=======
+>>>>>>> 85921e2ddef2e8e577d2ad12a7b8871903f45737
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -55,6 +58,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
             ->actions([
                 EditAction::make()
                     ->slideOver()
+<<<<<<< HEAD
                     ->form(static::getChannelFormSchema())
                     ->fillForm(fn (CommentChannel $record): array => [
                         ...$record->toArray(),
@@ -66,6 +70,10 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                         $record->update($data);
                         $record->members()->sync($members);
                     }),
+=======
+                    ->form($this->getChannelFormSchema())
+                    ->using(fn (CommentChannel $record, array $data) => $record->update($data)),
+>>>>>>> 85921e2ddef2e8e577d2ad12a7b8871903f45737
                 DeleteAction::make(),
             ])
             ->headerActions([

@@ -154,6 +154,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
     public function canUserPostInChannel(): bool
     {
         $channel = CommentChannel::find($this->activeChannelId);
+
         return $channel->members()->where('user_id', auth()->id())->exists();
     }
 

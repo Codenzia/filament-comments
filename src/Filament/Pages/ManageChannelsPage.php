@@ -26,7 +26,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static \BackedEnum | string | null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected string $view = 'codenzia-comments::filament.pages.manage-channels-page';
 
@@ -111,21 +111,21 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                         return collect(Heroicon::cases())
                             ->filter(fn (Heroicon $case): bool => str_starts_with($case->value, 'o-'))
                             ->mapWithKeys(function (Heroicon $case): array {
-                                $value = 'heroicon-'.$case->value;
+                                $value = 'heroicon-' . $case->value;
                                 $label = str($case->name)->after('Outlined')->headline()->toString();
                                 $svg = \Illuminate\Support\Facades\Blade::render(
                                     '<x-filament::icon :icon="$icon" class="h-5 w-5" />',
                                     ['icon' => $value],
                                 );
 
-                                return [$value => '<div class="flex items-center gap-2">'.$svg.'<span>'.e($label).'</span></div>'];
+                                return [$value => '<div class="flex items-center gap-2">' . $svg . '<span>' . e($label) . '</span></div>'];
                             })
                             ->toArray();
                     }),
                 Select::make('visibility')
                     ->options([
-                    'public' => 'Public',
-                    'private' => 'Private',
+                        'public' => 'Public',
+                        'private' => 'Private',
                     ])
                     ->default('public')
                     ->required(),

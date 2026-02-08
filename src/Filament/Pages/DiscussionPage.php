@@ -10,14 +10,14 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class DiscussionPage extends Page
 {
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-hashtag';
+    protected static \BackedEnum | string | null $navigationIcon = 'heroicon-o-hashtag';
 
     protected string $view = 'codenzia-comments::filament.pages.discussion-page';
 
     protected static bool $shouldRegisterNavigation = false;
 
     /** Route parameter from URL – do not use for the model. */
-    public int|string|null $record = null;
+    public int | string | null $record = null;
 
     public ?CommentChannel $channel = null;
 
@@ -25,10 +25,10 @@ class DiscussionPage extends Page
 
     public static function getRoutePath(Panel $panel): string
     {
-        return '/'.static::getSlug($panel).'/{record}';
+        return '/' . static::getSlug($panel) . '/{record}';
     }
 
-    public function mount(int|string|null $record = null): void
+    public function mount(int | string | null $record = null): void
     {
         if ($record === null) {
             abort(404);
@@ -36,12 +36,12 @@ class DiscussionPage extends Page
         $this->channel = CommentChannel::findOrFail($record);
     }
 
-    public function getTitle(): string|Htmlable
+    public function getTitle(): string | Htmlable
     {
         return $this->channel?->name ?? '';
     }
 
-    public function getHeading(): string|Htmlable
+    public function getHeading(): string | Htmlable
     {
         return $this->channel?->name ?? '';
     }

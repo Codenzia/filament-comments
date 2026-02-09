@@ -25,8 +25,8 @@ class CommentChannel extends Model
         });
 
         static::created(function (CommentChannel $channel) {
-            if (auth()->check() && ! $channel->members()->where('users.id', auth()->id())->exists()) {
-                $channel->members()->attach(auth()->id());
+            if (auth()->check() && ! $channel->channelMembers()->where('users.id', auth()->id())->exists()) {
+                $channel->channelMembers()->attach(auth()->id());
             }
         });
     }
@@ -43,8 +43,30 @@ class CommentChannel extends Model
 
     public function members()
     {
+        if ($this->project_id) {
+            $project = $this->project;
+
+            if ($project && method_exists($project, 'members')) {
+                return $project->members();
+            }
+        }
+
         $userModel = config('codenzia-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
-        $userInstance = new $userModel;
+
+        return $this->belongsToMany(
+            $userModel,
+            config('codenzia-comments.channel_members_table_name', 'comment_channel_members'),
+            'channel_id',
+            'user_id'
+        )->withTimestamps();
+    }
+
+    /**
+     * Direct channel members (from pivot table), regardless of project.
+     */
+    public function channelMembers()
+    {
+        $userModel = config('codenzia-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
 
         return $this->belongsToMany(
             $userModel,

@@ -78,4 +78,17 @@ return [
         'sad' => '😢',
         'angry' => '😠',
     ],
+
+    /**
+     * Permissions configuration
+     */
+    'permissions' => [
+        /**
+         * Roles allowed to create and manage channels.
+         * If empty, any authenticated user can create channels.
+         */
+        'create_channels_roles' => [
+            'super_admin',
+        ],
+    ],
 ];

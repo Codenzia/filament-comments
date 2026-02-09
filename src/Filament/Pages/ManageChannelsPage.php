@@ -40,11 +40,14 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
     {
         return config('codenzia-comments.navigation_group');
     }
+
     public static function canCreateChannels(): bool
     {
         $roles = config('codenzia-comments.permissions.create_channels_roles');
+
         return auth()->user()->hasAnyRole($roles);
     }
+
     public function table(Table $table): Table
     {
         return $table
@@ -67,10 +70,10 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                     ->visible(fn (CommentChannel $record): bool => $record->created_by === auth()->id())
                     ->using(function (CommentChannel $record, array $data): void {
                         $members = $data['members'] ?? [];
-                    unset($data['members']);
-                    $record->update($data);
-                    $record->members()->sync($members);
-                }),
+                        unset($data['members']);
+                        $record->update($data);
+                        $record->members()->sync($members);
+                    }),
                 DeleteAction::make()
                     ->visible(fn (CommentChannel $record): bool => $record->created_by === auth()->id())
                     ->requiresConfirmation()

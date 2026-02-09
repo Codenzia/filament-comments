@@ -34,7 +34,7 @@ class DiscussionPage extends Page
             abort(404);
         }
         $this->channel = CommentChannel::findOrFail($record);
-        if($this->channel->visibility === 'private' && !$this->channel->members()->where('users.id', auth()->id())->exists()){
+        if ($this->channel->visibility === 'private' && ! $this->channel->members()->where('users.id', auth()->id())->exists()) {
             abort(404);
         }
     }

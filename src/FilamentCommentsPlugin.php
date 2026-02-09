@@ -52,6 +52,7 @@ class FilamentCommentsPlugin implements Plugin
                         if ($channel->visibility === 'public') {
                             return true;
                         }
+
                         return $channel->members()->where('users.id', auth()->id())->exists();
                     });
             }

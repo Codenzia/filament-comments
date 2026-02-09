@@ -1,4 +1,4 @@
-<div class="comment-item group relative flex gap-3 p-3 ">
+<div class="comment-item group relative flex gap-3 p-3 bg-white dark:bg-[#16181C] rounded-lg mb-4">
     {{-- Avatar --}}
     <div class="flex-shrink-0 pt-0.5">
         @php
@@ -87,47 +87,10 @@
         @else
             <div
                 class="comment-body prose prose-sm mt-1 max-w-none text-gray-700 dark:prose-invert dark:text-gray-300"
-                x-data="mentionPopover(@js($mentionables))"
-                x-on:mouseover.capture="showPopover($event)"
-                x-on:mouseout.capture="hidePopover($event)"
+                x-data
+                x-init="$nextTick(() => window.__mentionPopoverManager && window.__mentionPopoverManager.bind($el, @js($mentionables)))"
             >
                 {!! $comment->comment !!}
-
-                {{-- Mention Hover Popover --}}
-                <div
-                    x-ref="popover"
-                    x-show="visible"
-                    x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    x-cloak
-                    class="mention-popover fixed z-[9999] w-64 rounded-xl bg-white shadow-xl ring-1 ring-gray-200/80 dark:bg-gray-800 dark:ring-gray-700"
-                    style="pointer-events: auto;"
-                    x-on:mouseenter="clearTimeout(_timeout)"
-                    x-on:mouseleave="hidePopover($event)"
-                >
-                    <a :href="user ? user.link : '#'" class="block p-4 no-underline transition-colors hover:bg-gray-50 rounded-xl dark:hover:bg-white/5">
-                        <div class="flex items-center gap-3">
-                            <template x-if="user && user.avatar">
-                                <img :src="user.avatar" :alt="user.key" class="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm dark:ring-gray-700">
-                            </template>
-                            <template x-if="user && !user.avatar">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 ring-2 ring-white shadow-sm dark:bg-primary-500/10 dark:ring-gray-700">
-                                    <span class="text-sm font-semibold text-primary-600 dark:text-primary-400" x-text="user ? user.key.substring(0, 2).toUpperCase() : ''"></span>
-                                </div>
-                            </template>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-semibold text-gray-900 dark:text-white" x-text="user ? user.key : ''"></p>
-                                <template x-if="user && user.email">
-                                    <p class="truncate text-xs text-gray-500 dark:text-gray-400" x-text="user.email"></p>
-                                </template>
-                            </div>
-                        </div>
-                    </a>
-                </div>
             </div>
         @endif
 
@@ -277,44 +240,120 @@
 
 @script
 <script>
-if (typeof window.__mentionPopoverRegistered === 'undefined') {
-    window.__mentionPopoverRegistered = true;
-    Alpine.data('mentionPopover', (mentionables) => ({
-        visible: false,
-        user: null,
-        _timeout: null,
+if (!window.__mentionPopoverManager) {
+    window.__mentionPopoverManager = (function () {
+        let popoverEl = null;
+        let hideTimeout = null;
 
-        showPopover(event) {
-            const link = event.target.closest('a.tribute-mention');
-            if (!link) return;
+        function getPopover() {
+            if (popoverEl) return popoverEl;
 
-            clearTimeout(this._timeout);
+            popoverEl = document.createElement('div');
+            popoverEl.className = 'fixed z-[9999] w-64 rounded-xl bg-white shadow-xl ring-1 ring-gray-200/80 dark:bg-gray-800 dark:ring-gray-700 transition-all duration-150';
+            popoverEl.style.cssText = 'pointer-events:auto;opacity:0;transform:translateY(4px) scale(0.95);display:none;';
+            popoverEl.innerHTML = `
+                <a id="mp-link" href="#" class="block p-4 no-underline transition-colors hover:bg-gray-50 rounded-xl dark:hover:bg-white/5">
+                    <div class="flex items-center gap-3">
+                        <div id="mp-avatar-wrap" class="shrink-0" style="display:none;">
+                            <img id="mp-avatar" src="" alt="" class="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm dark:ring-gray-700">
+                        </div>
+                        <div id="mp-initials-wrap" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50 ring-2 ring-white shadow-sm dark:bg-primary-500/10 dark:ring-gray-700" style="display:none;">
+                            <span id="mp-initials" class="text-sm font-semibold text-primary-600 dark:text-primary-400"></span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p id="mp-name" class="truncate text-sm font-semibold text-gray-900 dark:text-white"></p>
+                            <p id="mp-email" class="truncate text-xs text-gray-500 dark:text-gray-400" style="display:none;"></p>
+                        </div>
+                    </div>
+                </a>`;
 
-            const mentionText = (link.textContent || '').replace(/^@/, '').trim();
+            document.body.appendChild(popoverEl);
 
-            this.user = (mentionables || []).find(
-                u => u.key && u.key.toLowerCase() === mentionText.toLowerCase()
-            ) || null;
+            popoverEl.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+            popoverEl.addEventListener('mouseleave', () => scheduleHide());
 
-            if (!this.user) return;
+            return popoverEl;
+        }
 
-            const rect = link.getBoundingClientRect();
-            const popover = this.$refs.popover;
-            if (popover) {
-                popover.style.left = rect.left + 'px';
-                popover.style.top = (rect.bottom + 6) + 'px';
+        function show(user, anchorRect) {
+            console.log(user);
+
+            clearTimeout(hideTimeout);
+
+            const el = getPopover();
+            const link = el.querySelector('#mp-link');
+            const avatarWrap = el.querySelector('#mp-avatar-wrap');
+            const avatar = el.querySelector('#mp-avatar');
+            const initialsWrap = el.querySelector('#mp-initials-wrap');
+            const initials = el.querySelector('#mp-initials');
+            const name = el.querySelector('#mp-name');
+            const email = el.querySelector('#mp-email');
+
+            link.href = user.link || '#';
+            name.textContent = user.key || '';
+
+            if (user.avatar) {
+                avatar.src = user.avatar;
+                avatar.alt = user.key || '';
+                avatarWrap.style.display = '';
+                initialsWrap.style.display = 'none';
+            } else {
+                avatarWrap.style.display = 'none';
+                initialsWrap.style.display = '';
+                initials.textContent = (user.key || '').substring(0, 2).toUpperCase();
             }
 
-            this.visible = true;
-        },
+            if (user.email) {
+                email.textContent = user.email;
+                email.style.display = '';
+            } else {
+                email.style.display = 'none';
+            }
 
-        hidePopover(event) {
-            this._timeout = setTimeout(() => {
-                this.visible = false;
-                this.user = null;
-            }, 200);
-        },
-    }));
+            el.style.display = 'block';
+            el.style.left = anchorRect.left + 'px';
+            el.style.top = (anchorRect.bottom + 6) + 'px';
+
+            requestAnimationFrame(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0) scale(1)';
+            });
+        }
+
+        function hide() {
+            if (!popoverEl) return;
+            popoverEl.style.opacity = '0';
+            popoverEl.style.transform = 'translateY(4px) scale(0.95)';
+            setTimeout(() => { if (popoverEl) popoverEl.style.display = 'none'; }, 150);
+        }
+
+        function scheduleHide() {
+            hideTimeout = setTimeout(hide, 250);
+        }
+
+        function bind(containerEl, mentionables) {
+            const links = containerEl.querySelectorAll('a.tribute-mention');
+            links.forEach(link => {
+                if (link.__mpBound) return;
+                link.__mpBound = true;
+
+                link.addEventListener('mouseenter', () => {
+                    const mentionText = (link.textContent || '').replace(/^[^a-zA-Z0-9\s]/, '').trim();
+                    const user = (mentionables || []).find(
+                        u => u.key && u.key.toLowerCase() === mentionText.toLowerCase()
+                    );
+                    if (!user) return;
+                    console.log(user);
+
+                    show(user, link.getBoundingClientRect());
+                });
+
+                link.addEventListener('mouseleave', () => scheduleHide());
+            });
+        }
+
+        return { bind };
+    })();
 }
 </script>
 @endscript

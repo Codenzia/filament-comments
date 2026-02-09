@@ -97,6 +97,8 @@
             $reactionTypes = config('codenzia-comments.reactions', []);
             $hasAnyReactions = collect($reactions)->sum() > 0;
         @endphp
+
+        @if ($canPost)
         <div class="mt-2 flex flex-wrap items-center gap-2">
             {{-- Reaction Picker --}}
             <div class="relative" x-data="{ open: @entangle('showReactionPicker') }">
@@ -156,12 +158,12 @@
             @endif
 
             {{-- Divider --}}
-            @if ($hasAnyReactions && ($canReply || $comment->replies->count() > 0))
+            @if ($hasAnyReactions && ($canPost || $comment->replies->count() > 0))
                 <span class="mx-0.5 h-3.5 w-px bg-gray-200 dark:bg-gray-700"></span>
             @endif
 
             {{-- Reply Button --}}
-            @if ($canReply)
+            @if ($canPost)
                 <button
                     wire:click="toggleReplyForm"
                     class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
@@ -185,7 +187,8 @@
                 </button>
             @endif
         </div>
-
+        @endif
+        
         {{-- Reply Form --}}
         @if ($showReplyForm)
             <div class="mt-3 border-l-2 border-primary-200 pl-4 dark:border-primary-500/30">

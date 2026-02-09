@@ -185,10 +185,6 @@ class CommentItem extends Component implements HasActions, HasForms
             return true;
         }
 
-        if ($channel->visibility === 'public') {
-            return true;
-        }
-
         return $channel->members()->where('user_id', auth()->id())->exists();
     }
 
@@ -249,7 +245,7 @@ class CommentItem extends Component implements HasActions, HasForms
     public function render(): View
     {
         return view('codenzia-comments::livewire.comment-item', [
-            'canReply' => $this->canUserPostInChannel(),
+            'canPost' => $this->canUserPostInChannel(),
         ]);
     }
 }

@@ -34,6 +34,9 @@ class DiscussionPage extends Page
             abort(404);
         }
         $this->channel = CommentChannel::findOrFail($record);
+        if($this->channel->visibility === 'private' && !$this->channel->members()->where('users.id', auth()->id())->exists()){
+            abort(404);
+        }
     }
 
     public function getTitle(): string | Htmlable
@@ -60,7 +63,7 @@ class DiscussionPage extends Page
                 ->modalHeading('Leave Channel')
                 ->modalDescription('Are you sure you want to leave this channel? You will no longer see it in your sidebar.')
                 ->modalSubmitActionLabel('Leave')
-                ->visible(fn (): bool => $this->channel->members()->where('users.id', auth()->id())->exists())
+                ->visible(fn (): bool => $this->channel->members()->where('users.id', auth()->id())->exists() && $this->channel->project_id === null)
                 ->action(function (): void {
                     $this->channel->members()->detach(auth()->id());
 

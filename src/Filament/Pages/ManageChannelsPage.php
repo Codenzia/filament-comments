@@ -107,6 +107,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                     ->label('Icon')
                     ->searchable()
                     ->allowHtml()
+                    ->default('heroicon-o-hashtag')
                     ->options(function (): array {
                         return collect(Heroicon::cases())
                             ->filter(fn (Heroicon $case): bool => str_starts_with($case->value, 'o-'))

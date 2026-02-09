@@ -35,6 +35,7 @@ return [
 
     'mentionable' => [
         'model' => \App\Models\User::class,
+        'trigger' => '@',
         'column' => [
             'id' => 'id',
             'label' => 'name', // Column name for user name/label
@@ -45,8 +46,13 @@ return [
         'url' => 'admin/users/{id}', // this will be used to generate the url for the mention item
     ],
 
+    'channel_mentionable' => [
+        'trigger' => '#',
+    ],
+
     'project_mentionable' => [
         'model' => \App\Models\Project::class,
+        'trigger' => '$',
         'column' => [
             'id' => 'id',
             'label' => 'title',
@@ -56,6 +62,7 @@ return [
 
     'task_mentionable' => [
         'model' => \App\Models\Task::class,
+        'trigger' => '%',
         'column' => [
             'id' => 'id',
             'label' => 'title',

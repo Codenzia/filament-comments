@@ -6,7 +6,12 @@ export default function tributeTextarea({
     projectMentionables = [],
     taskMentionables = [],
     editorHeight = 100,
+    triggers = {},
 }) {
+    const mentionTrigger = triggers.mentionable || '@';
+    const channelTrigger = triggers.channel || '#';
+    const projectTrigger = triggers.project || '$';
+    const taskTrigger = triggers.task || '%';
     return {
         _tribute: null,
         _observer: null,
@@ -55,10 +60,10 @@ export default function tributeTextarea({
 
             const collections = [];
 
-            // @ user mentions
+            // user mentions
             if (mentionables.length > 0) {
                 collections.push({
-                    trigger: '@',
+                    trigger: mentionTrigger,
                     lookup: 'key',
                     fillAttr: 'key',
                     allowSpaces: false,
@@ -79,7 +84,7 @@ export default function tributeTextarea({
                         if (typeof item === 'undefined' || !item) return null;
                         const key = item.original.key;
                         const link = item.original.link || '#';
-                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-mention" style="color:#f59e1b;font-weight:bold;">@' + key + '</a></span>\u00A0';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-mention" style="color:#f59e1b;font-weight:bold;">' + mentionTrigger + key + '</a></span>\u00A0';
                     },
                     menuItemTemplate: function (item) {
                         var avatar = item.original.avatar
@@ -89,7 +94,7 @@ export default function tributeTextarea({
                             avatar +
                             '<div class="mention-item__info">' +
                             '<div class="mention-item__info-label">' + item.original.key + '</div>' +
-                            '<div class="mention-item__info-hint">@' + item.original.key + '</div>' +
+                            '<div class="mention-item__info-hint">' + mentionTrigger + item.original.key + '</div>' +
                             '</div></div>';
                     },
                     noMatchTemplate: function () {
@@ -98,10 +103,10 @@ export default function tributeTextarea({
                 });
             }
 
-            // # channel mentions
+            // channel mentions
             if (channelMentionables.length > 0) {
                 collections.push({
-                    trigger: '#',
+                    trigger: channelTrigger,
                     lookup: 'key',
                     fillAttr: 'key',
                     allowSpaces: false,
@@ -112,12 +117,12 @@ export default function tributeTextarea({
                         if (typeof item === 'undefined' || !item) return null;
                         var key = item.original.key;
                         var link = item.original.link || '#';
-                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-channel" style="color:#f59e1b;font-weight:bold;">#' + key + '</a></span>\u00A0';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-channel" style="color:#f59e1b;font-weight:bold;">' + channelTrigger + key + '</a></span>\u00A0';
                     },
                     menuItemTemplate: function (item) {
                         return '<div class="mention-item">' +
                             '<div class="mention-item__info">' +
-                            '<div class="mention-item__info-label"># ' + item.original.key + '</div>' +
+                            '<div class="mention-item__info-label">' + channelTrigger + ' ' + item.original.key + '</div>' +
                             '</div></div>';
                     },
                     noMatchTemplate: function () {
@@ -126,10 +131,10 @@ export default function tributeTextarea({
                 });
             }
 
-            // $ project mentions
+            // project mentions
             if (projectMentionables.length > 0) {
                 collections.push({
-                    trigger: '$',
+                    trigger: projectTrigger,
                     lookup: 'key',
                     fillAttr: 'key',
                     allowSpaces: false,
@@ -140,12 +145,12 @@ export default function tributeTextarea({
                         if (typeof item === 'undefined' || !item) return null;
                         var key = item.original.key;
                         var link = item.original.link || '#';
-                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-project" style="color:#10b981;font-weight:bold;">$' + key + '</a></span>\u00A0';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-project" style="color:#10b981;font-weight:bold;">' + projectTrigger + key + '</a></span>\u00A0';
                     },
                     menuItemTemplate: function (item) {
                         return '<div class="mention-item">' +
                             '<div class="mention-item__info">' +
-                            '<div class="mention-item__info-label">$ ' + item.original.key + '</div>' +
+                            '<div class="mention-item__info-label">' + projectTrigger + ' ' + item.original.key + '</div>' +
                             '</div></div>';
                     },
                     noMatchTemplate: function () {
@@ -154,10 +159,10 @@ export default function tributeTextarea({
                 });
             }
 
-            // % task mentions
+            // task mentions
             if (taskMentionables.length > 0) {
                 collections.push({
-                    trigger: '%',
+                    trigger: taskTrigger,
                     lookup: 'key',
                     fillAttr: 'key',
                     allowSpaces: false,
@@ -168,12 +173,12 @@ export default function tributeTextarea({
                         if (typeof item === 'undefined' || !item) return null;
                         var key = item.original.key;
                         var link = item.original.link || '#';
-                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-task" style="color:#3b82f6;font-weight:bold;">%' + key + '</a></span>\u00A0';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-task" style="color:#3b82f6;font-weight:bold;">' + taskTrigger + key + '</a></span>\u00A0';
                     },
                     menuItemTemplate: function (item) {
                         return '<div class="mention-item">' +
                             '<div class="mention-item__info">' +
-                            '<div class="mention-item__info-label">% ' + item.original.key + '</div>' +
+                            '<div class="mention-item__info-label">' + taskTrigger + ' ' + item.original.key + '</div>' +
                             '</div></div>';
                     },
                     noMatchTemplate: function () {

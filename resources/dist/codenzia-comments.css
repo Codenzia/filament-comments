@@ -73,3 +73,14 @@ a.tribute-mention {
 .group:hover .comment-actions {
     opacity: 1;
 }
+
+/* ──────────────────────────────────────────────
+   Mention Hover Popover
+   ────────────────────────────────────────────── */
+.mention-popover {
+    pointer-events: none;
+}
+
+[x-cloak] {
+    display: none !important;
+}

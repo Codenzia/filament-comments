@@ -73,6 +73,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
                 'id' => $id,
                 'key' => $name,
                 'value' => $name,
+                'email' => $email,
                 'avatar' => $avatar,
                 'link' => url($link),
             ];
@@ -218,7 +219,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         Notification::make()
             ->title(__('Joined successfully'))
-            ->body(__('You are now a member of ' . $channel->name))
+            ->body(__('You are now a member of '.$channel->name))
             ->success()
             ->send();
     }
@@ -249,7 +250,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
             $panelColor = config('filament.default_color', '000000');
             $panelColor = str_replace('#', '', $panelColor);
 
-            return 'https://ui-avatars.com/api/?name=' . urlencode($name ?? 'User') . '&color=FFFFFF&background=' . $panelColor;
+            return 'https://ui-avatars.com/api/?name='.urlencode($name ?? 'User').'&color=FFFFFF&background='.$panelColor;
         }
 
         // If it's already a full URL, return it
@@ -266,7 +267,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $panelColor = config('filament.default_color', '000000');
         $panelColor = str_replace('#', '', $panelColor);
 
-        return 'https://ui-avatars.com/api/?name=' . urlencode($name ?? 'User') . '&color=FFFFFF&background=' . $panelColor;
+        return 'https://ui-avatars.com/api/?name='.urlencode($name ?? 'User').'&color=FFFFFF&background='.$panelColor;
     }
 
     public function setActiveChannel(int $id): void

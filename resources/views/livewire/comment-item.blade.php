@@ -85,8 +85,49 @@
                 </div>
             </div>
         @else
-            <div class="comment-body prose prose-sm mt-1 max-w-none text-gray-700 dark:prose-invert dark:text-gray-300">
+            <div
+                class="comment-body prose prose-sm mt-1 max-w-none text-gray-700 dark:prose-invert dark:text-gray-300"
+                x-data="mentionPopover(@js($mentionables))"
+                x-on:mouseover.capture="showPopover($event)"
+                x-on:mouseout.capture="hidePopover($event)"
+            >
                 {!! $comment->comment !!}
+
+                {{-- Mention Hover Popover --}}
+                <div
+                    x-ref="popover"
+                    x-show="visible"
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave="transition ease-in duration-100"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    x-cloak
+                    class="mention-popover fixed z-[9999] w-64 rounded-xl bg-white shadow-xl ring-1 ring-gray-200/80 dark:bg-gray-800 dark:ring-gray-700"
+                    style="pointer-events: auto;"
+                    x-on:mouseenter="clearTimeout(_timeout)"
+                    x-on:mouseleave="hidePopover($event)"
+                >
+                    <a :href="user ? user.link : '#'" class="block p-4 no-underline transition-colors hover:bg-gray-50 rounded-xl dark:hover:bg-white/5">
+                        <div class="flex items-center gap-3">
+                            <template x-if="user && user.avatar">
+                                <img :src="user.avatar" :alt="user.key" class="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm dark:ring-gray-700">
+                            </template>
+                            <template x-if="user && !user.avatar">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 ring-2 ring-white shadow-sm dark:bg-primary-500/10 dark:ring-gray-700">
+                                    <span class="text-sm font-semibold text-primary-600 dark:text-primary-400" x-text="user ? user.key.substring(0, 2).toUpperCase() : ''"></span>
+                                </div>
+                            </template>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-semibold text-gray-900 dark:text-white" x-text="user ? user.key : ''"></p>
+                                <template x-if="user && user.email">
+                                    <p class="truncate text-xs text-gray-500 dark:text-gray-400" x-text="user.email"></p>
+                                </template>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         @endif
 
@@ -188,7 +229,7 @@
             @endif
         </div>
         @endif
-        
+
         {{-- Reply Form --}}
         @if ($showReplyForm)
             <div class="mt-3 border-l-2 border-primary-200 pl-4 dark:border-primary-500/30">
@@ -233,3 +274,47 @@
 
     <x-filament-actions::modals />
 </div>
+
+@script
+<script>
+if (typeof window.__mentionPopoverRegistered === 'undefined') {
+    window.__mentionPopoverRegistered = true;
+    Alpine.data('mentionPopover', (mentionables) => ({
+        visible: false,
+        user: null,
+        _timeout: null,
+
+        showPopover(event) {
+            const link = event.target.closest('a.tribute-mention');
+            if (!link) return;
+
+            clearTimeout(this._timeout);
+
+            const mentionText = (link.textContent || '').replace(/^@/, '').trim();
+
+            this.user = (mentionables || []).find(
+                u => u.key && u.key.toLowerCase() === mentionText.toLowerCase()
+            ) || null;
+
+            if (!this.user) return;
+
+            const rect = link.getBoundingClientRect();
+            const popover = this.$refs.popover;
+            if (popover) {
+                popover.style.left = rect.left + 'px';
+                popover.style.top = (rect.bottom + 6) + 'px';
+            }
+
+            this.visible = true;
+        },
+
+        hidePopover(event) {
+            this._timeout = setTimeout(() => {
+                this.visible = false;
+                this.user = null;
+            }, 200);
+        },
+    }));
+}
+</script>
+@endscript

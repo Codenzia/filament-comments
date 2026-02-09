@@ -90,6 +90,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
                     ->channelMentionables($this->getChannelMentionables())
+                    ->projectMentionables($this->getProjectMentionables())
+                    ->taskMentionables($this->getTaskMentionables())
                     ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('data');
@@ -104,6 +106,48 @@ class CommentsComponent extends Component implements HasActions, HasForms
                 'value' => $channel->name,
                 'slug' => $channel->slug,
                 'link' => \Codenzia\FilamentComments\Filament\Pages\DiscussionPage::getUrl(['record' => $channel->id]),
+            ];
+        })->toArray();
+    }
+
+    protected function getProjectMentionables(): array
+    {
+        $projectModel = config('codenzia-comments.project_mentionable.model');
+        if (! $projectModel || ! class_exists($projectModel)) {
+            return [];
+        }
+
+        $labelColumn = config('codenzia-comments.project_mentionable.column.label', 'title');
+        $idColumn = config('codenzia-comments.project_mentionable.column.id', 'id');
+        $urlPattern = config('codenzia-comments.project_mentionable.url', 'admin/projects/{id}');
+
+        return $projectModel::all()->map(function ($project) use ($labelColumn, $idColumn, $urlPattern) {
+            return [
+                'id' => $project->{$idColumn},
+                'key' => $project->{$labelColumn},
+                'value' => $project->{$labelColumn},
+                'link' => url(str_replace('{id}', $project->{$idColumn}, $urlPattern)),
+            ];
+        })->toArray();
+    }
+
+    protected function getTaskMentionables(): array
+    {
+        $taskModel = config('codenzia-comments.task_mentionable.model');
+        if (! $taskModel || ! class_exists($taskModel)) {
+            return [];
+        }
+
+        $labelColumn = config('codenzia-comments.task_mentionable.column.label', 'title');
+        $idColumn = config('codenzia-comments.task_mentionable.column.id', 'id');
+        $urlPattern = config('codenzia-comments.task_mentionable.url', 'admin/tasks/{id}');
+
+        return $taskModel::all()->map(function ($task) use ($labelColumn, $idColumn, $urlPattern) {
+            return [
+                'id' => $task->{$idColumn},
+                'key' => $task->{$labelColumn},
+                'value' => $task->{$labelColumn},
+                'link' => url(str_replace('{id}', $task->{$idColumn}, $urlPattern)),
             ];
         })->toArray();
     }

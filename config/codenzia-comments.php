@@ -44,6 +44,25 @@ return [
         ],
         'url' => 'admin/users/{id}', // this will be used to generate the url for the mention item
     ],
+
+    'project_mentionable' => [
+        'model' => \App\Models\Project::class,
+        'column' => [
+            'id' => 'id',
+            'label' => 'title',
+        ],
+        'url' => 'admin/projects/{id}',
+    ],
+
+    'task_mentionable' => [
+        'model' => \App\Models\Task::class,
+        'column' => [
+            'id' => 'id',
+            'label' => 'title',
+        ],
+        'url' => 'admin/tasks/{id}',
+    ],
+
     /*
      * The user model that should be used when associating comments with
      * commentators. If null, the default user provider from your

@@ -3,6 +3,8 @@ import Tribute from "tributejs";
 export default function tributeTextarea({
     mentionables = [],
     channelMentionables = [],
+    projectMentionables = [],
+    taskMentionables = [],
     editorHeight = 100,
 }) {
     return {
@@ -120,6 +122,62 @@ export default function tributeTextarea({
                     },
                     noMatchTemplate: function () {
                         return '<span class="no-match">No channels found</span>';
+                    },
+                });
+            }
+
+            // $ project mentions
+            if (projectMentionables.length > 0) {
+                collections.push({
+                    trigger: '$',
+                    lookup: 'key',
+                    fillAttr: 'key',
+                    allowSpaces: false,
+                    requireLeadingSpace: true,
+                    menuContainer: document.body,
+                    values: projectMentionables,
+                    selectTemplate: function (item) {
+                        if (typeof item === 'undefined' || !item) return null;
+                        var key = item.original.key;
+                        var link = item.original.link || '#';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-project" style="color:#10b981;font-weight:bold;">$' + key + '</a></span>\u00A0';
+                    },
+                    menuItemTemplate: function (item) {
+                        return '<div class="mention-item">' +
+                            '<div class="mention-item__info">' +
+                            '<div class="mention-item__info-label">$ ' + item.original.key + '</div>' +
+                            '</div></div>';
+                    },
+                    noMatchTemplate: function () {
+                        return '<span class="no-match">No projects found</span>';
+                    },
+                });
+            }
+
+            // % task mentions
+            if (taskMentionables.length > 0) {
+                collections.push({
+                    trigger: '%',
+                    lookup: 'key',
+                    fillAttr: 'key',
+                    allowSpaces: false,
+                    requireLeadingSpace: true,
+                    menuContainer: document.body,
+                    values: taskMentionables,
+                    selectTemplate: function (item) {
+                        if (typeof item === 'undefined' || !item) return null;
+                        var key = item.original.key;
+                        var link = item.original.link || '#';
+                        return '<span contenteditable="false"><a href="' + link + '" class="tribute-task" style="color:#3b82f6;font-weight:bold;">%' + key + '</a></span>\u00A0';
+                    },
+                    menuItemTemplate: function (item) {
+                        return '<div class="mention-item">' +
+                            '<div class="mention-item__info">' +
+                            '<div class="mention-item__info-label">% ' + item.original.key + '</div>' +
+                            '</div></div>';
+                    },
+                    noMatchTemplate: function () {
+                        return '<span class="no-match">No tasks found</span>';
                     },
                 });
             }

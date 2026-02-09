@@ -4,6 +4,8 @@
     x-data="tributeTextarea({
         mentionables: @js($getMentionables()),
         channelMentionables: @js($getChannelMentionables()),
+        projectMentionables: @js($getProjectMentionables()),
+        taskMentionables: @js($getTaskMentionables()),
         editorHeight: @js(config('codenzia-comments.editor.height', 100)),
     })"
 >

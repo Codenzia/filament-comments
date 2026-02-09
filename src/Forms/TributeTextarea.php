@@ -15,6 +15,10 @@ class TributeTextarea extends RichEditor
 
     protected array | \Closure $channelMentionables = [];
 
+    protected array | \Closure $projectMentionables = [];
+
+    protected array | \Closure $taskMentionables = [];
+
     protected string | \Closure $triggerWith = '@';
 
     protected string | \Closure $pluck = 'key';
@@ -41,6 +45,30 @@ class TributeTextarea extends RichEditor
     public function getChannelMentionables(): array
     {
         return $this->evaluate($this->channelMentionables);
+    }
+
+    public function projectMentionables(array | \Closure $items): static
+    {
+        $this->projectMentionables = $items;
+
+        return $this;
+    }
+
+    public function getProjectMentionables(): array
+    {
+        return $this->evaluate($this->projectMentionables);
+    }
+
+    public function taskMentionables(array | \Closure $items): static
+    {
+        $this->taskMentionables = $items;
+
+        return $this;
+    }
+
+    public function getTaskMentionables(): array
+    {
+        return $this->evaluate($this->taskMentionables);
     }
 
     public function triggerWith(string | \Closure $trigger): static

@@ -16,11 +16,12 @@ use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
-use Filament\Tables\Columns\ToggleColumn;
+
 class ManageChannelsPage extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;

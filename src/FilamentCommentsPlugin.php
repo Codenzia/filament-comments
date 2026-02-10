@@ -40,8 +40,14 @@ class FilamentCommentsPlugin implements Plugin
         $items = [];
         $group = config('codenzia-comments.navigation_group', 'Group Discussions');
 
+        $items[] = NavigationItem::make('All')
+        ->group($group)
+        ->icon('heroicon-o-cog-6-tooth')
+        ->url(ManageChannelsPage::getUrl())
+        ->isActiveWhen(fn () => request()->routeIs(ManageChannelsPage::getRouteName()));
+
         try {
-            $channels = CommentChannel::all();
+            $channels = CommentChannel::where('show_sidebar', true)->get();
             foreach ($channels as $channel) {
                 $items[] = NavigationItem::make($channel->name)
                     ->group($group)
@@ -60,11 +66,7 @@ class FilamentCommentsPlugin implements Plugin
             // Table might not exist yet
         }
 
-        $items[] = NavigationItem::make('Settings')
-            ->group($group)
-            ->icon('heroicon-o-cog-6-tooth')
-            ->url(ManageChannelsPage::getUrl())
-            ->isActiveWhen(fn () => request()->routeIs(ManageChannelsPage::getRouteName()));
+
 
         return $items;
     }

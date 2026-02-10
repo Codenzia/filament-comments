@@ -20,7 +20,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
-
+use Filament\Tables\Columns\ToggleColumn;
 class ManageChannelsPage extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;
@@ -53,11 +53,10 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
         return $table
             ->query(CommentChannel::query())
             ->columns([
-                IconColumn::make('icon')
-                    ->icon(fn (?string $state): string => $state ?: 'heroicon-o-hashtag')
-                    ->label('Icon'),
+                IconColumn::make('icon')->icon(fn (?string $state): string => $state ?: 'heroicon-o-hashtag')->label('Icon'),
                 TextColumn::make('name'),
                 TextColumn::make('slug'),
+                ToggleColumn::make('show_sidebar')->label('Show in Sidebar')->default(true),
             ])
             ->actions([
                 EditAction::make()

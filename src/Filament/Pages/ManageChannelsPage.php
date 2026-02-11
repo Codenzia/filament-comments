@@ -3,9 +3,6 @@
 namespace Codenzia\FilamentComments\Filament\Pages;
 
 use Codenzia\FilamentComments\Models\CommentChannel;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -14,13 +11,18 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
-use Filament\Tables\Columns\ToggleColumn;
+
 class ManageChannelsPage extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;
@@ -56,32 +58,38 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                 IconColumn::make('icon')->icon(fn (?string $state): string => $state ?: 'heroicon-o-hashtag')->label('Icon'),
                 TextColumn::make('name'),
                 TextColumn::make('slug'),
-                ToggleColumn::make('show_sidebar')->label('Show in Sidebar')->default(true),
+                ToggleColumn::make('show_sidebar')
+                    ->label('Show in Sidebar')
+                    ->default(true)
+                    ->afterStateUpdated(function () {
+                        $this->dispatch('refresh-sidebar');
+                    }),
             ])
             ->actions([
-                EditAction::make()
-                    ->slideOver()
-                    ->form(static::getChannelFormSchema())
-                    ->fillForm(fn (CommentChannel $record): array => [
-                        ...$record->toArray(),
-                        'members' => $record->members()->pluck('users.id')->toArray(),
-                    ])
-                    ->visible(fn (CommentChannel $record): bool => $record->created_by === auth()->id())
-                    ->using(function (CommentChannel $record, array $data): void {
-                        $members = $data['members'] ?? [];
-                        unset($data['members']);
-                        $record->update($data);
-                        $record->members()->sync($members);
-                    }),
-                DeleteAction::make()
-                    ->visible(fn (CommentChannel $record): bool => $record->created_by === auth()->id())
-                    ->requiresConfirmation()
-                    ->modalHeading('Delete Channel')
-                    ->modalDescription('Are you sure you want to delete this channel? This action cannot be undone.')
-                    ->modalSubmitActionLabel('Delete')
-                    ->action(function (CommentChannel $record): void {
-                        $record->delete();
-                    }),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->slideOver()
+                        ->form(static::getChannelFormSchema())
+                        ->fillForm(fn (CommentChannel $record): array => [
+                            ...$record->toArray(),
+                            'members' => $record->members()->pluck('users.id')->toArray(),
+                        ])
+                        ->using(function (CommentChannel $record, array $data): void {
+                            $members = $data['members'] ?? [];
+                            unset($data['members']);
+                            $record->update($data);
+                            $record->members()->sync($members);
+                        }),
+                    DeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Delete Channel')
+                        ->modalDescription('Are you sure you want to delete this channel? This action cannot be undone.')
+                        ->modalSubmitActionLabel('Delete')
+                        ->action(function (CommentChannel $record): void {
+                            $record->delete();
+                        }),
+                ])
+                    ->visible(fn (CommentChannel $record): bool => $record->created_by === auth()->id()),
             ])
             ->headerActions([
                 CreateAction::make()
@@ -99,7 +107,8 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                         unset($data['members']);
                         $channel = CommentChannel::create($data);
                         $channel->members()->sync($members);
-
+                        //refresh sidebar
+                        $this->dispatch('refresh-sidebar');
                         return $channel;
                     }),
             ]);

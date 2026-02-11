@@ -79,6 +79,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                             unset($data['members']);
                             $record->update($data);
                             $record->members()->sync($members);
+                            $this->dispatch('refresh-sidebar');
                         }),
                     DeleteAction::make()
                         ->requiresConfirmation()
@@ -87,6 +88,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                         ->modalSubmitActionLabel('Delete')
                         ->action(function (CommentChannel $record): void {
                             $record->delete();
+                            $this->dispatch('refresh-sidebar');
                         }),
                 ])
                     ->visible(fn (CommentChannel $record): bool => $record->created_by === auth()->id()),

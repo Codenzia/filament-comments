@@ -3,6 +3,10 @@
 namespace Codenzia\FilamentComments\Filament\Pages;
 
 use Codenzia\FilamentComments\Models\CommentChannel;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -11,10 +15,6 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
-use Filament\Actions\ActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -109,8 +109,9 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                         unset($data['members']);
                         $channel = CommentChannel::create($data);
                         $channel->members()->sync($members);
-                        //refresh sidebar
+                        // refresh sidebar
                         $this->dispatch('refresh-sidebar');
+
                         return $channel;
                     }),
             ]);

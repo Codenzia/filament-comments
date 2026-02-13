@@ -216,7 +216,22 @@ export default function tributeTextarea({
             // Keyboard scroll support for the dropdown
             editor.addEventListener('keydown', function (event) {
                 if (!tribute.isActive) return;
+
                 var activeItem = tribute.menu ? tribute.menu.querySelector('.highlight') : null;
+
+                if (event.key === 'Enter' && activeItem) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    
+                    // Tribute.js listens for mousedown to trigger selection
+                    activeItem.dispatchEvent(new MouseEvent('mousedown', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    }));
+                    return;
+                }
+
                 if (!activeItem) return;
                 if (event.key === 'ArrowDown') {
                     var next = activeItem.nextElementSibling;
@@ -225,7 +240,7 @@ export default function tributeTextarea({
                     var prev = activeItem.previousElementSibling;
                     if (prev) prev.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
-            });
+            }, true);
         },
     };
 }

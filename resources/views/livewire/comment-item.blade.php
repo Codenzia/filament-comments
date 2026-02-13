@@ -102,9 +102,9 @@
             $hasAnyReactions = collect($reactions)->sum() > 0;
         @endphp
 
-        @if ($canPost)
         <div class="mt-2 flex flex-wrap items-center gap-2">
             {{-- Reaction Picker --}}
+            @if ($canPost)
             <div class="relative" x-data="{ open: @entangle('showReactionPicker') }">
                 <button
                     wire:click="toggleReactionPicker"
@@ -137,6 +137,7 @@
                     @endforeach
                 </div>
             </div>
+            @endif
 
             {{-- Active Reaction Badges --}}
             @if ($hasAnyReactions)
@@ -147,11 +148,12 @@
                         $isActive = $userReaction && $userReaction->reaction_type === $type;
                     @endphp
                     <button
-                        wire:click="toggleReaction('{{ $type }}')"
+                        @if ($canPost) wire:click="toggleReaction('{{ $type }}')" @endif
                         @class([
                             'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-all duration-150',
                             'bg-primary-50 text-primary-700 ring-1 ring-primary-200 dark:bg-primary-500/10 dark:text-primary-300 dark:ring-primary-500/30' => $isActive,
                             'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10' => ! $isActive,
+                            'cursor-default' => ! $canPost,
                         ])
                         title="{{ __('codenzia-comments::codenzia-comments.reactions.' . $type) }}"
                     >
@@ -162,7 +164,7 @@
             @endif
 
             {{-- Divider --}}
-            @if ($hasAnyReactions && ($canPost || $comment->replies->count() > 0))
+            @if (($hasAnyReactions || $canPost) && ($canPost || $comment->replies->count() > 0))
                 <span class="mx-0.5 h-3.5 w-px bg-gray-200 dark:bg-gray-700"></span>
             @endif
 
@@ -191,7 +193,6 @@
                 </button>
             @endif
         </div>
-        @endif
 
         {{-- Reply Form --}}
         @if ($showReplyForm)

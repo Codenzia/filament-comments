@@ -217,6 +217,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         $channel->members()->syncWithoutDetaching([auth()->id()]);
 
+        $this->dispatch('joinedChannel');
+
         Notification::make()
             ->title(__('Joined successfully'))
             ->body(__('You are now a member of ' . $channel->name))

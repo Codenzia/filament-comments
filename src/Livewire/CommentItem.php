@@ -39,7 +39,11 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public array $channelMentionables = [];
 
-    protected $listeners = ['reactionUpdated' => '$refresh', 'commentDeleted' => '$refresh'];
+    protected $listeners = [
+        'reactionUpdated' => '$refresh',
+        'commentDeleted' => '$refresh',
+        'joinedChannel' => '$refresh',
+    ];
 
     public function mount(array $mentionables = [], array $channelMentionables = []): void
     {

@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Livewire;
 
+use Codenzia\FilamentComments\Enums\CommentType;
 use Codenzia\FilamentComments\Events\UserMentioned;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Codenzia\FilamentComments\Models\Comment;
@@ -48,9 +49,15 @@ class CommentItem extends Component implements HasActions, HasForms
     public function mount(array $mentionables = [], array $channelMentionables = []): void
     {
         $this->replyForm->fill();
-        $this->editForm->fill([
-            'comment' => $this->comment->comment,
-        ]);
+
+        // Only fill the edit form for text-type comments (or legacy null type).
+        // Vote/image types store JSON that is not compatible with the TributeTextarea editor.
+        if ($this->comment->type === null || $this->comment->type === CommentType::Text) {
+            $this->editForm->fill([
+                'comment' => $this->comment->comment,
+            ]);
+        }
+
         $this->mentionables = $mentionables;
         $this->channelMentionables = $channelMentionables;
         // Ensure reactions are loaded
@@ -94,6 +101,11 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function toggleEditForm(): void
     {
+        // Only allow editing text-type comments (vote/image types are not editable via the text editor)
+        if ($this->comment->type !== null && $this->comment->type !== CommentType::Text) {
+            return;
+        }
+
         $this->showEditForm = ! $this->showEditForm;
         if ($this->showEditForm) {
             $this->editForm->fill([
@@ -155,6 +167,7 @@ class CommentItem extends Component implements HasActions, HasForms
             'commentable_id' => $this->comment->commentable_id,
             'commentable_type' => $this->comment->commentable_type,
             'channel_id' => $this->comment->channel_id,
+            'type' => $this->comment->type,
         ]);
 
         // Detect mentions in the reply and send notifications

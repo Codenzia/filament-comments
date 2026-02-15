@@ -40,13 +40,15 @@
             {{-- Actions (owner only) --}}
             @if (auth()->id() === $comment->user_id)
                 <div class="mr-auto flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                    <button
-                        wire:click="edit"
-                        class="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                        title="{{ __('codenzia-comments::codenzia-comments.comments.edit') }}"
-                    >
-                        <x-filament::icon icon="heroicon-o-pencil-square" class="h-3.5 w-3.5" />
-                    </button>
+                    @if ($comment->type === null || $comment->type === \Codenzia\FilamentComments\Enums\CommentType::Text)
+                        <button
+                            wire:click="edit"
+                            class="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                            title="{{ __('codenzia-comments::codenzia-comments.comments.edit') }}"
+                        >
+                            <x-filament::icon icon="heroicon-o-pencil-square" class="h-3.5 w-3.5" />
+                        </button>
+                    @endif
                     <button
                         wire:click="delete"
                         wire:confirm="{{ __('codenzia-comments::codenzia-comments.comments.delete_confirm') }}"
@@ -83,6 +85,97 @@
                         {{ __('codenzia-comments::codenzia-comments.comments.cancel') }}
                     </x-filament::button>
                 </div>
+            </div>
+        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Vote)
+            {{-- Vote Rendering --}}
+            @php
+                $voteData = $comment->getDecodedComment();
+                $question = $voteData['question'] ?? '';
+                $options = $voteData['options'] ?? [];
+                $votes = $voteData['votes'] ?? [];
+                $totalVotes = count($votes);
+                $userVote = $votes[auth()->id()] ?? null;
+            @endphp
+            <div class="mt-2 space-y-2">
+                <div class="flex items-center gap-2">
+                    <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-primary-500" />
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $question }}</p>
+                </div>
+                <div class="space-y-1.5">
+                    @foreach ($options as $index => $option)
+                        @php
+                            $optionVotes = collect($votes)->filter(fn($v) => $v === $index)->count();
+                            $percentage = $totalVotes > 0 ? round(($optionVotes / $totalVotes) * 100) : 0;
+                            $isSelected = $userVote === $index;
+                        @endphp
+                        <button
+                            wire:click="$parent.castVote({{ $comment->id }}, {{ $index }})"
+                            @class([
+                                'relative w-full overflow-hidden rounded-lg px-3 py-2 text-left text-sm transition-all duration-200',
+                                'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-500/10' => $isSelected,
+                                'ring-1 ring-gray-200 bg-gray-50 hover:bg-gray-100 dark:ring-gray-700 dark:bg-white/5 dark:hover:bg-white/10' => ! $isSelected,
+                            ])
+                        >
+                            @if ($totalVotes > 0)
+                                <div
+                                    class="absolute inset-y-0 left-0 rounded-lg transition-all duration-300 {{ $isSelected ? 'bg-primary-100 dark:bg-primary-500/20' : 'bg-gray-100 dark:bg-white/5' }}"
+                                    style="width: {{ $percentage }}%"
+                                ></div>
+                            @endif
+                            <div class="relative flex items-center justify-between">
+                                <span class="font-medium {{ $isSelected ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300' }}">
+                                    {{ $option }}
+                                </span>
+                                @if ($totalVotes > 0)
+                                    <span class="text-xs {{ $isSelected ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400' }}">
+                                        {{ $percentage }}%
+                                    </span>
+                                @endif
+                            </div>
+                        </button>
+                    @endforeach
+                </div>
+                @if ($totalVotes > 0)
+                    <p class="text-xs text-gray-400 dark:text-gray-500">
+                        {{ trans_choice('codenzia-comments::codenzia-comments.comment_types.vote_count', $totalVotes, ['count' => $totalVotes]) }}
+                    </p>
+                @endif
+            </div>
+        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Image)
+            {{-- Image Rendering --}}
+            @php
+                $imageData = $comment->getDecodedComment();
+                $images = $imageData['images'] ?? [];
+                $caption = $imageData['caption'] ?? '';
+            @endphp
+            <div class="mt-2 space-y-2">
+                @if (count($images) > 0)
+                    <div @class([
+                        'grid gap-2',
+                        'grid-cols-1' => count($images) === 1,
+                        'grid-cols-2' => count($images) >= 2,
+                    ])>
+                        @foreach ($images as $image)
+                            <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($image) }}" target="_blank" class="block overflow-hidden rounded-lg">
+                                <img
+                                    src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($image) }}"
+                                    alt=""
+                                    class="object-cover rounded-lg" style="width: 20%;"
+                                    loading="lazy"
+                                >
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+                @if ($caption)
+                    <div
+                        class="comment-body prose prose-sm max-w-none text-gray-700 dark:prose-invert dark:text-gray-300"
+                        x-data
+                        x-init="$nextTick(() => window.__mentionPopoverManager && window.__mentionPopoverManager.bind($el, @js($mentionables)))"
+                    >
+                        {!! $caption !!}
+                    </div>
+                @endif
             </div>
         @else
             <div

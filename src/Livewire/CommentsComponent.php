@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Livewire;
 
+use Codenzia\FilamentComments\Enums\CommentType;
 use Codenzia\FilamentComments\Events\UserMentioned;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Codenzia\FilamentComments\Models\Comment;
@@ -9,6 +10,9 @@ use Codenzia\FilamentComments\Models\CommentChannel;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -18,14 +22,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class CommentsComponent extends Component implements HasActions, HasForms
 {
     use ExtractsMentions;
     use InteractsWithActions;
     use InteractsWithForms;
+    use WithFileUploads;
 
     public ?array $data = [];
+
+    public ?array $voteData = [];
+
+    public ?array $imageData = [];
+
+    public string $commentType = 'text';
 
     public Model $record;
 
@@ -79,6 +91,24 @@ class CommentsComponent extends Component implements HasActions, HasForms
             ];
         })->toArray();
         $this->form->fill();
+        $this->voteForm->fill();
+        $this->imageForm->fill();
+    }
+
+    public function setCommentType(string $type): void
+    {
+        $enumType = CommentType::tryFrom($type);
+
+        if (! $enumType) {
+            return;
+        }
+
+        $this->commentType = $enumType->value;
+    }
+
+    public function getActiveCommentType(): CommentType
+    {
+        return CommentType::tryFrom($this->commentType) ?? CommentType::Text;
     }
 
     public function form(Schema $schema): Schema
@@ -96,6 +126,48 @@ class CommentsComponent extends Component implements HasActions, HasForms
                     ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('data');
+    }
+
+    public function voteForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('question')
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.vote_question'))
+                    ->required()
+                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.vote_question_placeholder')),
+                Repeater::make('options')
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.vote_options'))
+                    ->simple(
+                        TextInput::make('option')
+                            ->required()
+                            ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.vote_option_placeholder')),
+                    )
+                    ->minItems(2)
+                    ->maxItems(10)
+                    ->defaultItems(2)
+                    ->addActionLabel(__('codenzia-comments::codenzia-comments.comment_types.vote_add_option'))
+                    ->reorderable(false),
+            ])
+            ->statePath('voteData');
+    }
+
+    public function imageForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                FileUpload::make('images')
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.image_upload'))
+                    ->image()
+                    ->multiple()
+                    ->maxFiles(5)
+                    ->maxSize(5120)
+                    ->disk('public')
+                    ->directory('comment-images')
+                    ->imagePreviewHeight('150')
+                    ->reorderable(),
+            ])
+            ->statePath('imageData');
     }
 
     protected function getChannelMentionables(): array
@@ -165,16 +237,27 @@ class CommentsComponent extends Component implements HasActions, HasForms
             return;
         }
 
-        $data = $this->form->getState();
+        $activeType = $this->getActiveCommentType();
+
+        $commentBody = match ($activeType) {
+            CommentType::Text => $this->createTextComment(),
+            CommentType::Vote => $this->createVoteComment(),
+            CommentType::Image => $this->createImageComment(),
+        };
+
+        if ($commentBody === null) {
+            return;
+        }
 
         $comment = $this->record->comments()->create([
-            'comment' => $data['comment'],
+            'comment' => $commentBody,
+            'type' => $activeType->value,
             'user_id' => auth()->id(),
             'channel_id' => $this->activeChannelId,
         ]);
 
         // Detect mentions in the comment and send notifications
-        $mentionedNames = $this->extractMentions($data['comment']);
+        $mentionedNames = $this->extractMentions($commentBody);
         if (! empty($mentionedNames)) {
             $userModel = $this->getUserModelClass();
             $columnName = config('codenzia-comments.mentionable.column.label', 'name');
@@ -193,7 +276,81 @@ class CommentsComponent extends Component implements HasActions, HasForms
             ->success()
             ->send();
 
+        $this->resetForms();
+    }
+
+    protected function createTextComment(): ?string
+    {
+        $data = $this->form->getState();
+
+        return $data['comment'];
+    }
+
+    protected function createVoteComment(): ?string
+    {
+        $data = $this->voteForm->getState();
+
+        $votePayload = [
+            'question' => $data['question'],
+            'options' => collect($data['options'])->values()->all(),
+            'votes' => [],
+        ];
+
+        return json_encode($votePayload);
+    }
+
+    protected function createImageComment(): ?string
+    {
+        $data = $this->imageForm->getState();
+
+        if (empty($data['images'])) {
+            Notification::make()
+                ->title(__('codenzia-comments::codenzia-comments.comment_types.image_required'))
+                ->danger()
+                ->send();
+
+            return null;
+        }
+
+        $imagePayload = [
+            'images' => $data['images'],
+            'caption' => $data['caption'] ?? '',
+        ];
+
+        return json_encode($imagePayload);
+    }
+
+    protected function resetForms(): void
+    {
         $this->form->fill();
+        $this->voteForm->fill();
+        $this->imageForm->fill();
+        $this->commentType = CommentType::Text->value;
+    }
+
+    public function castVote(int $commentId, int $optionIndex): void
+    {
+        $comment = Comment::find($commentId);
+
+        if (! $comment || $comment->type !== CommentType::Vote) {
+            return;
+        }
+
+        $data = $comment->getDecodedComment();
+        $votes = $data['votes'] ?? [];
+        $userId = (string) auth()->id();
+
+        if (isset($votes[$userId]) && $votes[$userId] === $optionIndex) {
+            unset($votes[$userId]);
+        } else {
+            $votes[$userId] = $optionIndex;
+        }
+
+        $data['votes'] = $votes;
+
+        $comment->update([
+            'comment' => json_encode($data),
+        ]);
     }
 
     public function canUserPostInChannel(): bool

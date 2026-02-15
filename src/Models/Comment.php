@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Models;
 
+use Codenzia\FilamentComments\Enums\CommentType;
 use Codenzia\FilamentComments\Events\CommentAdded;
 use Codenzia\FilamentComments\Events\CommentDeleted;
 use Codenzia\FilamentComments\Traits\HasComments;
@@ -14,6 +15,7 @@ class Comment extends Model
 
     protected $fillable = [
         'comment',
+        'type',
         'user_id',
         'channel_id',
         'is_approved',
@@ -22,6 +24,7 @@ class Comment extends Model
 
     protected $casts = [
         'is_approved' => 'boolean',
+        'type' => CommentType::class,
     ];
 
     public function channel()
@@ -103,6 +106,23 @@ class Comment extends Model
             ->get()
             ->pluck('count', 'reaction_type')
             ->toArray();
+    }
+
+    public function isType(CommentType $type): bool
+    {
+        return $this->type === $type;
+    }
+
+    /**
+     * Decode the comment body as JSON for vote/image types.
+     *
+     * @return array<string, mixed>
+     */
+    public function getDecodedComment(): array
+    {
+        $decoded = json_decode($this->comment, true);
+
+        return is_array($decoded) ? $decoded : [];
     }
 
     public function approve()

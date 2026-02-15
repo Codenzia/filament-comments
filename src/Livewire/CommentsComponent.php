@@ -10,7 +10,6 @@ use Codenzia\FilamentComments\Models\CommentChannel;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -35,9 +34,10 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public ?array $voteData = [];
 
-    public ?array $imageData = [];
-
     public string $commentType = 'text';
+
+    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    public $tempImages = [];
 
     public Model $record;
 
@@ -92,7 +92,24 @@ class CommentsComponent extends Component implements HasActions, HasForms
         })->toArray();
         $this->form->fill();
         $this->voteForm->fill();
-        $this->imageForm->fill();
+    }
+
+    public function updatedTempImages(): void
+    {
+        $this->validate([
+            'tempImages.*' => 'image|max:5120',
+        ]);
+
+        $urls = [];
+
+        foreach ($this->tempImages as $image) {
+            $path = $image->store('comment-images', 'public');
+            $urls[] = Storage::disk('public')->url($path);
+        }
+
+        $this->tempImages = [];
+
+        $this->dispatch('comment-images-uploaded', urls: $urls);
     }
 
     public function setCommentType(string $type): void
@@ -150,24 +167,6 @@ class CommentsComponent extends Component implements HasActions, HasForms
                     ->reorderable(false),
             ])
             ->statePath('voteData');
-    }
-
-    public function imageForm(Schema $schema): Schema
-    {
-        return $schema
-            ->components([
-                FileUpload::make('images')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.image_upload'))
-                    ->image()
-                    ->multiple()
-                    ->maxFiles(5)
-                    ->maxSize(5120)
-                    ->disk('public')
-                    ->directory('comment-images')
-                    ->imagePreviewHeight('150')
-                    ->reorderable(),
-            ])
-            ->statePath('imageData');
     }
 
     protected function getChannelMentionables(): array
@@ -240,18 +239,20 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $activeType = $this->getActiveCommentType();
 
         $commentBody = match ($activeType) {
-            CommentType::Text => $this->createTextComment(),
+            CommentType::Text, CommentType::Image => $this->createTextComment(),
             CommentType::Vote => $this->createVoteComment(),
-            CommentType::Image => $this->createImageComment(),
         };
 
         if ($commentBody === null) {
             return;
         }
 
+        // Images are embedded inline in the text editor, so save as text type
+        $commentType = $activeType === CommentType::Image ? CommentType::Text : $activeType;
+
         $comment = $this->record->comments()->create([
             'comment' => $commentBody,
-            'type' => $activeType->value,
+            'type' => $commentType->value,
             'user_id' => auth()->id(),
             'channel_id' => $this->activeChannelId,
         ]);
@@ -299,32 +300,11 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return json_encode($votePayload);
     }
 
-    protected function createImageComment(): ?string
-    {
-        $data = $this->imageForm->getState();
-
-        if (empty($data['images'])) {
-            Notification::make()
-                ->title(__('codenzia-comments::codenzia-comments.comment_types.image_required'))
-                ->danger()
-                ->send();
-
-            return null;
-        }
-
-        $imagePayload = [
-            'images' => $data['images'],
-            'caption' => $data['caption'] ?? '',
-        ];
-
-        return json_encode($imagePayload);
-    }
-
     protected function resetForms(): void
     {
         $this->form->fill();
         $this->voteForm->fill();
-        $this->imageForm->fill();
+        $this->tempImages = [];
         $this->commentType = CommentType::Text->value;
     }
 

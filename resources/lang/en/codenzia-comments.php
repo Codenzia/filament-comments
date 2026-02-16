@@ -52,4 +52,13 @@ return [
     'comment_types.image_required' => 'Please upload at least one image.',
     'comment_types.add_attachment' => 'Add attachment',
     'comment_types.vote_count' => '{1} :count vote|[2,*] :count votes',
+
+    'comment_types.event' => 'Event',
+    'comment_types.event_title' => 'Event Title',
+    'comment_types.event_title_placeholder' => 'What is the event?',
+    'comment_types.event_date' => 'Date & Time',
+    'comment_types.event_description' => 'Description',
+    'comment_types.event_description_placeholder' => 'Add details about the event (optional)...',
+    'comment_types.event_past' => 'Past event',
+    'comment_types.file' => 'File',
 ];

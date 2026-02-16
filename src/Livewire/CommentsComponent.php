@@ -10,7 +10,9 @@ use Codenzia\FilamentComments\Models\CommentChannel;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -33,6 +35,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
     public ?array $data = [];
 
     public ?array $voteData = [];
+
+    public ?array $eventData = [];
 
     public string $commentType = 'text';
 
@@ -95,6 +99,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         })->toArray();
         $this->form->fill();
         $this->voteForm->fill();
+        $this->eventForm->fill();
     }
 
     public function updatedTempImages(): void
@@ -197,6 +202,26 @@ class CommentsComponent extends Component implements HasActions, HasForms
             ->statePath('voteData');
     }
 
+    public function eventForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('title')
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.event_title'))
+                    ->required()
+                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.event_title_placeholder')),
+                DateTimePicker::make('date')
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.event_date'))
+                    ->required()
+                    ->native(false),
+                Textarea::make('description')
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.event_description'))
+                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.event_description_placeholder'))
+                    ->rows(2),
+            ])
+            ->statePath('eventData');
+    }
+
     protected function getChannelMentionables(): array
     {
         return $this->getAvailableChannels()->map(function ($channel) {
@@ -269,14 +294,14 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $commentBody = match ($activeType) {
             CommentType::Text => $this->createTextComment(),
             CommentType::Vote => $this->createVoteComment(),
+            CommentType::Event => $this->createEventComment(),
         };
 
         if ($commentBody === null) {
             return;
         }
 
-        // Images are embedded inline in the text editor, so save as text type
-        $commentType = CommentType::Text;
+        $commentType = $activeType === CommentType::Text ? CommentType::Text : $activeType;
 
         $comment = $this->record->comments()->create([
             'comment' => $commentBody,
@@ -328,10 +353,24 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return json_encode($votePayload);
     }
 
+    protected function createEventComment(): ?string
+    {
+        $data = $this->eventForm->getState();
+
+        $eventPayload = [
+            'title' => $data['title'],
+            'date' => $data['date'],
+            'description' => $data['description'] ?? '',
+        ];
+
+        return json_encode($eventPayload);
+    }
+
     protected function resetForms(): void
     {
         $this->form->fill();
         $this->voteForm->fill();
+        $this->eventForm->fill();
         $this->tempImages = [];
         $this->tempFiles = [];
         $this->commentType = CommentType::Text->value;

@@ -36,4 +36,18 @@ return [
     'reactions.wow' => 'واو',
     'reactions.sad' => 'حزين',
     'reactions.angry' => 'غضب',
+
+    'comment_types.text' => 'نص',
+    'comment_types.vote' => 'تصويت',
+    'comment_types.image' => 'صورة',
+    'comment_types.event' => 'حدث',
+    'comment_types.event_title' => 'عنوان الحدث',
+    'comment_types.event_title_placeholder' => 'ما هو الحدث؟',
+    'comment_types.event_date' => 'التاريخ والوقت',
+    'comment_types.event_description' => 'الوصف',
+    'comment_types.event_description_placeholder' => 'أضف تفاصيل عن الحدث (اختياري)...',
+    'comment_types.event_past' => 'حدث سابق',
+    'comment_types.add_attachment' => 'إضافة مرفق',
+    'comment_types.file' => 'ملف',
+    'comment_types.vote_count' => '{1} صوت واحد|{2} صوتان|[3,10] :count أصوات|[11,*] :count صوت',
 ];

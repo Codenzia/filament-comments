@@ -63,6 +63,41 @@
                         </button>
                     </div>
                 </div>
+            @elseif ($commentType === 'event')
+                {{-- Event mode --}}
+                <div class="comment-composer rounded-xl dark:bg-[#16181C]">
+                    <div class="p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                <x-filament::icon icon="heroicon-o-calendar-days" class="h-3.5 w-3.5 text-primary-500" />
+                                {{ __('codenzia-comments::codenzia-comments.comment_types.event') }}
+                            </span>
+                            <button
+                                wire:click="setCommentType('text')"
+                                class="rounded-md p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                            >
+                                <x-filament::icon icon="heroicon-o-x-mark" class="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                        {{ $this->eventForm }}
+                    </div>
+                    {{-- Bottom toolbar for event --}}
+                    <div class="flex items-center border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                        <div class="flex-1"></div>
+                        <button
+                            wire:click="create"
+                            wire:loading.attr="disabled"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-[#212427] p-1.5"
+                        >
+                            <span wire:loading.remove wire:target="create">
+                                <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
+                            </span>
+                            <span wire:loading wire:target="create">
+                                <x-filament::loading-indicator class="h-4 w-4" />
+                            </span>
+                        </button>
+                    </div>
+                </div>
             @else
                 {{-- Text / Image mode: show the rich text editor --}}
                 <div class="comment-composer rounded-xl dark:bg-[#16181C]">
@@ -101,6 +136,14 @@
                                 >
                                     <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
                                     {{ __('codenzia-comments::codenzia-comments.comment_types.vote') }}
+                                </button>
+                                <button
+                                    wire:click="setCommentType('event')"
+                                    @click="dropdownOpen = false"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                >
+                                    <x-filament::icon icon="heroicon-o-calendar-days" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                    {{ __('codenzia-comments::codenzia-comments.comment_types.event') }}
                                 </button>
                             </div>
 

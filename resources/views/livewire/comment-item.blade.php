@@ -189,6 +189,93 @@
                     </div>
                 @endif
             </div>
+        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Event)
+            {{-- Event Rendering --}}
+            @php
+                $eventData = $comment->getDecodedComment();
+                $eventTitle = $eventData['title'] ?? '';
+                $eventDate = $eventData['date'] ?? '';
+                $eventDescription = $eventData['description'] ?? '';
+                $parsedDate = $eventDate ? \Carbon\Carbon::parse($eventDate) : null;
+                $isPast = $parsedDate && $parsedDate->isPast();
+            @endphp
+            <div class="mt-3">
+                <div @class([
+                    'relative overflow-hidden rounded-xl border transition-all duration-200',
+                    'border-gray-200/60 dark:border-gray-700/50' => ! $isPast,
+                    'border-gray-200/40 opacity-75 dark:border-gray-700/30' => $isPast,
+                ])>
+
+
+                    <div class="flex gap-4 p-4">
+                        {{-- Date block --}}
+                        @if ($parsedDate)
+                            <div class="flex shrink-0 flex-col items-center">
+                                <div @class([
+                                    'flex h-14 w-14 flex-col items-center justify-center rounded-xl',
+                                    'bg-primary-50 dark:bg-primary-500/10' => ! $isPast,
+                                    'bg-gray-100 dark:bg-white/5' => $isPast,
+                                ])>
+                                    <span @class([
+                                        'text-[10px] font-bold uppercase leading-none',
+                                        'text-primary-500' => ! $isPast,
+                                        'text-gray-400 dark:text-gray-500' => $isPast,
+                                    ])>
+                                        {{ $parsedDate->format('M') }}
+                                    </span>
+                                    <span @class([
+                                        'text-xl font-bold leading-tight',
+                                        'text-primary-700 dark:text-primary-300' => ! $isPast,
+                                        'text-gray-500 dark:text-gray-400' => $isPast,
+                                    ])>
+                                        {{ $parsedDate->format('d') }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Details --}}
+                        <div class="min-w-0 flex-1">
+                            <h4 @class([
+                                'text-sm font-semibold',
+                                'text-gray-900 dark:text-white' => ! $isPast,
+                                'text-gray-500 dark:text-gray-400 line-through' => $isPast,
+                            ])>
+                                {{ $eventTitle }}
+                            </h4>
+
+                            @if ($parsedDate)
+                                <div class="mt-1 flex items-center gap-1.5">
+                                    <x-filament::icon icon="heroicon-o-clock" @class([
+                                        'h-3.5 w-3.5',
+                                        'text-gray-400 dark:text-gray-500' => ! $isPast,
+                                        'text-gray-300 dark:text-gray-600' => $isPast,
+                                    ]) />
+                                    <span @class([
+                                        'text-xs',
+                                        'text-gray-500 dark:text-gray-400' => ! $isPast,
+                                        'text-gray-400 dark:text-gray-500' => $isPast,
+                                    ])>
+                                        {{ $parsedDate->format('l, M d, Y \a\t g:i A') }}
+                                    </span>
+                                </div>
+                            @endif
+
+                            @if ($eventDescription)
+                                <p class="mt-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                                    {{ $eventDescription }}
+                                </p>
+                            @endif
+
+                            @if ($isPast)
+                                <span class="mt-2 inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
+                                    {{ __('codenzia-comments::codenzia-comments.comment_types.event_past') }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
         @else
             <div
                 class="comment-body prose prose-sm mt-1 max-w-none text-gray-700 dark:prose-invert dark:text-gray-300"

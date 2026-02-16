@@ -278,6 +278,9 @@
             border: none !important;
             border-radius: 0 !important;
         }
+        .comment-body img {
+            width: 20%;
+        }
     </style>
     <script>
         window.__getComposerEditor = function(rootEl) {

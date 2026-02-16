@@ -52,7 +52,7 @@
                     <button
                         wire:click="delete"
                         wire:confirm="{{ __('codenzia-comments::codenzia-comments.comments.delete_confirm') }}"
-                        class="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-gray-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                        class="rounded-md p-1 text-gray-400 transition-colors "
                         title="{{ __('codenzia-comments::codenzia-comments.comments.delete') }}"
                     >
                         <x-filament::icon icon="heroicon-o-trash" class="h-3.5 w-3.5" />
@@ -189,33 +189,6 @@
                             {{ trans_choice('codenzia-comments::codenzia-comments.comment_types.vote_count', $totalVotes, ['count' => $totalVotes]) }}
                         </p>
                         <div class="h-px flex-1 bg-gradient-to-l from-gray-200 via-gray-200 to-transparent dark:from-gray-700 dark:via-gray-700"></div>
-                    </div>
-                @endif
-            </div>
-        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Image)
-            {{-- Image Rendering --}}
-            @php
-                $imageData = $comment->getDecodedComment();
-                $images = $imageData['images'] ?? [];
-                $caption = $imageData['caption'] ?? '';
-            @endphp
-            <div class="mt-2 space-y-2">
-                @if (count($images) > 0)
-                    <div @class([
-                        'grid gap-2',
-                        'grid-cols-1' => count($images) === 1,
-                        'grid-cols-2' => count($images) >= 2,
-                    ])>
-                        @foreach ($images as $image)
-                            <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($image) }}" target="_blank" class="block overflow-hidden rounded-lg">
-                                <img
-                                    src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($image) }}"
-                                    alt=""
-                                    class="object-cover rounded-lg" style="width: 20%;"
-                                    loading="lazy"
-                                >
-                            </a>
-                        @endforeach
                     </div>
                 @endif
             </div>

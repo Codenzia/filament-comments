@@ -267,7 +267,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $activeType = $this->getActiveCommentType();
 
         $commentBody = match ($activeType) {
-            CommentType::Text, CommentType::Image => $this->createTextComment(),
+            CommentType::Text => $this->createTextComment(),
             CommentType::Vote => $this->createVoteComment(),
         };
 
@@ -276,7 +276,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         }
 
         // Images are embedded inline in the text editor, so save as text type
-        $commentType = $activeType === CommentType::Image ? CommentType::Text : $activeType;
+        $commentType =  CommentType::Text;
 
         $comment = $this->record->comments()->create([
             'comment' => $commentBody,

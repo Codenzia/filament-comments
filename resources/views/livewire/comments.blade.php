@@ -303,34 +303,28 @@
         };
 
         window.__triggerMention = function(composerEl) {
-            // Find the ProseMirror element
+            var editor = window.__getComposerEditor(composerEl);
             var pm = composerEl.querySelector('.ProseMirror[contenteditable="true"]');
-            if (!pm) {
-                console.error('ProseMirror element not found');
-                return;
+            if (!pm) return;
+
+            // Step 1: Focus the editor to establish a cursor position
+            if (editor) {
+                editor.commands.focus('end');
+            } else {
+                pm.focus();
             }
 
-            // Focus first to ensure editor is active
-            pm.focus();
+            // Step 2: Wait for focus + selection to fully settle in the browser
+            requestAnimationFrame(function() {
+                setTimeout(function() {
+                    var keyOpts = { key: '@', code: 'Digit2', keyCode: 50, which: 50, bubbles: true, cancelable: true };
 
-            // Insert @ character
-            document.execCommand('insertText', false, '@');
-
-            // Trigger input event for suggestion plugin
-            pm.dispatchEvent(new Event('input', { bubbles: true }));
-
-            // Alternative: Use Tiptap commands if available
-            try {
-                var data = Alpine.$data(pm);
-                if (data && data.getEditor) {
-                    var editor = data.getEditor();
-                    if (editor) {
-                        editor.chain().focus().insertContent('@').run();
-                    }
-                }
-            } catch(e) {
-                console.log(e);
-            }
+                    // Simulate full keystroke: keydown → native insert → keyup
+                    pm.dispatchEvent(new KeyboardEvent('keydown', keyOpts));
+                    document.execCommand('insertText', false, '@');
+                    pm.dispatchEvent(new KeyboardEvent('keyup', keyOpts));
+                }, 120);
+            });
         };
 
         window.__insertCommentImages = function(urls) {

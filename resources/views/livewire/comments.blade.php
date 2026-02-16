@@ -20,7 +20,7 @@
 
             @if ($commentType === 'vote')
                 {{-- Vote mode: replaces the text editor entirely --}}
-                <div class="comment-composer overflow-hidden rounded-xl dark:bg-[#16181C]">
+                <div class="comment-composer rounded-xl dark:bg-[#16181C]">
                     <div class="p-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
@@ -55,13 +55,13 @@
                 </div>
             @else
                 {{-- Text / Image mode: show the rich text editor --}}
-                <div class="comment-composer overflow-hidden rounded-xl dark:bg-[#16181C]">
+                <div class="comment-composer rounded-xl dark:bg-[#16181C]">
                     <div class="comment-composer__editor">
                         {{ $this->form }}
                     </div>
 
                     {{-- Bottom toolbar --}}
-                    <div class="flex items-center gap-0.5 border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                    <div class="relative flex items-center gap-0.5 border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
                         <div class="relative flex items-center gap-0.5">
                             {{-- + Add attachment --}}
                             <button
@@ -76,21 +76,14 @@
                             <div
                                 x-show="dropdownOpen"
                                 x-transition:enter="transition ease-out duration-100"
-                                x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                x-transition:enter-start="opacity-0 scale-95 translate-y-1"
                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                                 x-transition:leave="transition ease-in duration-75"
                                 x-transition:leave-start="opacity-100 scale-100"
                                 x-transition:leave-end="opacity-0 scale-95"
                                 @click.away="dropdownOpen = false"
-                                class="absolute left-0 z-50 mb-8 bottom-0 w-48 rounded-lg bg-white py-1 ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
+                                class="absolute left-0 z-50 mb-2 bottom-full w-48 rounded-lg bg-white py-1 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
                             >
-                                <button
-                                    @click="dropdownOpen = false; $refs.imageInput.click()"
-                                    class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
-                                >
-                                    <x-filament::icon icon="heroicon-o-photo" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                    {{ __('codenzia-comments::codenzia-comments.comment_types.image') }}
-                                </button>
                                 <button
                                     wire:click="setCommentType('vote')"
                                     @click="dropdownOpen = false"
@@ -120,6 +113,40 @@
                             >
                                 <x-filament::icon icon="heroicon-o-photo" class="h-4.5 w-4.5" />
                             </button>
+
+                            {{-- Emoji picker --}}
+                            <div class="relative" x-data="{ emojiOpen: false }">
+                                <button
+                                    @click="emojiOpen = !emojiOpen"
+                                    class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                    title="{{ __('codenzia-comments::codenzia-comments.comments.emoji') ?? 'Emoji' }}"
+                                >
+                                    <x-filament::icon icon="heroicon-o-face-smile" class="h-4.5 w-4.5" />
+                                </button>
+                                <div
+                                    x-show="emojiOpen"
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="opacity-100 scale-100"
+                                    x-transition:leave-end="opacity-0 scale-95"
+                                    @click.away="emojiOpen = false"
+                                    class="absolute left-0 z-50 mb-2 bottom-full w-64 max-h-48 overflow-y-auto rounded-lg bg-white p-2 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
+                                >
+                                    <div class="flex flex-wrap">
+                                        @foreach (['😀','😂','😊','😍','🥰','😎','🤔','😏','😢','😭','😡','🤯','🥳','😴','🤗','😈','👍','👎','👏','🙌','🤝','✌️','🔥','❤️','💯','⭐','🎉','✅','❌','💡','🚀','👀','💬','📌','🏆','💪'] as $emoji)
+                                            <button
+                                                type="button"
+                                                @click="window.__insertEmoji($el.closest('.comment-composer'), '{{ $emoji }}'); emojiOpen = false"
+                                                class="flex items-center justify-center rounded p-1 text-lg dark:bg-[#16181C]"
+                                            >
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex-1"></div>
@@ -247,23 +274,60 @@
             return null;
         };
 
-        window.__triggerMention = function(composerEl) {
+        window.__insertEmoji = function(composerEl, emoji) {
             var editor = window.__getComposerEditor(composerEl);
             if (!editor) return;
+            editor.chain().focus().insertContent(emoji).run();
+        };
 
-            editor.chain().focus().insertContent('@').run();
-
+        window.__triggerMention = function(composerEl) {
+            // Find the ProseMirror element
             var pm = composerEl.querySelector('.ProseMirror[contenteditable="true"]');
-            if (pm) {
-                pm.dispatchEvent(new KeyboardEvent('keydown', { key: '@', bubbles: true }));
-                pm.dispatchEvent(new Event('input', { bubbles: true }));
-                pm.dispatchEvent(new KeyboardEvent('keyup', { key: '@', bubbles: true }));
+            if (!pm) {
+                console.error('ProseMirror element not found');
+                return;
+            }
+
+            // Focus first to ensure editor is active
+            pm.focus();
+
+            // Insert @ character
+            document.execCommand('insertText', false, '@');
+
+            // Trigger input event for suggestion plugin
+            pm.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Alternative: Use Tiptap commands if available
+            try {
+                var data = Alpine.$data(pm);
+                if (data && data.getEditor) {
+                    var editor = data.getEditor();
+                    if (editor) {
+                        editor.chain().focus().insertContent('@').run();
+                    }
+                }
+            } catch(e) {
+                console.log(e);
             }
         };
 
         window.__insertCommentImages = function(urls) {
             setTimeout(function() {
                 var composerEl = document.querySelector('.comment-composer');
+                var editor = window.__getComposerEditor(composerEl);
+                if (!editor || !urls || !urls.length) return;
+
+                var html = '';
+                urls.forEach(function(u) {
+                    html += '<img src="' + u + '" alt="" style="max-width:100%;border-radius:8px;margin:4px 0;"><br>';
+                });
+                editor.chain().focus().insertContent(html).run();
+            }, 150);
+        };
+
+        window.__insertReplyImages = function(commentId, urls) {
+            setTimeout(function() {
+                var composerEl = document.querySelector('.reply-composer-' + commentId);
                 var editor = window.__getComposerEditor(composerEl);
                 if (!editor || !urls || !urls.length) return;
 

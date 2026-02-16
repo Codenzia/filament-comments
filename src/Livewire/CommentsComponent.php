@@ -332,6 +332,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $comment->update([
             'comment' => json_encode($data),
         ]);
+
+        $this->dispatch('voteUpdated');
     }
 
     public function canUserPostInChannel(): bool

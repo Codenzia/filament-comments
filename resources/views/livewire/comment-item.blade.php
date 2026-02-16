@@ -96,49 +96,100 @@
                 $totalVotes = count($votes);
                 $userVote = $votes[auth()->id()] ?? null;
             @endphp
-            <div class="mt-2 space-y-2">
-                <div class="flex items-center gap-2">
-                    <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-primary-500" />
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $question }}</p>
+            <div class="mt-3 space-y-3">
+                {{-- Question header --}}
+                <div class="flex items-start gap-2.5">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-500/10">
+                        <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-primary-500" />
+                    </div>
+                    <p class="text-sm font-semibold leading-7 text-gray-900 dark:text-white">{{ $question }}</p>
                 </div>
-                <div class="space-y-1.5">
+
+                {{-- Options --}}
+                <div class="space-y-2">
+                    @php $maxVotes = collect($votes)->countBy()->max() ?? 0; @endphp
                     @foreach ($options as $index => $option)
                         @php
                             $optionVotes = collect($votes)->filter(fn($v) => $v === $index)->count();
                             $percentage = $totalVotes > 0 ? round(($optionVotes / $totalVotes) * 100) : 0;
                             $isSelected = $userVote === $index;
+                            $isWinning = $totalVotes > 0 && $optionVotes === $maxVotes && $optionVotes > 0;
                         @endphp
                         <button
                             wire:click="$parent.castVote({{ $comment->id }}, {{ $index }})"
-                            @class([
-                                'relative w-full overflow-hidden rounded-lg px-3 py-2 text-left text-sm transition-all duration-200',
-                                'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-500/10' => $isSelected,
-                                'ring-1 ring-gray-200 bg-gray-50 hover:bg-gray-100 dark:ring-gray-700 dark:bg-white/5 dark:hover:bg-white/10' => ! $isSelected,
-                            ])
+                            class="group/vote relative w-full overflow-hidden rounded-xl text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
                         >
-                            @if ($totalVotes > 0)
-                                <div
-                                    class="absolute inset-y-0 left-0 rounded-lg transition-all duration-300 {{ $isSelected ? 'bg-primary-100 dark:bg-primary-500/20' : 'bg-gray-100 dark:bg-white/5' }}"
-                                    style="width: {{ $percentage }}%"
-                                ></div>
-                            @endif
-                            <div class="relative flex items-center justify-between">
-                                <span class="font-medium {{ $isSelected ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300' }}">
-                                    {{ $option }}
-                                </span>
+                            {{-- Card background --}}
+                            <div @class([
+                                'relative rounded-xl border px-4 py-3 transition-all duration-200',
+                                'bg-black' => $isSelected,
+                                'bg-[#16181C]' => ! $isSelected,
+                            ])>
+                                {{-- Animated progress bar --}}
                                 @if ($totalVotes > 0)
-                                    <span class="text-xs {{ $isSelected ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400' }}">
-                                        {{ $percentage }}%
-                                    </span>
+                                    <div
+                                        class="absolute inset-y-0 left-0 rounded-xl transition-all duration-500 ease-out"
+                                        style="width: {{ $percentage }}%"
+                                    >
+                                        <div @class([
+                                            'h-full w-full rounded-xl',
+                                            'bg-gradient-to-r from-primary-500/15 to-primary-400/10' => $isSelected,
+                                            'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-white/[0.04] dark:to-white/[0.02]' => ! $isSelected && ! $isWinning,
+                                            'bg-gradient-to-r from-primary-500/8 to-primary-400/5' => ! $isSelected && $isWinning,
+                                        ])></div>
+                                    </div>
                                 @endif
+
+                                {{-- Content --}}
+                                <div class="relative flex items-center gap-3">
+                                    {{-- Check indicator --}}
+                                    <div @class([
+                                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
+                                        'border-primary-500 bg-primary-500 text-white' => $isSelected,
+                                        'border-gray-300 bg-transparent group-hover/vote:border-gray-400 dark:border-gray-600 dark:group-hover/vote:border-gray-500' => ! $isSelected,
+                                    ])>
+                                        @if ($isSelected)
+                                            <svg class="h-3 w-3" viewBox="0 0 12 12" fill="none">
+                                                <path d="M3.5 6L5.5 8L8.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        @endif
+                                    </div>
+
+                                    {{-- Option text --}}
+                                    <span @class([
+                                        'flex-1 text-sm font-medium transition-colors duration-200',
+                                        'text-primary-700 dark:text-primary-300' => $isSelected,
+                                        'text-gray-700 dark:text-gray-300' => ! $isSelected,
+                                    ])>
+                                        {{ $option }}
+                                    </span>
+
+                                    {{-- Percentage + vote count --}}
+                                    @if ($totalVotes > 0)
+                                        <div class="flex shrink-0 items-center gap-1.5">
+                                            <span @class([
+                                                'text-xs font-semibold tabular-nums',
+                                                'text-primary-600 dark:text-primary-400' => $isSelected || $isWinning,
+                                                'text-gray-400 dark:text-gray-500' => ! $isSelected && ! $isWinning,
+                                            ])>
+                                                {{ $percentage }}%
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </button>
                     @endforeach
                 </div>
+
+                {{-- Footer --}}
                 @if ($totalVotes > 0)
-                    <p class="text-xs text-gray-400 dark:text-gray-500">
-                        {{ trans_choice('codenzia-comments::codenzia-comments.comment_types.vote_count', $totalVotes, ['count' => $totalVotes]) }}
-                    </p>
+                    <div class="flex items-center gap-2 px-1">
+                        <p class="shrink-0 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                            {{ trans_choice('codenzia-comments::codenzia-comments.comment_types.vote_count', $totalVotes, ['count' => $totalVotes]) }}
+                        </p>
+                        <div class="h-px flex-1 bg-gradient-to-l from-gray-200 via-gray-200 to-transparent dark:from-gray-700 dark:via-gray-700"></div>
+                    </div>
                 @endif
             </div>
         @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Image)
@@ -165,15 +216,6 @@
                                 >
                             </a>
                         @endforeach
-                    </div>
-                @endif
-                @if ($caption)
-                    <div
-                        class="comment-body prose prose-sm max-w-none text-gray-700 dark:prose-invert dark:text-gray-300"
-                        x-data
-                        x-init="$nextTick(() => window.__mentionPopoverManager && window.__mentionPopoverManager.bind($el, @js($mentionables)))"
-                    >
-                        {!! $caption !!}
                     </div>
                 @endif
             </div>
@@ -289,27 +331,116 @@
 
         {{-- Reply Form --}}
         @if ($showReplyForm)
-            <div class="mt-3 border-l-2 border-primary-200 pl-4 dark:border-primary-500/30">
-                {{ $this->replyForm }}
-                <div class="mt-2 flex items-center gap-2">
-                    <x-filament::button
-                        wire:click="reply"
-                        size="xs"
-                        color="primary"
-                    >
-                        <span wire:loading.remove wire:target="reply">{{ __('codenzia-comments::codenzia-comments.comments.post_reply') }}</span>
-                        <span wire:loading wire:target="reply">
-                            <x-filament::loading-indicator class="h-4 w-4" />
-                        </span>
-                    </x-filament::button>
-                    <x-filament::button
-                        wire:click="toggleReplyForm"
-                        size="xs"
-                        color="gray"
-                        outlined
-                    >
-                        {{ __('codenzia-comments::codenzia-comments.comments.cancel') }}
-                    </x-filament::button>
+            <div
+                class="mt-3 border-l-2 border-primary-200 pl-4 dark:border-primary-500/30"
+                x-data="{ uploading: false }"
+                x-on:livewire-upload-start="uploading = true"
+                x-on:livewire-upload-finish="uploading = false; $refs.replyImageInput{{ $comment->id }}.value = ''"
+                x-on:livewire-upload-error="uploading = false; $refs.replyImageInput{{ $comment->id }}.value = ''"
+            >
+                {{-- Hidden file input for image upload --}}
+                <input
+                    type="file"
+                    wire:model="tempImages"
+                    accept="image/*"
+                    multiple
+                    class="hidden"
+                    x-ref="replyImageInput{{ $comment->id }}"
+                />
+
+                <div class="comment-composer reply-composer-{{ $comment->id }} rounded-xl dark:bg-[#16181C]">
+                    <div class="comment-composer__editor">
+                        {{ $this->replyForm }}
+                    </div>
+
+                    {{-- Bottom toolbar --}}
+                    <div class="relative flex items-center gap-0.5 border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                        <div class="relative flex items-center gap-0.5">
+                            {{-- @ mention --}}
+                            <button
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                title="{{ __('codenzia-comments::codenzia-comments.comments.mention_hint') }}"
+                                onclick="window.__triggerMention(this.closest('.comment-composer'))"
+                            >
+                                <x-filament::icon icon="heroicon-o-at-symbol" class="h-4.5 w-4.5" />
+                            </button>
+
+                            {{-- Image shortcut --}}
+                            <button
+                                @click="$refs.replyImageInput{{ $comment->id }}.click()"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                title="{{ __('codenzia-comments::codenzia-comments.comment_types.image') }}"
+                            >
+                                <x-filament::icon icon="heroicon-o-photo" class="h-4.5 w-4.5" />
+                            </button>
+
+                            {{-- Emoji picker --}}
+                            <div class="relative" x-data="{ emojiOpen: false }">
+                                <button
+                                    @click="emojiOpen = !emojiOpen"
+                                    class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                    title="{{ __('codenzia-comments::codenzia-comments.comments.emoji') ?? 'Emoji' }}"
+                                >
+                                    <x-filament::icon icon="heroicon-o-face-smile" class="h-4.5 w-4.5" />
+                                </button>
+                                <div
+                                    x-show="emojiOpen"
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="opacity-100 scale-100"
+                                    x-transition:leave-end="opacity-0 scale-95"
+                                    @click.away="emojiOpen = false"
+                                    class="absolute left-0 z-50 mb-2 bottom-full w-64 max-h-48 overflow-y-auto rounded-lg bg-white p-2 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
+                                >
+                                    <div class="grid grid-cols-8 gap-0.5">
+                                        @foreach (['😀','😂','😊','😍','🥰','😎','🤔','😏','😢','😭','😡','🤯','🥳','😴','🤗','😈','👍','👎','👏','🙌','🤝','✌️','🔥','❤️','💯','⭐','🎉','✅','❌','💡','🚀','👀','💬','📌','🏆','💪'] as $emoji)
+                                            <button
+                                                type="button"
+                                                @click="window.__insertEmoji($el.closest('.comment-composer'), '{{ $emoji }}'); emojiOpen = false"
+                                                class="flex items-center justify-center rounded p-1 text-lg transition-transform duration-100 hover:scale-125 hover:bg-gray-100 dark:hover:bg-white/10"
+                                            >
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1"></div>
+
+                        {{-- Upload indicator --}}
+                        <div x-show="uploading" x-cloak class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+                            <x-filament::loading-indicator class="h-3.5 w-3.5" />
+                            {{ __('uploading') }}
+                        </div>
+
+                        {{-- Cancel button --}}
+                        <button
+                            wire:click="toggleReplyForm"
+                            class="flex items-center justify-center rounded-lg p-1.5 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                            title="{{ __('codenzia-comments::codenzia-comments.comments.cancel') }}"
+                        >
+                            <x-filament::icon icon="heroicon-o-x-mark" class="h-4 w-4" />
+                        </button>
+
+                        {{-- Send button --}}
+                        <button
+                            wire:click="reply"
+                            wire:loading.attr="disabled"
+                            :disabled="uploading"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-[#212427] p-1.5 disabled:opacity-50"
+                        >
+                            <span wire:loading.remove wire:target="reply">
+                                <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
+                            </span>
+                            <span wire:loading wire:target="reply">
+                                <x-filament::loading-indicator class="h-4 w-4" />
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
         @endif

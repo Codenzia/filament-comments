@@ -14,13 +14,16 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class CommentItem extends Component implements HasActions, HasForms
 {
     use ExtractsMentions;
     use InteractsWithActions;
     use InteractsWithForms;
+    use WithFileUploads;
 
     public Comment $comment;
 
@@ -40,10 +43,14 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public array $channelMentionables = [];
 
+    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    public $tempImages = [];
+
     protected $listeners = [
         'reactionUpdated' => '$refresh',
         'commentDeleted' => '$refresh',
         'joinedChannel' => '$refresh',
+        'voteUpdated' => 'refreshComment',
     ];
 
     public function mount(array $mentionables = [], array $channelMentionables = []): void
@@ -62,6 +69,26 @@ class CommentItem extends Component implements HasActions, HasForms
         $this->channelMentionables = $channelMentionables;
         // Ensure reactions are loaded
         $this->comment->load('reactions');
+    }
+
+    public function updatedTempImages(): void
+    {
+        $this->validate([
+            'tempImages.*' => 'image|max:5120',
+        ]);
+
+        $urls = [];
+
+        foreach ($this->tempImages as $image) {
+            $path = $image->store('comment-images', 'public');
+            $urls[] = Storage::disk('public')->url($path);
+        }
+
+        $this->tempImages = [];
+
+        $commentId = $this->comment->id;
+        $urlsJson = json_encode($urls);
+        $this->js("window.__insertReplyImages({$commentId}, {$urlsJson})");
     }
 
     public function replyForm(Schema $schema): Schema
@@ -92,6 +119,11 @@ class CommentItem extends Component implements HasActions, HasForms
                     ->placeholder(config('codenzia-comments.editor.placeholder', '')),
             ])
             ->statePath('editData');
+    }
+
+    public function refreshComment(): void
+    {
+        $this->comment->refresh();
     }
 
     public function toggleReplyForm(): void
@@ -191,6 +223,7 @@ class CommentItem extends Component implements HasActions, HasForms
 
         $this->showReplyForm = false;
         $this->replyForm->fill();
+        $this->tempImages = [];
         $this->dispatch('commentDeleted'); // Refresh parent
     }
 

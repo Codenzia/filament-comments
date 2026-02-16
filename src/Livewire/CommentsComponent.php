@@ -276,7 +276,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         }
 
         // Images are embedded inline in the text editor, so save as text type
-        $commentType =  CommentType::Text;
+        $commentType = CommentType::Text;
 
         $comment = $this->record->comments()->create([
             'comment' => $commentBody,

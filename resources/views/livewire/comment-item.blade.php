@@ -31,7 +31,7 @@
                 {{ $comment->created_at->diffForHumans() }}
             </span>
 
-            @if ($comment->created_at->ne($comment->updated_at))
+            @if ($comment->created_at->ne($comment->updated_at) && $comment->type !== \Codenzia\FilamentComments\Enums\CommentType::Vote)
                 <span class="shrink-0 text-[10px] italic text-gray-400 dark:text-gray-500">
                     {{ __('codenzia-comments::codenzia-comments.comments.edited') ?? 'edited' }}
                 </span>
@@ -99,9 +99,6 @@
             <div class="mt-3 space-y-3">
                 {{-- Question header --}}
                 <div class="flex items-start gap-2.5">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-500/10">
-                        <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-primary-500" />
-                    </div>
                     <p class="text-sm font-semibold leading-7 text-gray-900 dark:text-white">{{ $question }}</p>
                 </div>
 

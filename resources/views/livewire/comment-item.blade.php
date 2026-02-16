@@ -335,8 +335,8 @@
                 class="mt-3 border-l-2 border-primary-200 pl-4 dark:border-primary-500/30"
                 x-data="{ uploading: false }"
                 x-on:livewire-upload-start="uploading = true"
-                x-on:livewire-upload-finish="uploading = false; $refs.replyImageInput{{ $comment->id }}.value = ''"
-                x-on:livewire-upload-error="uploading = false; $refs.replyImageInput{{ $comment->id }}.value = ''"
+                x-on:livewire-upload-finish="uploading = false; if ($refs.replyImageInput{{ $comment->id }}) $refs.replyImageInput{{ $comment->id }}.value = ''; if ($refs.replyFileInput{{ $comment->id }}) $refs.replyFileInput{{ $comment->id }}.value = ''"
+                x-on:livewire-upload-error="uploading = false; if ($refs.replyImageInput{{ $comment->id }}) $refs.replyImageInput{{ $comment->id }}.value = ''; if ($refs.replyFileInput{{ $comment->id }}) $refs.replyFileInput{{ $comment->id }}.value = ''"
             >
                 {{-- Hidden file input for image upload --}}
                 <input
@@ -346,6 +346,16 @@
                     multiple
                     class="hidden"
                     x-ref="replyImageInput{{ $comment->id }}"
+                />
+
+                {{-- Hidden file input for document upload --}}
+                <input
+                    type="file"
+                    wire:model="tempFiles"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx"
+                    multiple
+                    class="hidden"
+                    x-ref="replyFileInput{{ $comment->id }}"
                 />
 
                 <div class="comment-composer reply-composer-{{ $comment->id }} rounded-xl dark:bg-[#16181C]">
@@ -372,6 +382,15 @@
                                 title="{{ __('codenzia-comments::codenzia-comments.comment_types.image') }}"
                             >
                                 <x-filament::icon icon="heroicon-o-photo" class="h-4.5 w-4.5" />
+                            </button>
+
+                            {{-- File upload --}}
+                            <button
+                                @click="$refs.replyFileInput{{ $comment->id }}.click()"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                title="{{ __('codenzia-comments::codenzia-comments.comment_types.file') ?? 'Attach file' }}"
+                            >
+                                <x-filament::icon icon="heroicon-o-paper-clip" class="h-4.5 w-4.5" />
                             </button>
 
                             {{-- Emoji picker --}}

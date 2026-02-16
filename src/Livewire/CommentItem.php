@@ -46,6 +46,9 @@ class CommentItem extends Component implements HasActions, HasForms
     /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
     public $tempImages = [];
 
+    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    public $tempFiles = [];
+
     protected $listeners = [
         'reactionUpdated' => '$refresh',
         'commentDeleted' => '$refresh',
@@ -89,6 +92,31 @@ class CommentItem extends Component implements HasActions, HasForms
         $commentId = $this->comment->id;
         $urlsJson = json_encode($urls);
         $this->js("window.__insertReplyImages({$commentId}, {$urlsJson})");
+    }
+
+    public function updatedTempFiles(): void
+    {
+        $this->validate([
+            'tempFiles.*' => 'file|max:10240|mimes:pdf,doc,docx,xls,xlsx,csv,txt,ppt,pptx',
+        ]);
+
+        $files = [];
+
+        foreach ($this->tempFiles as $file) {
+            $originalName = $file->getClientOriginalName();
+            $path = $file->storeAs('comment-files', $originalName, 'public');
+            $files[] = [
+                'url' => Storage::disk('public')->url($path),
+                'name' => $originalName,
+                'extension' => strtolower($file->getClientOriginalExtension()),
+            ];
+        }
+
+        $this->tempFiles = [];
+
+        $commentId = $this->comment->id;
+        $filesJson = json_encode($files);
+        $this->js("window.__insertReplyFiles({$commentId}, {$filesJson})");
     }
 
     public function replyForm(Schema $schema): Schema
@@ -224,6 +252,7 @@ class CommentItem extends Component implements HasActions, HasForms
         $this->showReplyForm = false;
         $this->replyForm->fill();
         $this->tempImages = [];
+        $this->tempFiles = [];
         $this->dispatch('commentDeleted'); // Refresh parent
     }
 

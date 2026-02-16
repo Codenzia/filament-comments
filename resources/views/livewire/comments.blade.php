@@ -5,8 +5,8 @@
             class="relative mb-6"
             x-data="{ uploading: false, dropdownOpen: false }"
             x-on:livewire-upload-start="uploading = true"
-            x-on:livewire-upload-finish="uploading = false; $refs.imageInput.value = ''"
-            x-on:livewire-upload-error="uploading = false; $refs.imageInput.value = ''"
+            x-on:livewire-upload-finish="uploading = false; if ($refs.imageInput) $refs.imageInput.value = ''; if ($refs.fileInput) $refs.fileInput.value = ''"
+            x-on:livewire-upload-error="uploading = false; if ($refs.imageInput) $refs.imageInput.value = ''; if ($refs.fileInput) $refs.fileInput.value = ''"
         >
             {{-- Hidden file input for image upload --}}
             <input
@@ -16,6 +16,16 @@
                 multiple
                 class="hidden"
                 x-ref="imageInput"
+            />
+
+            {{-- Hidden file input for document upload --}}
+            <input
+                type="file"
+                wire:model="tempFiles"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx"
+                multiple
+                class="hidden"
+                x-ref="fileInput"
             />
 
             @if ($commentType === 'vote')
@@ -61,7 +71,7 @@
                     </div>
 
                     {{-- Bottom toolbar --}}
-                    <div class="relative flex items-center gap-0.5 border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                    <div class="relative flex items-center gap-0.5 px-2 py-1.5">
                         <div class="relative flex items-center gap-0.5">
                             {{-- + Add attachment --}}
                             <button
@@ -112,6 +122,15 @@
                                 title="{{ __('codenzia-comments::codenzia-comments.comment_types.image') }}"
                             >
                                 <x-filament::icon icon="heroicon-o-photo" class="h-4.5 w-4.5" />
+                            </button>
+
+                            {{-- File upload --}}
+                            <button
+                                @click="$refs.fileInput.click()"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                title="{{ __('codenzia-comments::codenzia-comments.comment_types.file') ?? 'Attach file' }}"
+                            >
+                                <x-filament::icon icon="heroicon-o-paper-clip" class="h-4.5 w-4.5" />
                             </button>
 
                             {{-- Emoji picker --}}
@@ -336,6 +355,51 @@
                     html += '<img src="' + u + '" alt="" style="max-width:100%;border-radius:8px;margin:4px 0;"><br>';
                 });
                 editor.chain().focus().insertContent(html).run();
+            }, 150);
+        };
+
+        window.__getFileIcon = function(ext) {
+            var icons = {
+                pdf: '📄', doc: '📝', docx: '📝', xls: '📊', xlsx: '📊',
+                csv: '📊', ppt: '📽️', pptx: '📽️', txt: '📃'
+            };
+            return icons[ext] || '📎';
+        };
+
+        window.__buildFileHtml = function(files) {
+            var html = '';
+            files.forEach(function(f) {
+                var icon = window.__getFileIcon(f.extension);
+                var ext = f.extension.toUpperCase();
+                html += '<a href="' + f.url + '" target="_blank" rel="noopener" '
+                    + 'style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;margin:4px 0;'
+                    + 'border-radius:8px;border:1px solid rgba(128,128,128,0.25);background:rgba(128,128,128,0.06);'
+                    + 'text-decoration:none;color:inherit;font-size:13px;max-width:100%;">'
+                    + '<span style="font-size:20px;line-height:1;">' + icon + '</span>'
+                    + '<span style="min-width:0;overflow:hidden;">'
+                    + '<span style="display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+                    + f.name + '</span>'
+                    + '<span style="display:block;font-size:11px;opacity:0.6;">' + ext + ' file</span>'
+                    + '</span></a><br>';
+            });
+            return html;
+        };
+
+        window.__insertCommentFiles = function(files) {
+            setTimeout(function() {
+                var composerEl = document.querySelector('.comment-composer');
+                var editor = window.__getComposerEditor(composerEl);
+                if (!editor || !files || !files.length) return;
+                editor.chain().focus().insertContent(window.__buildFileHtml(files)).run();
+            }, 150);
+        };
+
+        window.__insertReplyFiles = function(commentId, files) {
+            setTimeout(function() {
+                var composerEl = document.querySelector('.reply-composer-' + commentId);
+                var editor = window.__getComposerEditor(composerEl);
+                if (!editor || !files || !files.length) return;
+                editor.chain().focus().insertContent(window.__buildFileHtml(files)).run();
             }, 150);
         };
     </script>

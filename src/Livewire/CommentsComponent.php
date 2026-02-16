@@ -39,6 +39,9 @@ class CommentsComponent extends Component implements HasActions, HasForms
     /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
     public $tempImages = [];
 
+    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    public $tempFiles = [];
+
     public Model $record;
 
     public array $mentionables = [];
@@ -111,6 +114,30 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         $urlsJson = json_encode($urls);
         $this->js("window.__insertCommentImages({$urlsJson})");
+    }
+
+    public function updatedTempFiles(): void
+    {
+        $this->validate([
+            'tempFiles.*' => 'file|max:10240|mimes:pdf,doc,docx,xls,xlsx,csv,txt,ppt,pptx',
+        ]);
+
+        $files = [];
+
+        foreach ($this->tempFiles as $file) {
+            $originalName = $file->getClientOriginalName();
+            $path = $file->storeAs('comment-files', $originalName, 'public');
+            $files[] = [
+                'url' => Storage::disk('public')->url($path),
+                'name' => $originalName,
+                'extension' => strtolower($file->getClientOriginalExtension()),
+            ];
+        }
+
+        $this->tempFiles = [];
+
+        $filesJson = json_encode($files);
+        $this->js("window.__insertCommentFiles({$filesJson})");
     }
 
     public function setCommentType(string $type): void
@@ -306,6 +333,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->form->fill();
         $this->voteForm->fill();
         $this->tempImages = [];
+        $this->tempFiles = [];
         $this->commentType = CommentType::Text->value;
     }
 

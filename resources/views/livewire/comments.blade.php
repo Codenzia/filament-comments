@@ -107,7 +107,7 @@
                             <button
                                 class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('codenzia-comments::codenzia-comments.comments.mention_hint') }}"
-                                onclick="this.closest('.comment-composer').querySelector('.ProseMirror')?.focus(); document.execCommand('insertText', false, '@')"
+                                onclick="window.__triggerMention(this.closest('.comment-composer'))"
                             >
                                 <x-filament::icon icon="heroicon-o-at-symbol" class="h-4.5 w-4.5" />
                             </button>
@@ -127,7 +127,7 @@
                         {{-- Upload indicator --}}
                         <div x-show="uploading" x-cloak class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
                             <x-filament::loading-indicator class="h-3.5 w-3.5" />
-                            {{ __('codenzia-comments::codenzia-comments.comment_types.uploading') }}
+                            {{ __('uploading') }}
                         </div>
 
                         {{-- Send button --}}
@@ -233,25 +233,47 @@
             border-radius: 0 !important;
         }
     </style>
-    @endassets
-
-    @script
     <script>
-        $wire.on('comment-images-uploaded', ({ urls }) => {
-            const editor = document.querySelector('.comment-composer .ProseMirror[contenteditable="true"]');
-            if (!editor || !urls || !urls.length) return;
+        window.__getComposerEditor = function(rootEl) {
+            if (!rootEl) return null;
+            var pm = rootEl.querySelector('.ProseMirror[contenteditable="true"]');
+            if (!pm) return null;
+            try {
+                var data = Alpine.$data(pm);
+                if (data && typeof data.getEditor === 'function') {
+                    return data.getEditor();
+                }
+            } catch(e) {}
+            return null;
+        };
 
-            editor.focus();
+        window.__triggerMention = function(composerEl) {
+            var editor = window.__getComposerEditor(composerEl);
+            if (!editor) return;
 
-            urls.forEach(url => {
-                const img = '<img src="' + url + '" alt="" style="max-width:100%;border-radius:8px;margin:4px 0;" /><br>';
-                document.execCommand('insertHTML', false, img);
-            });
+            editor.chain().focus().insertContent('@').run();
 
-            // Sync the DOM change with ProseMirror / Livewire state
-            editor.dispatchEvent(new Event('input', { bubbles: true }));
-            editor.dispatchEvent(new Event('change', { bubbles: true }));
-        });
+            var pm = composerEl.querySelector('.ProseMirror[contenteditable="true"]');
+            if (pm) {
+                pm.dispatchEvent(new KeyboardEvent('keydown', { key: '@', bubbles: true }));
+                pm.dispatchEvent(new Event('input', { bubbles: true }));
+                pm.dispatchEvent(new KeyboardEvent('keyup', { key: '@', bubbles: true }));
+            }
+        };
+
+        window.__insertCommentImages = function(urls) {
+            setTimeout(function() {
+                var composerEl = document.querySelector('.comment-composer');
+                var editor = window.__getComposerEditor(composerEl);
+                if (!editor || !urls || !urls.length) return;
+
+                var html = '';
+                urls.forEach(function(u) {
+                    html += '<img src="' + u + '" alt="" style="max-width:100%;border-radius:8px;margin:4px 0;"><br>';
+                });
+                editor.chain().focus().insertContent(html).run();
+            }, 150);
+        };
     </script>
-    @endscript
+    @endassets
 </div>

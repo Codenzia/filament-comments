@@ -56,6 +56,32 @@ export default function tributeTextarea({
             if (editor._tributeAttached) return;
 
             this._editor = editor;
+
+            const getTiptapEditor = () => {
+                try {
+                    let data = Alpine.$data(editor);
+                    if (data && typeof data.getEditor === 'function') {
+                        return Alpine.raw(data.getEditor());
+                    }
+                } catch(e) {}
+                return null;
+            };
+
+            let tiptapEditorInstance = getTiptapEditor();
+
+            if (!tiptapEditorInstance) {
+                setTimeout(() => {
+                    tiptapEditorInstance = getTiptapEditor();
+                    if (tiptapEditorInstance) {
+                        this._initializeTribute(editor, tiptapEditorInstance);
+                    }
+                }, 300);
+            } else {
+                this._initializeTribute(editor, tiptapEditorInstance);
+            }
+        },
+
+        _initializeTribute(editor, tiptapEditorInstance) {
             editor.style.minHeight = editorHeight + 'px';
 
             const collections = [];
@@ -70,16 +96,7 @@ export default function tributeTextarea({
                     requireLeadingSpace: false,
                     menuShowMinLength: 0,
                     menuContainer: document.body,
-                    values: function (text, cb) {
-                        const search = (text || '').toLowerCase();
-                        if (!search) {
-                            cb(mentionables);
-                        } else {
-                            cb(mentionables.filter(function (item) {
-                                return item.key.toLowerCase().includes(search);
-                            }));
-                        }
-                    },
+                    values: mentionables,
                     selectTemplate: function (item) {
                         if (typeof item === 'undefined' || !item) return null;
                         const key = item.original.key;
@@ -197,6 +214,7 @@ export default function tributeTextarea({
 
             // Sync Tribute replacements with Livewire / ProseMirror
             editor.addEventListener('tribute-replaced', function () {
+                tiptapEditorInstance.commands.setTextSelection(tiptapEditorInstance.state.selection.to); // Move cursor to end of inserted mention
                 editor.dispatchEvent(new Event('input', { bubbles: true }));
                 editor.dispatchEvent(new Event('change', { bubbles: true }));
             });

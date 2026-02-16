@@ -109,7 +109,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         $this->tempImages = [];
 
-        $this->dispatch('comment-images-uploaded', urls: $urls);
+        $urlsJson = json_encode($urls);
+        $this->js("window.__insertCommentImages({$urlsJson})");
     }
 
     public function setCommentType(string $type): void

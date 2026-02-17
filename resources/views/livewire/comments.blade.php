@@ -135,7 +135,7 @@
                                     class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                                 >
                                     <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                    {{ __('codenzia-comments::codenzia-comments.comment_types.vote') }}
+                                    {{ __('codenzia-comments::codenzia-comments.comment_types.Poll') }}
                                 </button>
                                 <button
                                     wire:click="setCommentType('event')"

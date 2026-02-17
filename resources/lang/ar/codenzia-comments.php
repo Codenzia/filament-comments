@@ -50,4 +50,8 @@ return [
     'comment_types.add_attachment' => 'إضافة مرفق',
     'comment_types.file' => 'ملف',
     'comment_types.vote_count' => '{1} صوت واحد|{2} صوتان|[3,10] :count أصوات|[11,*] :count صوت',
+    'comment_types.event_going' => 'سأحضر',
+    'comment_types.event_maybe' => 'ربما',
+    'comment_types.event_not_going' => 'لن أحضر',
+    'comment_types.add_to_calendar' => 'إضافة إلى التقويم',
 ];

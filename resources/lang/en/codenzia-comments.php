@@ -61,4 +61,8 @@ return [
     'comment_types.event_description_placeholder' => 'Add details about the event (optional)...',
     'comment_types.event_past' => 'Past event',
     'comment_types.file' => 'File',
+    'comment_types.event_going' => 'Going',
+    'comment_types.event_maybe' => 'Maybe',
+    'comment_types.event_not_going' => 'Not going',
+    'comment_types.add_to_calendar' => 'Add to Calendar',
 ];

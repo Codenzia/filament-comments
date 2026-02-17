@@ -117,4 +117,6 @@ return [
             'super_admin',
         ],
     ],
+
+    'enable_add_to_calendar' => true,
 ];

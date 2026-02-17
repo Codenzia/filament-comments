@@ -121,7 +121,7 @@
                                 'relative rounded-xl border px-4 py-3 transition-all duration-200',
                                 'bg-black' => $isSelected,
                                 'bg-[#16181C]' => ! $isSelected,
-                            ])>
+                            ]) style="border-color: rgb(44 47 51)">
                                 {{-- Animated progress bar --}}
                                 @if ($totalVotes > 0)
                                     <div
@@ -198,13 +198,16 @@
                 $eventDescription = $eventData['description'] ?? '';
                 $parsedDate = $eventDate ? \Carbon\Carbon::parse($eventDate) : null;
                 $isPast = $parsedDate && $parsedDate->isPast();
+                $responses = $eventData['responses'] ?? [];
+                $goingCount = collect($responses)->filter(fn ($v) => $v === 'going')->count();
+                $maybeCount = collect($responses)->filter(fn ($v) => $v === 'maybe')->count();
+                $notGoingCount = collect($responses)->filter(fn ($v) => $v === 'not_going')->count();
+                $userStatus = $responses[(string) auth()->id()] ?? null;
             @endphp
             <div class="mt-3">
                 <div @class([
-                    'relative overflow-hidden rounded-xl border transition-all duration-200',
-                    'border-gray-200/60 dark:border-gray-700/50' => ! $isPast,
-                    'border-gray-200/40 opacity-75 dark:border-gray-700/30' => $isPast,
-                ])>
+                    'relative rounded-xl border',
+                ]) style="border-color: rgb(44 47 51)">
 
 
                     <div class="flex gap-4 p-4">
@@ -266,12 +269,142 @@
                                     {{ $eventDescription }}
                                 </p>
                             @endif
+                        </div>
+                        <div class="flex flex-row gap-2">
+                            {{-- Respond to event dropdown --}}
+                            @if (! $isPast)
+                                @if(config('codenzia-comments.enable_add_to_calendar'))
+                                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            wire:click="$parent.addToCalendar({{ $comment->id }})"
+                                            style="border-color: rgb(44 47 51)"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-sm"
+                                        >
+                                            {{ __('codenzia-comments::codenzia-comments.comment_types.add_to_calendar') }}
+                                            <x-filament::icon icon="heroicon-o-calendar" class="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                @endif
+                                <div class="mt-3 flex flex-wrap items-center gap-2">
+                                    <div x-data="{ open: false }" class="relative">
+                                        <button
+                                            type="button"
+                                            @click="open = !open"
+                                            style="border-color: rgb(44 47 51)"
+                                            @class([
+                                                'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-medium shadow-sm transition-colors',
+                                                'border-primary-500 bg-primary-500/10 text-primary-700 dark:text-primary-300' => $userStatus === 'going',
+                                                'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300' => $userStatus === 'maybe',
+                                                'border-gray-400 bg-gray-200 text-gray-700 dark:border-gray-600 dark:bg-white/10 dark:text-gray-200' => $userStatus === 'not_going',
+                                                'border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-white/5 dark:text-gray-300 dark:hover:border-gray-500' => ! $userStatus,
+                                            ])
+                                        >
+                                            <span class="flex items-center gap-1.5">
+                                                <span class="text-sm leading-none">
+                                                    @switch($userStatus)
+                                                        @case('going')
+                                                            👍
+                                                            @break
+                                                        @case('maybe')
+                                                            🤔
+                                                            @break
+                                                        @case('not_going')
+                                                            🙅
+                                                            @break
+                                                        @default
+                                                            👋
+                                                    @endswitch
+                                                </span>
+                                                <span>
+                                                    @switch($userStatus)
+                                                        @case('going')
+                                                            {{ __('codenzia-comments::codenzia-comments.comment_types.event_going') }}
+                                                            @break
+                                                        @case('maybe')
+                                                            {{ __('codenzia-comments::codenzia-comments.comment_types.event_maybe') }}
+                                                            @break
+                                                        @case('not_going')
+                                                            {{ __('codenzia-comments::codenzia-comments.comment_types.event_not_going') }}
+                                                            @break
+                                                        @default
+                                                            {{ __('codenzia-comments::codenzia-comments.comment_types.event_rsvp') }}
+                                                    @endswitch
+                                                </span>
+                                            </span>
+                                            <x-filament::icon
+                                                icon="heroicon-o-chevron-down"
+                                                class="ml-1 h-3 w-3 text-gray-400 dark:text-gray-500 transition-transform"
+                                                x-bind:class="{ 'rotate-180': open }"
+                                            />
+                                        </button>
+
+                                        <div
+                                            x-show="open"
+                                            x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                            x-transition:leave="transition ease-in duration-75"
+                                            x-transition:leave-start="opacity-100 scale-100"
+                                            x-transition:leave-end="opacity-0 scale-95"
+                                            @click.away="open = false"
+                                            class="absolute left-0 z-50 mt-1 w-40 rounded-lg bg-white py-1 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
+                                        >
+                                            <button
+                                                type="button"
+                                                wire:click="$parent.respondToEvent({{ $comment->id }}, 'going')"
+                                                @click="open = false"
+                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                            >
+                                                <span class="flex items-center gap-1.5">
+                                                    <span>👍</span>
+                                                    <span>{{ __('codenzia-comments::codenzia-comments.comment_types.event_going') }}</span>
+                                                </span>
+                                                @if ($goingCount > 0)
+                                                    <span class="text-[10px] text-gray-400">({{ $goingCount }})</span>
+                                                @endif
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                wire:click="$parent.respondToEvent({{ $comment->id }}, 'maybe')"
+                                                @click="open = false"
+                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                            >
+                                                <span class="flex items-center gap-1.5">
+                                                    <span>🤔</span>
+                                                    <span>{{ __('codenzia-comments::codenzia-comments.comment_types.event_maybe') }}</span>
+                                                </span>
+                                                @if ($maybeCount > 0)
+                                                    <span class="text-[10px] text-gray-400">({{ $maybeCount }})</span>
+                                                @endif
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                wire:click="$parent.respondToEvent({{ $comment->id }}, 'not_going')"
+                                                @click="open = false"
+                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg:white/5"
+                                            >
+                                                <span class="flex items-center gap-1.5">
+                                                    <span>🙅</span>
+                                                    <span>{{ __('codenzia-comments::codenzia-comments.comment_types.event_not_going') }}</span>
+                                                </span>
+                                                @if ($notGoingCount > 0)
+                                                    <span class="text-[10px] text-gray-400">({{ $notGoingCount }})</span>
+                                                @endif
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
 
                             @if ($isPast)
                                 <span class="mt-2 inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
                                     {{ __('codenzia-comments::codenzia-comments.comment_types.event_past') }}
                                 </span>
                             @endif
+
                         </div>
                     </div>
                 </div>

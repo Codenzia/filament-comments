@@ -54,6 +54,7 @@ class CommentItem extends Component implements HasActions, HasForms
         'commentDeleted' => '$refresh',
         'joinedChannel' => '$refresh',
         'voteUpdated' => 'refreshComment',
+        'eventResponseUpdated' => 'refreshComment',
     ];
 
     public function mount(array $mentionables = [], array $channelMentionables = []): void

@@ -403,6 +403,39 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->dispatch('voteUpdated');
     }
 
+    public function respondToEvent(int $commentId, string $status): void
+    {
+        $allowedStatuses = ['going', 'maybe', 'not_going'];
+
+        if (! in_array($status, $allowedStatuses, true)) {
+            return;
+        }
+
+        $comment = Comment::find($commentId);
+
+        if (! $comment || $comment->type !== CommentType::Event) {
+            return;
+        }
+
+        $data = $comment->getDecodedComment();
+        $responses = $data['responses'] ?? [];
+        $userId = (string) auth()->id();
+
+        if (isset($responses[$userId]) && $responses[$userId] === $status) {
+            unset($responses[$userId]);
+        } else {
+            $responses[$userId] = $status;
+        }
+
+        $data['responses'] = $responses;
+
+        $comment->update([
+            'comment' => json_encode($data),
+        ]);
+
+        $this->dispatch('eventResponseUpdated');
+    }
+
     public function canUserPostInChannel(): bool
     {
         $channel = CommentChannel::find($this->activeChannelId);

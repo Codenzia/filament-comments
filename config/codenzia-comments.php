@@ -118,5 +118,18 @@ return [
         ],
     ],
 
+    /**
+     * Show "Add to Calendar" on event comments. When true, the button is only
+     * shown if a calendar package is detected (see calendar_package_classes).
+     */
     'enable_add_to_calendar' => true,
+
+    /**
+     * Fully qualified class names used to detect if a calendar package is installed.
+     * If any of these classes exist, "Add to Calendar" is shown (when enable_add_to_calendar is true).
+     * Add your app's calendar package class here, e.g. saade/filament-fullcalendar.
+     */
+    'calendar_package_classes' => [
+        'Saade\FilamentFullCalendar\FilamentFullCalendarPlugin',
+    ],
 ];

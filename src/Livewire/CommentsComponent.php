@@ -436,6 +436,42 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->dispatch('eventResponseUpdated');
     }
 
+    public function addToCalendar(int $commentId): void
+    {
+        $comment = Comment::find($commentId);
+
+        if (! $comment || $comment->type !== CommentType::Event) {
+            Notification::make()
+                ->title(__('codenzia-comments::codenzia-comments.notifications.invalid_event'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $eventData = $comment->getDecodedComment();
+        $title = $eventData['title'] ?? '';
+        $date = $eventData['date'] ?? null;
+        $description = $eventData['description'] ?? '';
+
+        if (! $date) {
+            Notification::make()
+                ->title(__('codenzia-comments::codenzia-comments.notifications.event_no_date'))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        // Dispatch an event that the app can listen to for calendar integration
+        event(new \Codenzia\FilamentComments\Events\EventAddedToCalendar($comment, $eventData));
+
+        Notification::make()
+            ->title(__('codenzia-comments::codenzia-comments.notifications.event_added_to_calendar'))
+            ->success()
+            ->send();
+    }
+
     public function canUserPostInChannel(): bool
     {
         $channel = CommentChannel::find($this->activeChannelId);

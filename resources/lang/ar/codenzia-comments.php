@@ -25,6 +25,9 @@ return [
     'notifications.comment_updated' => 'تم تحديث التعليق.',
     'notifications.unauthorized' => 'إجراء غير مصرح به.',
     'notifications.user_mentioned_title' => 'ذكرك :name في تعليق',
+    'notifications.invalid_event' => 'حدث غير صالح.',
+    'notifications.event_no_date' => 'يجب أن يحتوي الحدث على تاريخ لإضافته إلى التقويم.',
+    'notifications.event_added_to_calendar' => 'تم إضافة الحدث إلى التقويم.',
 
     'modal.heading' => 'التعليقات',
 

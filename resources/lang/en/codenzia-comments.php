@@ -25,6 +25,9 @@ return [
     'notifications.comment_updated' => 'Comment updated.',
     'notifications.unauthorized' => 'Unauthorized action.',
     'notifications.user_mentioned_title' => ':name mentioned you in a comment',
+    'notifications.invalid_event' => 'Invalid event.',
+    'notifications.event_no_date' => 'Event must have a date to add to calendar.',
+    'notifications.event_added_to_calendar' => 'Event added to calendar.',
 
     'modal.heading' => 'Comments',
 

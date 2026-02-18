@@ -310,6 +310,10 @@ class CommentsComponent extends Component implements HasActions, HasForms
             'channel_id' => $this->activeChannelId,
         ]);
 
+        if ($commentType === CommentType::Event) {
+            $this->storeEventModel($comment);
+        }
+
         // Detect mentions in the comment and send notifications
         $mentionedNames = $this->extractMentions($commentBody);
         if (! empty($mentionedNames)) {
@@ -364,6 +368,69 @@ class CommentsComponent extends Component implements HasActions, HasForms
         ];
 
         return json_encode($eventPayload);
+    }
+
+    protected function storeEventModel(Comment $comment): void
+    {
+        $eventModel = config('codenzia-comments.event_model');
+
+        if (! $eventModel || ! class_exists($eventModel)) {
+            return;
+        }
+
+        $columns = config('codenzia-comments.event_model_columns', []);
+        $payload = $comment->getDecodedComment();
+
+        if (! isset($payload['title'], $payload['date'])) {
+            return;
+        }
+
+        // If we have a mapped comment_id column, avoid creating duplicate event
+        // records for the same comment.
+        if (isset($columns['comment_id'])) {
+            $commentIdColumn = $columns['comment_id'];
+
+            try {
+                if ($eventModel::where($commentIdColumn, $comment->id)->exists()) {
+                    return;
+                }
+            } catch (\Throwable $e) {
+                // If the check fails (e.g. column missing), fall through and try create().
+            }
+        }
+
+        $attributes = [];
+
+        if (isset($columns['title'])) {
+            $attributes[$columns['title']] = $payload['title'];
+        }
+
+        if (isset($columns['date'])) {
+            $attributes[$columns['date']] = $payload['date'];
+        }
+
+        if (isset($columns['description'])) {
+            $attributes[$columns['description']] = $payload['description'] ?? null;
+        }
+
+        if (isset($columns['comment_id'])) {
+            $attributes[$columns['comment_id']] = $comment->id;
+        }
+
+        if (isset($columns['user_id'])) {
+            $attributes[$columns['user_id']] = auth()->id();
+        }
+
+        if (empty($attributes)) {
+            return;
+        }
+
+        try {
+            /** @var class-string<\Illuminate\Database\Eloquent\Model> $eventModel */
+            $eventModel::create($attributes);
+        } catch (\Throwable $e) {
+            // Silently ignore persistence errors to avoid breaking comments
+        }
     }
 
     protected function resetForms(): void
@@ -462,6 +529,9 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
             return;
         }
+
+        // Ensure the event is persisted to the configured Event model, if any.
+        $this->storeEventModel($comment);
 
         // Dispatch an event that the app can listen to for calendar integration
         event(new \Codenzia\FilamentComments\Events\EventAddedToCalendar($comment, $eventData));

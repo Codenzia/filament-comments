@@ -273,7 +273,7 @@
                         <div class="flex flex-row gap-2">
                             {{-- Respond to event dropdown --}}
                             @if (! $isPast)
-                                @if(\Codenzia\FilamentComments\FilamentComments::isCalendarAvailable())
+                                @if(config('codenzia-comments.enable_add_to_calendar'))
                                     <div class="mt-3 flex flex-wrap items-center gap-2">
                                         <button
                                             type="button"

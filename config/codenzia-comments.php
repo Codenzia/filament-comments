@@ -82,6 +82,31 @@ return [
      */
     'project_model' => \App\Models\Project::class,
 
+    /*
+     * The Event model that should be used when persisting event-type comments
+     * into a dedicated events table. You can change this to point to your own
+     * model class, e.g. \App\Models\Event::class.
+     *
+     * If null, no Event model records will be created – events will only be
+     * stored as JSON on the comment itself.
+     */
+    'event_model' => null,
+
+    /*
+     * Column mapping for the configured event_model. Keys are the logical fields
+     * extracted from the event comment payload; values are the actual column
+     * names on your Event model's table.
+     *
+     * You can customize these to match your Event schema.
+     */
+    'event_model_columns' => [
+        'title' => 'title',
+        'date' => 'date',
+        'description' => 'description',
+        'comment_id' => 'comment_id',
+        'user_id' => 'user_id',
+    ],
+
     /**
      * Determines if replies will be deleted when comments are deleted
      */
@@ -120,16 +145,7 @@ return [
 
     /**
      * Show "Add to Calendar" on event comments. When true, the button is only
-     * shown if a calendar package is detected (see calendar_package_classes).
      */
     'enable_add_to_calendar' => true,
 
-    /**
-     * Fully qualified class names used to detect if a calendar package is installed.
-     * If any of these classes exist, "Add to Calendar" is shown (when enable_add_to_calendar is true).
-     * Add your app's calendar package class here, e.g. saade/filament-fullcalendar.
-     */
-    'calendar_package_classes' => [
-        'Saade\FilamentFullCalendar\FilamentFullCalendarPlugin',
-    ],
 ];

@@ -35,7 +35,7 @@
                         <div class="flex items-center justify-between mb-2">
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
                                 <x-filament::icon icon="heroicon-o-chart-bar" class="h-3.5 w-3.5 text-primary-500" />
-                                {{ __('codenzia-comments::codenzia-comments.comment_types.vote') }}
+                                {{ __('codenzia-comments::codenzia-comments.comment_types.poll') }}
                             </span>
                             <button
                                 wire:click="setCommentType('text')"
@@ -135,7 +135,7 @@
                                     class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                                 >
                                     <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                    {{ __('codenzia-comments::codenzia-comments.comment_types.Poll') }}
+                                    {{ __('codenzia-comments::codenzia-comments.comment_types.poll') }}
                                 </button>
                                 <button
                                     wire:click="setCommentType('event')"

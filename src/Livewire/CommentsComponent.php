@@ -183,20 +183,20 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return $schema
             ->components([
                 TextInput::make('question')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.vote_question'))
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.poll_question'))
                     ->required()
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.vote_question_placeholder')),
+                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.poll_question_placeholder')),
                 Repeater::make('options')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.vote_options'))
+                    ->label(__('codenzia-comments::codenzia-comments.comment_types.poll_options'))
                     ->simple(
                         TextInput::make('option')
                             ->required()
-                            ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.vote_option_placeholder')),
+                            ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.poll_option_placeholder')),
                     )
                     ->minItems(2)
                     ->maxItems(10)
                     ->defaultItems(2)
-                    ->addActionLabel(__('codenzia-comments::codenzia-comments.comment_types.vote_add_option'))
+                    ->addActionLabel(__('codenzia-comments::codenzia-comments.comment_types.poll_add_option'))
                     ->reorderable(false),
             ])
             ->statePath('voteData');

@@ -183,7 +183,7 @@
                 @if ($totalVotes > 0)
                     <div class="flex items-center gap-2 px-1">
                         <p class="shrink-0 text-[11px] font-medium text-gray-400 dark:text-gray-500">
-                            {{ trans_choice('codenzia-comments::codenzia-comments.comment_types.vote_count', $totalVotes, ['count' => $totalVotes]) }}
+                            {{ trans_choice('codenzia-comments::codenzia-comments.comment_types.poll_count', $totalVotes, ['count' => $totalVotes]) }}
                         </p>
                         <div class="h-px flex-1 bg-gradient-to-l from-gray-200 via-gray-200 to-transparent dark:from-gray-700 dark:via-gray-700"></div>
                     </div>
@@ -328,7 +328,7 @@
                                                             {{ __('codenzia-comments::codenzia-comments.comment_types.event_not_going') }}
                                                             @break
                                                         @default
-                                                            {{ __('codenzia-comments::codenzia-comments.comment_types.event_rsvp') }}
+                                                            {{ __('codenzia-comments::codenzia-comments.comment_types.event_status') }}
                                                     @endswitch
                                                 </span>
                                             </span>

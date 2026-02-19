@@ -118,10 +118,10 @@
                         >
                             {{-- Card background --}}
                             <div @class([
-                                'relative rounded-xl border px-4 py-3 transition-all duration-200',
+                                'relative rounded-xl border px-4 py-3 transition-all duration-200 border-gray-200 dark:border-gray-700',
                                 'bg-black' => $isSelected,
                                 'bg-[#16181C]' => ! $isSelected,
-                            ]) style="border-color: rgb(44 47 51)">
+                            ])>
                                 {{-- Animated progress bar --}}
                                 @if ($totalVotes > 0)
                                     <div
@@ -206,8 +206,8 @@
             @endphp
             <div class="mt-3">
                 <div @class([
-                    'relative rounded-xl border',
-                ]) style="border-color: rgb(44 47 51)">
+                    'relative rounded-xl border border-gray-200 dark:border-gray-700',
+                ]) >
 
 
                     <div class="flex gap-4 p-4">
@@ -278,8 +278,7 @@
                                         <button
                                             type="button"
                                             wire:click="$parent.addToCalendar({{ $comment->id }})"
-                                            style="border-color: rgb(44 47 51)"
-                                            class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-sm"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-sm border-gray-200 dark:border-gray-700'"
                                         >
                                             {{ __('codenzia-comments::codenzia-comments.comment_types.add_to_calendar') }}
                                             <x-filament::icon icon="heroicon-o-calendar" class="h-3.5 w-3.5" />
@@ -291,9 +290,8 @@
                                         <button
                                             type="button"
                                             @click="open = !open"
-                                            style="border-color: rgb(44 47 51)"
                                             @class([
-                                                'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-medium shadow-sm transition-colors',
+                                                'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] border-gray-200 dark:border-gray-700 font-medium shadow-sm transition-colors',
                                                 'border-primary-500 bg-primary-500/10 text-primary-700 dark:text-primary-300' => $userStatus === 'going',
                                                 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300' => $userStatus === 'maybe',
                                                 'border-gray-400 bg-gray-200 text-gray-700 dark:border-gray-600 dark:bg-white/10 dark:text-gray-200' => $userStatus === 'not_going',

@@ -30,7 +30,7 @@
 
             @if ($commentType === 'vote')
                 {{-- Vote mode: replaces the text editor entirely --}}
-                <div class="comment-composer rounded-xl dark:bg-[#16181C]">
+                <div class="comment-composer rounded-xl dark:bg-[#16181C] bg-white">
                     <div class="p-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
@@ -65,7 +65,7 @@
                 </div>
             @elseif ($commentType === 'event')
                 {{-- Event mode --}}
-                <div class="comment-composer rounded-xl dark:bg-[#16181C]">
+                <div class="comment-composer rounded-xl dark:bg-[#16181C] bg-white">
                     <div class="p-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
@@ -100,7 +100,7 @@
                 </div>
             @else
                 {{-- Text / Image mode: show the rich text editor --}}
-                <div class="comment-composer rounded-xl dark:bg-[#16181C]">
+                <div class="comment-composer rounded-xl dark:bg-[#16181C] bg-white">
                     <div class="comment-composer__editor">
                         {{ $this->form }}
                     </div>

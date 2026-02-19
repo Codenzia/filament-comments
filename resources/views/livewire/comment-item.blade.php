@@ -9,10 +9,10 @@
             <img
                 src="{{ asset('storage/' . $avatarPath) }}"
                 alt="{{ $comment->commentator->name }}"
-                class="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-gray-800 shadow-sm"
+                class="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-gray-800 "
             >
         @else
-            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-50 ring-2 ring-white dark:ring-gray-800 shadow-sm dark:bg-primary-500/10">
+            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-50 ring-2 ring-white dark:ring-gray-800  dark:bg-primary-500/10">
                 <span class="text-xs font-semibold text-primary-600 dark:text-primary-400">
                     {{ strtoupper(substr($comment->commentator->name, 0, 2)) }}
                 </span>
@@ -278,7 +278,7 @@
                                         <button
                                             type="button"
                                             wire:click="$parent.addToCalendar({{ $comment->id }})"
-                                            class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-sm border-gray-200 dark:border-gray-700'"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] border-gray-200 dark:border-gray-700 font-medium  transition-colors text-primary-700 dark:text-primary-300"
                                         >
                                             {{ __('codenzia-comments::codenzia-comments.comment_types.add_to_calendar') }}
                                             <x-filament::icon icon="heroicon-o-calendar" class="h-3.5 w-3.5" />
@@ -291,8 +291,8 @@
                                             type="button"
                                             @click="open = !open"
                                             @class([
-                                                'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] border-gray-200 dark:border-gray-700 font-medium shadow-sm transition-colors',
-                                                'border-primary-500 bg-primary-500/10 text-primary-700 dark:text-primary-300' => $userStatus === 'going',
+                                                'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] border-gray-200 dark:border-gray-700 font-medium  transition-colors',
+                                                'text-primary-700 dark:text-primary-300' => $userStatus === 'going',
                                                 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300' => $userStatus === 'maybe',
                                                 'border-gray-400 bg-gray-200 text-gray-700 dark:border-gray-600 dark:bg-white/10 dark:text-gray-200' => $userStatus === 'not_going',
                                                 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-white/5 dark:text-gray-300 dark:hover:border-gray-500' => ! $userStatus,
@@ -346,7 +346,7 @@
                                             x-transition:leave-start="opacity-100 scale-100"
                                             x-transition:leave-end="opacity-0 scale-95"
                                             @click.away="open = false"
-                                            class="absolute left-0 z-50 mt-1 w-40 rounded-lg bg-white py-1 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
+                                            class="absolute left-0 z-50 mt-1 w-40 rounded-lg bg-white py-1 dark:bg-[#16181C] border border-gray-200 dark:border-gray-700"
                                         >
                                             <button
                                                 type="button"
@@ -382,7 +382,7 @@
                                                 type="button"
                                                 wire:click="$parent.respondToEvent({{ $comment->id }}, 'not_going')"
                                                 @click="open = false"
-                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg:white/5"
+                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                                             >
                                                 <span class="flex items-center gap-1.5">
                                                     <span>🙅</span>
@@ -681,15 +681,15 @@ if (!window.__mentionPopoverManager) {
             if (popoverEl) return popoverEl;
 
             popoverEl = document.createElement('div');
-            popoverEl.className = 'fixed z-[9999] w-64 rounded-xl bg-white shadow-xl ring-1 ring-gray-200/80 dark:bg-gray-800 dark:ring-gray-700 transition-all duration-150';
+            popoverEl.className = 'fixed z-[9999] w-64 rounded-xl bg-white shadow-xl ring-1 ring-gray-200/80 dark:bg-gray-800  transition-all duration-150';
             popoverEl.style.cssText = 'pointer-events:auto;opacity:0;transform:translateY(4px) scale(0.95);display:none;';
             popoverEl.innerHTML = `
                 <a id="mp-link" href="#" class="block p-4 no-underline transition-colors hover:bg-gray-50 rounded-xl dark:hover:bg-white/5">
                     <div class="flex items-center gap-3">
                         <div id="mp-avatar-wrap" class="shrink-0" style="display:none;">
-                            <img id="mp-avatar" src="" alt="" class="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm dark:ring-gray-700">
+                            <img id="mp-avatar" src="" alt="" class="h-10 w-10 rounded-full object-cover ring-2 ring-white ">
                         </div>
-                        <div id="mp-initials-wrap" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50 ring-2 ring-white shadow-sm dark:bg-primary-500/10 dark:ring-gray-700" style="display:none;">
+                        <div id="mp-initials-wrap" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50 ring-2 ring-white  dark:bg-primary-500/10" style="display:none;">
                             <span id="mp-initials" class="text-sm font-semibold text-primary-600 dark:text-primary-400"></span>
                         </div>
                         <div class="min-w-0 flex-1">

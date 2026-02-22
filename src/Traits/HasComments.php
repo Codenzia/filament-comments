@@ -23,9 +23,9 @@ trait HasComments
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
-    public function comment(string $comment, ?string $type = null)
+    public function comment(string $comment, ?string $type = null, bool $is_approved = true)
     {
-        return $this->commentAsUser(auth()->user(), $comment, $type);
+        return $this->commentAsUser(auth()->user(), $comment, $type, $is_approved);
     }
 
     /**
@@ -33,7 +33,7 @@ trait HasComments
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
-    public function commentAsUser(?Model $user, string $comment, ?string $type = null, bool $is_approved = false)
+    public function commentAsUser(?Model $user, string $comment, ?string $type = null, bool $is_approved = true)
     {
         $commentClass = config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class;
 

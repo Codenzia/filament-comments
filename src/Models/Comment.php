@@ -78,7 +78,7 @@ class Comment extends Model
 
     public function replies()
     {
-        return $this->hasMany(self::class, 'parent_id')->with(['commentator', 'replies']);
+        return $this->hasMany(self::class, 'parent_id')->approved()->with(['commentator', 'replies']);
     }
 
     public function isReply()

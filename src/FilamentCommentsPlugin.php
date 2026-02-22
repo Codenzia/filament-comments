@@ -2,8 +2,10 @@
 
 namespace Codenzia\FilamentComments;
 
+use Codenzia\FilamentComments\Filament\Pages\ApproveCommentsPage;
 use Codenzia\FilamentComments\Filament\Pages\DiscussionPage;
 use Codenzia\FilamentComments\Filament\Pages\ManageChannelsPage;
+use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Contracts\Plugin;
 use Filament\Navigation\NavigationItem;
@@ -23,6 +25,7 @@ class FilamentCommentsPlugin implements Plugin
             ->pages([
                 DiscussionPage::class,
                 ManageChannelsPage::class,
+                ApproveCommentsPage::class,
             ]);
     }
 
@@ -45,6 +48,13 @@ class FilamentCommentsPlugin implements Plugin
             ->icon('heroicon-o-cog-6-tooth')
             ->url(ManageChannelsPage::getUrl())
             ->isActiveWhen(fn () => request()->routeIs(ManageChannelsPage::getRouteName()));
+
+        $items[] = NavigationItem::make('Approvals')
+            ->group($group)
+            ->icon('heroicon-o-check-circle')
+            ->url(ApproveCommentsPage::getUrl())
+            ->badge(fn () => Comment::where('is_approved', false)->count())
+            ->isActiveWhen(fn () => request()->routeIs(ApproveCommentsPage::getRouteName()));
 
         try {
             $channels = CommentChannel::where('show_sidebar', true)->get();

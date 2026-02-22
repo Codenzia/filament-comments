@@ -649,6 +649,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         }
 
         $query = $this->record->comments()
+            ->approved()
             ->whereNull('parent_id')
             ->with(['commentator', 'replies.commentator', 'reactions', 'replies.reactions']);
 

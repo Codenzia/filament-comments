@@ -398,7 +398,7 @@
                             @endif
 
                             @if ($isPast)
-                                <span class="mt-2 inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
+                                <span class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
                                     {{ __('codenzia-comments::codenzia-comments.comment_types.event_past') }}
                                 </span>
                             @endif

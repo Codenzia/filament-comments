@@ -33,14 +33,14 @@ trait HasComments
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
-    public function commentAsUser(?Model $user, string $comment, ?string $type = null)
+    public function commentAsUser(?Model $user, string $comment, ?string $type = null, bool $is_approved = false)
     {
         $commentClass = config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class;
 
         $comment = new $commentClass([
             'comment' => $comment,
             'type' => $type,
-            'is_approved' => ($user instanceof Commentator) ? ! $user->needsCommentApproval($this) : false,
+            'is_approved' => $is_approved,
             'user_id' => is_null($user) ? null : $user->getKey(),
             'commentable_id' => $this->getKey(),
             'commentable_type' => get_class($this),

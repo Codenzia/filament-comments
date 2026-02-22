@@ -2,7 +2,6 @@
 
 namespace Codenzia\FilamentComments\Traits;
 
-use Codenzia\FilamentComments\Contracts\Commentator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 

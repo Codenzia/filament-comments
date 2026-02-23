@@ -2,12 +2,12 @@
 
 namespace Codenzia\FilamentComments\Filament\Pages;
 
+use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Panel;
 use Illuminate\Contracts\Support\Htmlable;
-use Codenzia\FilamentComments\Models\Comment;
 
 class DiscussionPage extends Page
 {

@@ -4,7 +4,6 @@ namespace Codenzia\FilamentComments;
 
 use Codenzia\FilamentComments\Filament\Pages\DiscussionPage;
 use Codenzia\FilamentComments\Filament\Pages\ManageChannelsPage;
-use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Contracts\Plugin;
 use Filament\Navigation\NavigationItem;

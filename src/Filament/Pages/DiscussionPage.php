@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Panel;
 use Illuminate\Contracts\Support\Htmlable;
+use Codenzia\FilamentComments\Models\Comment;
 
 class DiscussionPage extends Page
 {
@@ -55,6 +56,18 @@ class DiscussionPage extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pendingComments')
+                ->label(__('Pending Comments'))
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->color('gray')
+                ->badge(fn () => $this->getPendingCommentsCount())
+                ->slideOver()
+                ->modalHeading(__('Comments Pending Approval'))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel(__('Close'))
+                ->modalContent(fn () => view('codenzia-comments::components.pending-comments-modal', [
+                    'comments' => $this->getPendingComments(),
+                ])),
             Action::make('leaveChannel')
                 ->label('Leave Channel')
                 ->icon('heroicon-o-arrow-right-start-on-rectangle')
@@ -89,5 +102,28 @@ class DiscussionPage extends Page
                     $this->channel->refresh();
                 }),
         ];
+    }
+
+    private function getPendingCommentsCount(): int
+    {
+        return Comment::query()
+            ->where('channel_id', $this->channel->id)
+            ->where('is_approved', 0)
+            ->count();
+    }
+
+    private function getPendingComments()
+    {
+        return Comment::query()
+            ->where('channel_id', $this->channel->id)
+            ->where('is_approved', 0)
+            ->get();
+    }
+
+    public function approveComment(int $commentId): void
+    {
+        $comment = Comment::findOrFail($commentId);
+        $comment->is_approved = 1;
+        $comment->save();
     }
 }

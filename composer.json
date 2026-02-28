@@ -1,6 +1,6 @@
 {
     "name": "codenzia/filament-comments",
-    "description": "This is my package filament-comments",
+    "description": "A full-featured commenting system for Filament v4 with threaded replies, channels, polls, events, reactions, mentions, and notifications.",
     "keywords": [
         "Codenzia",
         "laravel",

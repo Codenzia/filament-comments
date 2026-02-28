@@ -11,7 +11,7 @@
         "issues": "https://github.com/codenzia/filament-comments/issues",
         "source": "https://github.com/codenzia/filament-comments"
     },
-    "license": "MIT",
+    "license": ["MIT", "proprietary"],
     "authors": [
         {
             "name": "Codenzia",

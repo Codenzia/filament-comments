@@ -239,4 +239,9 @@ The package creates four tables:
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+This package is dual-licensed:
+
+- **MIT License** — Free for open source projects under an OSI-approved license.
+- **Commercial License** — Required for proprietary/commercial projects. Visit [codenzia.com](https://codenzia.com) for details.
+
+See [LICENSE.md](LICENSE.md) for full terms.

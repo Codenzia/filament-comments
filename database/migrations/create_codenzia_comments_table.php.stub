@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        $tableName = config('codenzia-comments.table_name', 'comments');
+        $tableName = config('filament-comments.table_name', 'comments');
 
         Schema::create($tableName, function (Blueprint $table) use ($tableName) {
             $table->id();
@@ -20,14 +20,14 @@ return new class extends Migration
             $table->unsignedBigInteger('channel_id')->nullable();
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->foreign('parent_id')->references('id')->on($tableName)->onDelete('cascade');
-            $table->foreign('channel_id')->references('id')->on(config('codenzia-comments.channels_table_name', 'comment_channels'))->onDelete('set null');
+            $table->foreign('channel_id')->references('id')->on(config('filament-comments.channels_table_name', 'comment_channels'))->onDelete('set null');
             $table->timestamps();
         });
     }
 
     public function down()
     {
-        $tableName = config('codenzia-comments.table_name', 'comments');
+        $tableName = config('filament-comments.table_name', 'comments');
 
         Schema::dropIfExists($tableName);
     }

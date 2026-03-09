@@ -20,9 +20,9 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class FilamentCommentsServiceProvider extends PackageServiceProvider
 {
-    public static string $name = 'codenzia-comments';
+    public static string $name = 'filament-comments';
 
-    public static string $viewNamespace = 'codenzia-comments';
+    public static string $viewNamespace = 'filament-comments';
 
     public function configurePackage(Package $package): void
     {
@@ -83,20 +83,20 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
         if (app()->runningInConsole()) {
             foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
                 $this->publishes([
-                    $file->getRealPath() => base_path("stubs/codenzia-comments/{$file->getFilename()}"),
-                ], 'codenzia-comments-stubs');
+                    $file->getRealPath() => base_path("stubs/filament-comments/{$file->getFilename()}"),
+                ], 'filament-comments-stubs');
             }
         }
         // Livewire Component Registration
-        Livewire::component('codenzia-comments::comments', CommentsComponent::class);
-        Livewire::component('codenzia-comments::comment-item', CommentItem::class);
+        Livewire::component('filament-comments::comments', CommentsComponent::class);
+        Livewire::component('filament-comments::comment-item', CommentItem::class);
         // Testing
         Testable::mixin(new TestsFilamentComments);
     }
 
     protected function getAssetPackageName(): ?string
     {
-        return 'codenzia/codenzia-comments';
+        return 'codenzia/filament-comments';
     }
 
     /**
@@ -106,8 +106,8 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     {
         return [
             // Package assets
-            Css::make('codenzia-comments-styles', __DIR__ . '/../resources/dist/codenzia-comments.css'),
-            Js::make('codenzia-comments-scripts', __DIR__ . '/../resources/dist/codenzia-comments.js'),
+            Css::make('filament-comments-styles', __DIR__ . '/../resources/dist/filament-comments.css'),
+            Js::make('filament-comments-scripts', __DIR__ . '/../resources/dist/filament-comments.js'),
         ];
     }
 
@@ -155,6 +155,8 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
             'create_codenzia_comments_channel_members_table',
             'create_codenzia_comments_table',
             'create_codenzia_comments_reactions_table',
+            'add_type_to_comment_channels_table',
+            'create_codenzia_comments_channel_reads_table',
         ];
     }
 }

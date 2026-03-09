@@ -130,7 +130,7 @@ class CommentItem extends Component implements HasActions, HasForms
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
                     ->channelMentionables($this->channelMentionables)
-                    ->placeholder(config('codenzia-comments.editor.placeholder', '')),
+                    ->placeholder(config('filament-comments.editor.placeholder', '')),
             ])
             ->statePath('replyData');
     }
@@ -145,7 +145,7 @@ class CommentItem extends Component implements HasActions, HasForms
                     ->urlPattern('/users/{id}/profile')
                     ->mentionables($this->mentionables)
                     ->channelMentionables($this->channelMentionables)
-                    ->placeholder(config('codenzia-comments.editor.placeholder', '')),
+                    ->placeholder(config('filament-comments.editor.placeholder', '')),
             ])
             ->statePath('editData');
     }
@@ -192,6 +192,15 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function updateComment(): void
     {
+        if (auth()->id() !== $this->comment->user_id) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $data = $this->editForm->getState();
 
         $this->comment->update([
@@ -199,7 +208,7 @@ class CommentItem extends Component implements HasActions, HasForms
         ]);
 
         Notification::make()
-            ->title(__('codenzia-comments::codenzia-comments.notifications.comment_updated'))
+            ->title(__('filament-comments::messages.notifications.comment_updated'))
             ->success()
             ->send();
 
@@ -235,7 +244,7 @@ class CommentItem extends Component implements HasActions, HasForms
         $mentionedNames = $this->extractMentions($data['comment']);
         if (! empty($mentionedNames)) {
             $userModel = $this->getUserModelClass();
-            $columnName = config('codenzia-comments.mentionable.column.label', 'name');
+            $columnName = config('filament-comments.mentionable.column.label', 'name');
 
             foreach ($mentionedNames as $name) {
                 $mentionedUser = $userModel::where($columnName, $name)->first();
@@ -246,7 +255,7 @@ class CommentItem extends Component implements HasActions, HasForms
         }
 
         Notification::make()
-            ->title(__('codenzia-comments::codenzia-comments.notifications.reply_created'))
+            ->title(__('filament-comments::messages.notifications.reply_created'))
             ->success()
             ->send();
 
@@ -305,7 +314,7 @@ class CommentItem extends Component implements HasActions, HasForms
         // Check if user can delete (either owner or has permission)
         if (auth()->id() !== $this->comment->user_id && ! auth()->user()->can('delete', $this->comment)) {
             Notification::make()
-                ->title(__('codenzia-comments::codenzia-comments.notifications.unauthorized'))
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
                 ->danger()
                 ->send();
 
@@ -315,7 +324,7 @@ class CommentItem extends Component implements HasActions, HasForms
         $this->comment->delete();
 
         Notification::make()
-            ->title(__('codenzia-comments::codenzia-comments.notifications.deleted'))
+            ->title(__('filament-comments::messages.notifications.deleted'))
             ->success()
             ->send();
 
@@ -324,7 +333,7 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function render(): View
     {
-        return view('codenzia-comments::livewire.comment-item', [
+        return view('filament-comments::livewire.comment-item', [
             'canPost' => $this->canUserPostInChannel(),
         ]);
     }

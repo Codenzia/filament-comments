@@ -6,7 +6,7 @@
             </div>
         @endif
 
-        <livewire:codenzia-comments::comments 
+        <livewire:filament-comments::comments 
             :record="$record" 
             :activeChannelId="$record->id" 
         />

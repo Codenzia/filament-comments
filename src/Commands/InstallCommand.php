@@ -16,12 +16,12 @@ class InstallCommand extends Command
 
         $this->info('Publishing configuration...');
         $this->call('vendor:publish', [
-            '--tag' => 'codenzia-comments-config',
+            '--tag' => 'filament-comments-config',
         ]);
 
         $this->info('Publishing migrations...');
         $this->call('vendor:publish', [
-            '--tag' => 'codenzia-comments-migrations',
+            '--tag' => 'filament-comments-migrations',
         ]);
 
         if ($this->confirm('Would you like to run the migrations now?', true)) {
@@ -29,8 +29,35 @@ class InstallCommand extends Command
             $this->call('migrate');
         }
 
+        if ($this->confirm('Would you like to seed the comment permissions now?', true)) {
+            $this->info('Seeding permissions...');
+            static::seedPermissions();
+            $this->info('   Permissions created. Assign them to roles via Shield or manually.');
+        }
+
         $this->info('Filament Comments installed successfully!');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Create Spatie Permission records for all configured comment permissions.
+     *
+     * Safe to call multiple times — uses firstOrCreate.
+     * Can be called from seeders: InstallCommand::seedPermissions()
+     */
+    public static function seedPermissions(): void
+    {
+        $permissionClass = config('permission.models.permission', \Spatie\Permission\Models\Permission::class);
+        $guardName = config('auth.defaults.guard', 'web');
+
+        foreach (config('filament-comments.permissions', []) as $permissionName) {
+            if ($permissionName !== null) {
+                $permissionClass::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => $guardName,
+                ]);
+            }
+        }
     }
 }

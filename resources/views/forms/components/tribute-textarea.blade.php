@@ -6,12 +6,12 @@
         channelMentionables: @js($getChannelMentionables()),
         projectMentionables: @js($getProjectMentionables()),
         taskMentionables: @js($getTaskMentionables()),
-        editorHeight: @js(config('codenzia-comments.editor.height', 100)),
+        editorHeight: @js(config('filament-comments.editor.height', 100)),
         triggers: {
-            mentionable: @js(config('codenzia-comments.mentionable.trigger', '@')),
-            channel: @js(config('codenzia-comments.channel_mentionable.trigger', '#')),
-            project: @js(config('codenzia-comments.project_mentionable.trigger', '$')),
-            task: @js(config('codenzia-comments.task_mentionable.trigger', '%')),
+            mentionable: @js(config('filament-comments.mentionable.trigger', '@')),
+            channel: @js(config('filament-comments.channel_mentionable.trigger', '#')),
+            project: @js(config('filament-comments.project_mentionable.trigger', '$')),
+            task: @js(config('filament-comments.task_mentionable.trigger', '%')),
         },
     })"
 >

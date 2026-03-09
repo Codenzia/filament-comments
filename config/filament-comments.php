@@ -28,10 +28,33 @@ return [
      */
     'channel_members_table_name' => 'comment_channel_members',
 
-    /**
-     * The navigation group name for the Filament resource.
+    /*
+     * The table name to use for tracking read status per channel/user.
      */
-    'navigation_group' => 'Channels',
+    'channel_reads_table_name' => 'comment_channel_reads',
+
+    /**
+     * Navigation groups
+     *
+     * Channels and Direct Messages each get their own collapsible sidebar group.
+     * Customize the group labels here.
+     */
+    'navigation_groups' => [
+        'channels' => 'Channels',
+        'direct_messages' => 'Direct Messages',
+    ],
+
+    /**
+     * Sidebar MRU (Most Recently Used) limits
+     *
+     * Controls the maximum number of channels and direct messages shown
+     * in the sidebar navigation. Only the most recently active items
+     * are displayed. Set to null to show all.
+     */
+    'sidebar_limit' => [
+        'channels' => 5,
+        'direct_messages' => 5,
+    ],
 
     'mentionable' => [
         'model' => \App\Models\User::class,
@@ -108,6 +131,12 @@ return [
     ],
 
     /**
+     * Auto-approve new comments immediately.
+     * Set to false to require manual moderation before comments are visible.
+     */
+    'auto_approve' => true,
+
+    /**
      * Determines if replies will be deleted when comments are deleted
      */
     'delete_replies_along_comments' => false,
@@ -115,6 +144,18 @@ return [
     'editor' => [
         'placeholder' => 'Type your comment here...',
         'height' => 100,
+    ],
+
+    /**
+     * Composer appearance
+     *
+     * Customize the background color of the comment composer.
+     * Accepts any valid CSS color value (hex, rgb, hsl, etc.).
+     */
+    'composer' => [
+        'bg' => '#ffffff',
+        'dark_bg' => '#16181C',
+        'show_settings' => false,
     ],
 
     /**
@@ -132,15 +173,23 @@ return [
 
     /**
      * Permissions configuration
+     *
+     * Works seamlessly with Filament Shield / Spatie Permission.
+     * Define permission names that map to your Spatie permissions.
+     * Shield auto-generates these when you run `shield:generate`.
+     *
+     * Set a permission to `null` to allow any authenticated user.
+     * Set to a string to require that specific Spatie permission.
      */
     'permissions' => [
-        /**
-         * Roles allowed to create and manage channels.
-         * If empty, any authenticated user can create channels.
-         */
-        'create_channels_roles' => [
-            'super_admin',
-        ],
+        'create_channel' => 'create_comment_channel',
+        'update_channel' => 'update_comment_channel',
+        'delete_channel' => 'delete_comment_channel',
+        'view_channel' => 'view_comment_channel',
+        'view_direct_message' => null, // null = any authenticated user can view DMs
+        'create_direct_message' => null, // null = any authenticated user can start DMs
+        'delete_direct_message' => null, // null = any authenticated user can leave DMs
+        'add_member_direct_message' => null, // null = any authenticated user can add members to DMs
     ],
 
     /**

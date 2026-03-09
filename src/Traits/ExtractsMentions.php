@@ -48,8 +48,8 @@ trait ExtractsMentions
      */
     protected function getUserModelClass(): string
     {
-        if (config('codenzia-comments.user_model')) {
-            return config('codenzia-comments.user_model');
+        if (config('filament-comments.user_model')) {
+            return config('filament-comments.user_model');
         }
 
         return config('auth.providers.users.model', \App\Models\User::class);

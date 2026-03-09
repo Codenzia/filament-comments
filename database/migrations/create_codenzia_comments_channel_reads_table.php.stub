@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        $tableName = config('filament-comments.channel_reads_table_name', 'comment_channel_reads');
+        $channelsTableName = config('filament-comments.channels_table_name', 'comment_channels');
+
+        Schema::create($tableName, function (Blueprint $table) use ($channelsTableName) {
+            $table->id();
+            $table->foreignId('channel_id')->constrained($channelsTableName)->cascadeOnDelete();
+            $table->unsignedBigInteger('user_id');
+            $table->timestamp('last_read_at');
+            $table->timestamps();
+
+            $table->unique(['channel_id', 'user_id']);
+            $table->index(['user_id', 'last_read_at']);
+        });
+    }
+
+    public function down()
+    {
+        $tableName = config('filament-comments.channel_reads_table_name', 'comment_channel_reads');
+
+        Schema::dropIfExists($tableName);
+    }
+};

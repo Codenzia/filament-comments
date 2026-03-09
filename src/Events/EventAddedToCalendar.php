@@ -13,13 +13,11 @@ class EventAddedToCalendar
     use InteractsWithSockets;
     use SerializesModels;
 
-    public Comment $comment;
-
-    public array $eventData;
-
-    public function __construct(Comment $comment, array $eventData)
-    {
-        $this->comment = $comment;
-        $this->eventData = $eventData;
-    }
+    /**
+     * @param  array<string, mixed>  $eventData
+     */
+    public function __construct(
+        public Comment $comment,
+        public array $eventData,
+    ) {}
 }

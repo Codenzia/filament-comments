@@ -9,7 +9,7 @@ class TributeTextarea extends RichEditor
 {
     use HasMentionable;
 
-    protected string $view = 'codenzia-comments::forms.components.tribute-textarea';
+    protected string $view = 'filament-comments::forms.components.tribute-textarea';
 
     protected array | \Closure $mentionables = [];
 

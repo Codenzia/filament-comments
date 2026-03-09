@@ -4,5 +4,5 @@
 ])
 
 <div>
-    <livewire:codenzia-comments::comments :record="$record" :mentionables="$mentionables" />
+    <livewire:filament-comments::comments :record="$record" :mentionables="$mentionables" />
 </div>

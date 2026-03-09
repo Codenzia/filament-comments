@@ -9,30 +9,24 @@ trait HasComments
 {
     /**
      * Return all comments for this model.
-     *
-     * @return MorphMany
      */
-    public function comments()
+    public function comments(): MorphMany
     {
         return $this->morphMany(config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class, 'commentable');
     }
 
     /**
      * Attach a comment to this model.
-     *
-     * @return \Illuminate\Database\Eloquent\Model
      */
-    public function comment(string $comment, ?string $type = null, bool $is_approved = true)
+    public function comment(string $comment, ?string $type = null, bool $is_approved = true): Model
     {
         return $this->commentAsUser(auth()->user(), $comment, $type, $is_approved);
     }
 
     /**
      * Attach a comment to this model as a specific user.
-     *
-     * @return \Illuminate\Database\Eloquent\Model
      */
-    public function commentAsUser(?Model $user, string $comment, ?string $type = null, bool $is_approved = true)
+    public function commentAsUser(?Model $user, string $comment, ?string $type = null, bool $is_approved = true): Model
     {
         $commentClass = config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class;
 

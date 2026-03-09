@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up()
     {
-        $tableName = config('codenzia-comments.channel_members_table_name', 'comment_channel_members');
-        $channelsTable = config('codenzia-comments.channels_table_name', 'comment_channels');
-        $userModel = config('codenzia-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $tableName = config('filament-comments.channel_members_table_name', 'comment_channel_members');
+        $channelsTable = config('filament-comments.channels_table_name', 'comment_channels');
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
         $userTable = (new $userModel)->getTable();
 
         Schema::create($tableName, function (Blueprint $table) use ($channelsTable, $userTable) {
@@ -25,7 +25,7 @@ return new class extends Migration
 
     public function down()
     {
-        $tableName = config('codenzia-comments.channel_members_table_name', 'comment_channel_members');
+        $tableName = config('filament-comments.channel_members_table_name', 'comment_channel_members');
 
         Schema::dropIfExists($tableName);
     }

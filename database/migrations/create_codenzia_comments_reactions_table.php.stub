@@ -8,8 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        $tableName = config('codenzia-comments.reactions_table_name', 'comments_reactions');
-        $commentsTableName = config('codenzia-comments.table_name', 'comments');
+        $tableName = config('filament-comments.reactions_table_name', 'comments_reactions');
+        $commentsTableName = config('filament-comments.table_name', 'comments');
 
         Schema::create($tableName, function (Blueprint $table) use ($commentsTableName) {
             $table->id();
@@ -25,7 +25,7 @@ return new class extends Migration
 
     public function down()
     {
-        $tableName = config('codenzia-comments.reactions_table_name', 'comments_reactions');
+        $tableName = config('filament-comments.reactions_table_name', 'comments_reactions');
 
         Schema::dropIfExists($tableName);
     }

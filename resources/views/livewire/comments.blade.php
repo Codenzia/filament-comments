@@ -1,9 +1,88 @@
-<div class="flex flex-col h-full">
+<div class="flex flex-col h-full"
+    x-init="setTimeout(() => window.__scrollCommentsToBottom && window.__scrollCommentsToBottom(false), 300)"
+>
+    {{-- Comments List --}}
+    @if ($comments->count())
+        <div class="comments-list pb-2">
+            @php $lastDate = null; @endphp
+            @foreach ($comments as $comment)
+                @php $currentDate = $comment->created_at->toDateString(); @endphp
+                @if ($currentDate !== $lastDate)
+                    <div class="relative my-4 flex items-center justify-center">
+                        <div class="absolute inset-x-0 top-1/2 h-px bg-gray-200 dark:bg-gray-700"></div>
+                        <span class="relative z-10 rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs font-medium text-gray-500 dark:border-gray-700 dark:bg-[#16181C] dark:text-gray-400">
+                            {{ $comment->created_at->format('l, F j') }}
+                        </span>
+                    </div>
+                    @php $lastDate = $currentDate; @endphp
+                @endif
+                <livewire:filament-comments::comment-item
+                    :key="$comment->id"
+                    :comment="$comment"
+                    :mentionables="$mentionables"
+                    :channelMentionables="$channelMentionables"
+                />
+            @endforeach
+        </div>
+    @else
+        <div class="flex flex-1 flex-col items-center justify-center overflow-y-auto py-16">
+            <div class="rounded-full bg-[#212427] p-4 dark:bg-white/5">
+                <x-filament::icon
+                    icon="heroicon-o-chat-bubble-left-right"
+                    class="h-8 w-8 text-gray-400 dark:text-gray-500"
+                />
+            </div>
+            <h3 class="mt-4 text-sm font-medium text-gray-900 dark:text-white">
+                {{ __('filament-comments::messages.comments.empty_title') ?? 'No comments yet' }}
+            </h3>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {{ __('filament-comments::messages.comments.empty') }}
+            </p>
+        </div>
+    @endif
+
     {{-- Comment Form --}}
     @if ($canPost)
         <div
-            class="relative mb-6"
-            x-data="{ uploading: false, dropdownOpen: false }"
+            class="relative mt-auto shrink-0 sticky bottom-0 z-20 pt-3 pb-1"
+            x-data="{
+                uploading: false,
+                dropdownOpen: false,
+                hasContent: false,
+                _observer: null,
+                _bound: false,
+                initEditorWatch() {
+                    const self = this;
+                    const bind = () => {
+                        const pm = self.$el.querySelector('.ProseMirror');
+                        if (!pm) return false;
+                        if (self._bound) return true;
+                        self._bound = true;
+                        const check = () => {
+                            const text = pm.innerText.replace(/\n/g, '').trim();
+                            self.hasContent = text.length > 0;
+                        };
+                        self._observer = new MutationObserver(check);
+                        self._observer.observe(pm, { childList: true, subtree: true, characterData: true });
+                        pm.addEventListener('input', check);
+                        pm.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+                                e.preventDefault();
+                                e.stopImmediatePropagation();
+                                if (self.hasContent && !self.uploading) {
+                                    $wire.create().then(() => setTimeout(() => window.__scrollCommentsToBottom(), 150));
+                                }
+                            }
+                        }, true);
+                        check();
+                        return true;
+                    };
+                    // Retry until ProseMirror renders
+                    const interval = setInterval(() => { if (bind()) clearInterval(interval); }, 200);
+                    setTimeout(() => clearInterval(interval), 5000);
+                },
+            }"
+            x-init="initEditorWatch()"
             x-on:livewire-upload-start="uploading = true"
             x-on:livewire-upload-finish="uploading = false; if ($refs.imageInput) $refs.imageInput.value = ''; if ($refs.fileInput) $refs.fileInput.value = ''"
             x-on:livewire-upload-error="uploading = false; if ($refs.imageInput) $refs.imageInput.value = ''; if ($refs.fileInput) $refs.fileInput.value = ''"
@@ -30,12 +109,12 @@
 
             @if ($commentType === 'vote')
                 {{-- Vote mode: replaces the text editor entirely --}}
-                <div class="comment-composer rounded-xl dark:bg-[#16181C] bg-white">
+                <div class="comment-composer rounded-xl border border-gray-200 dark:border-white/10">
                     <div class="p-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
                                 <x-filament::icon icon="heroicon-o-chart-bar" class="h-3.5 w-3.5 text-primary-500" />
-                                {{ __('codenzia-comments::codenzia-comments.comment_types.poll') }}
+                                {{ __('filament-comments::messages.comment_types.poll') }}
                             </span>
                             <button
                                 wire:click="setCommentType('text')"
@@ -65,12 +144,12 @@
                 </div>
             @elseif ($commentType === 'event')
                 {{-- Event mode --}}
-                <div class="comment-composer rounded-xl dark:bg-[#16181C] bg-white">
+                <div class="comment-composer rounded-xl border border-gray-200 dark:border-white/10">
                     <div class="p-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
                                 <x-filament::icon icon="heroicon-o-calendar-days" class="h-3.5 w-3.5 text-primary-500" />
-                                {{ __('codenzia-comments::codenzia-comments.comment_types.event') }}
+                                {{ __('filament-comments::messages.comment_types.event') }}
                             </span>
                             <button
                                 wire:click="setCommentType('text')"
@@ -100,7 +179,64 @@
                 </div>
             @else
                 {{-- Text / Image mode: show the rich text editor --}}
-                <div class="comment-composer rounded-xl dark:bg-[#16181C] bg-white">
+                <div class="comment-composer relative rounded-xl border border-gray-200 dark:border-white/10">
+                    {{-- Settings cog (top-right) --}}
+                    @if (config('filament-comments.composer.show_settings', false))
+                        <div class="absolute top-1.5 right-2 z-10" x-data="{ settingsOpen: false }">
+                            <button
+                                @click="settingsOpen = !settingsOpen"
+                                class="flex items-center justify-center rounded-md p-1 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                                title="{{ __('Settings') }}"
+                            >
+                                <x-filament::icon icon="heroicon-o-cog-6-tooth" class="h-3.5 w-3.5" />
+                            </button>
+                            <div
+                                x-show="settingsOpen"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                @click.away="settingsOpen = false"
+                                class="absolute right-0 z-50 mt-1 w-56 rounded-lg bg-white p-3 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#1a1d21] dark:ring-gray-700"
+                            >
+                                <label class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                    Composer Background
+                                </label>
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach ([
+                                        '#16181C' => 'Default',
+                                        '#1a1d21' => 'Slate',
+                                        '#1e1e2e' => 'Mocha',
+                                        '#0d1117' => 'GitHub',
+                                        '#2b2d30' => 'JetBrains',
+                                        '#1f2937' => 'Gray 800',
+                                        '#172554' => 'Blue',
+                                        '#1a2e05' => 'Green',
+                                        '#2d1b4e' => 'Purple',
+                                        '#3b0a0a' => 'Wine',
+                                    ] as $color => $label)
+                                        <button
+                                            type="button"
+                                            @click="document.querySelectorAll('.comment-composer').forEach(el => el.style.backgroundColor = '{{ $color }}'); localStorage.setItem('fc-composer-bg', '{{ $color }}')"
+                                            class="group/swatch relative h-6 w-6 rounded-full ring-1 ring-white/20 transition-transform hover:scale-110"
+                                            style="background-color: {{ $color }}"
+                                            title="{{ $label }}"
+                                        ></button>
+                                    @endforeach
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="document.querySelectorAll('.comment-composer').forEach(el => el.style.backgroundColor = ''); localStorage.removeItem('fc-composer-bg')"
+                                    class="mt-2 w-full rounded-md px-2 py-1 text-[10px] font-medium text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                                >
+                                    Reset to default
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="comment-composer__editor">
                         {{ $this->form }}
                     </div>
@@ -112,7 +248,7 @@
                             <button
                                 @click="dropdownOpen = !dropdownOpen"
                                 class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
-                                title="{{ __('codenzia-comments::codenzia-comments.comment_types.add_attachment') }}"
+                                title="{{ __('filament-comments::messages.comment_types.add_attachment') }}"
                             >
                                 <x-filament::icon icon="heroicon-o-plus" class="h-4.5 w-4.5" />
                             </button>
@@ -135,7 +271,7 @@
                                     class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                                 >
                                     <x-filament::icon icon="heroicon-o-chart-bar" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                    {{ __('codenzia-comments::codenzia-comments.comment_types.poll') }}
+                                    {{ __('filament-comments::messages.comment_types.poll') }}
                                 </button>
                                 <button
                                     wire:click="setCommentType('event')"
@@ -143,7 +279,7 @@
                                     class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                                 >
                                     <x-filament::icon icon="heroicon-o-calendar-days" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                    {{ __('codenzia-comments::codenzia-comments.comment_types.event') }}
+                                    {{ __('filament-comments::messages.comment_types.event') }}
                                 </button>
                             </div>
 
@@ -152,7 +288,7 @@
                             {{-- @ mention --}}
                             <button
                                 class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
-                                title="{{ __('codenzia-comments::codenzia-comments.comments.mention_hint') }}"
+                                title="{{ __('filament-comments::messages.comments.mention_hint') }}"
                                 onclick="window.__triggerMention(this.closest('.comment-composer'))"
                             >
                                 <x-filament::icon icon="heroicon-o-at-symbol" class="h-4.5 w-4.5" />
@@ -162,7 +298,7 @@
                             <button
                                 @click="$refs.imageInput.click()"
                                 class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
-                                title="{{ __('codenzia-comments::codenzia-comments.comment_types.image') }}"
+                                title="{{ __('filament-comments::messages.comment_types.image') }}"
                             >
                                 <x-filament::icon icon="heroicon-o-photo" class="h-4.5 w-4.5" />
                             </button>
@@ -171,7 +307,7 @@
                             <button
                                 @click="$refs.fileInput.click()"
                                 class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
-                                title="{{ __('codenzia-comments::codenzia-comments.comment_types.file') ?? 'Attach file' }}"
+                                title="{{ __('filament-comments::messages.comment_types.file') ?? 'Attach file' }}"
                             >
                                 <x-filament::icon icon="heroicon-o-paper-clip" class="h-4.5 w-4.5" />
                             </button>
@@ -181,7 +317,7 @@
                                 <button
                                     @click="emojiOpen = !emojiOpen"
                                     class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
-                                    title="{{ __('codenzia-comments::codenzia-comments.comments.emoji') ?? 'Emoji' }}"
+                                    title="{{ __('filament-comments::messages.comments.emoji') ?? 'Emoji' }}"
                                 >
                                     <x-filament::icon icon="heroicon-o-face-smile" class="h-4.5 w-4.5" />
                                 </button>
@@ -221,10 +357,13 @@
 
                         {{-- Send button --}}
                         <button
-                            wire:click="create"
+                            @click="$wire.create().then(() => setTimeout(() => window.__scrollCommentsToBottom(), 150))"
                             wire:loading.attr="disabled"
-                            :disabled="uploading"
-                            class="flex items-center justify-center rounded-lg dark:hover:bg-[#212427] p-1.5 disabled:opacity-50"
+                            :disabled="uploading || !hasContent"
+                            :class="hasContent && !uploading
+                                ? 'bg-primary-500 text-white hover:bg-primary-600'
+                                : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'"
+                            class="flex items-center justify-center rounded-lg p-1.5 transition-colors duration-150"
                         >
                             <span wire:loading.remove wire:target="create">
                                 <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
@@ -238,48 +377,18 @@
             @endif
         </div>
     @else
-        <div class="mb-6 flex items-center justify-between gap-2 rounded-lg bg-yellow-50 px-4 py-3 text-sm text-yellow-700 ring-1 ring-yellow-200/60 dark:bg-yellow-500/5 dark:text-yellow-400 dark:ring-yellow-500/20">
+        <div class="mt-6 flex items-center justify-between gap-2 rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-600 ring-1 ring-gray-200 dark:bg-white/5 dark:text-gray-400 dark:ring-white/10">
             <div class="flex items-center gap-2">
                 <x-filament::icon icon="heroicon-o-lock-closed" class="h-4 w-4 shrink-0" />
                 {{ __('Only members of this channel can post comments.') }}
             </div>
             <x-filament::button
                 wire:click="joinChannel"
-                color="warning"
+                color="primary"
                 size="xs"
-                variant="outline"
             >
                 {{ __('Join now') }}
             </x-filament::button>
-        </div>
-    @endif
-
-    {{-- Comments List --}}
-    @if ($comments->count())
-        <div class="comments-list -mx-3">
-            @foreach ($comments as $comment)
-                <livewire:codenzia-comments::comment-item
-                    :key="$comment->id"
-                    :comment="$comment"
-                    :mentionables="$mentionables"
-                    :channelMentionables="$channelMentionables"
-                />
-            @endforeach
-        </div>
-    @else
-        <div class="flex flex-1 flex-col items-center justify-center py-16">
-            <div class="rounded-full bg-[#212427] p-4 dark:bg-white/5">
-                <x-filament::icon
-                    icon="heroicon-o-chat-bubble-left-right"
-                    class="h-8 w-8 text-gray-400 dark:text-gray-500"
-                />
-            </div>
-            <h3 class="mt-4 text-sm font-medium text-gray-900 dark:text-white">
-                {{ __('codenzia-comments::codenzia-comments.comments.empty_title') ?? 'No comments yet' }}
-            </h3>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {{ __('codenzia-comments::codenzia-comments.comments.empty') }}
-            </p>
         </div>
     @endif
 
@@ -287,6 +396,12 @@
 
     @assets
     <style>
+        .comment-composer {
+            background-color: {{ config('filament-comments.composer.bg', '#ffffff') }};
+        }
+        .dark .comment-composer {
+            background-color: {{ config('filament-comments.composer.dark_bg', '#16181C') }};
+        }
         .comment-composer__editor .fi-fo-rich-editor {
             border: none !important;
             box-shadow: none !important;
@@ -326,6 +441,40 @@
         }
     </style>
     <script>
+        // Restore composer background from localStorage
+        (function() {
+            var saved = localStorage.getItem('fc-composer-bg');
+            if (saved) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.comment-composer').forEach(function(el) {
+                        el.style.backgroundColor = saved;
+                    });
+                });
+                // Also run immediately for Livewire navigations
+                document.querySelectorAll('.comment-composer').forEach(function(el) {
+                    el.style.backgroundColor = saved;
+                });
+            }
+        })();
+
+        window.__scrollCommentsToBottom = function(smooth) {
+            var commentsList = document.querySelector('.comments-list');
+            if (commentsList) {
+                // Walk up to find the nearest scrollable ancestor
+                var scrollable = commentsList.parentElement;
+                while (scrollable && scrollable !== document.body && scrollable !== document.documentElement) {
+                    var style = window.getComputedStyle(scrollable);
+                    if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && scrollable.scrollHeight > scrollable.clientHeight) {
+                        scrollable.scrollTo({ top: scrollable.scrollHeight, behavior: smooth !== false ? 'smooth' : 'instant' });
+                        return;
+                    }
+                    scrollable = scrollable.parentElement;
+                }
+            }
+            // Fallback: scroll the window (standalone discussion page)
+            window.scrollTo({ top: document.body.scrollHeight, behavior: smooth !== false ? 'smooth' : 'instant' });
+        };
+
         window.__getComposerEditor = function(rootEl) {
             if (!rootEl) return null;
             var pm = rootEl.querySelector('.ProseMirror[contenteditable="true"]');

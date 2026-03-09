@@ -2,8 +2,8 @@
 
 namespace Codenzia\FilamentComments\Models;
 
-use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CommentReaction extends Model
 {
@@ -13,31 +13,35 @@ class CommentReaction extends Model
         'reaction_type',
     ];
 
-    public function getTable()
+    protected $casts = [
+        'comment_id' => 'integer',
+        'user_id' => 'integer',
+    ];
+
+    public function getTable(): string
     {
-        return config('codenzia-comments.reactions_table_name', 'comments_reactions');
+        return config('filament-comments.reactions_table_name', 'comments_reactions');
     }
 
-    public function comment()
+    public function comment(): BelongsTo
     {
         return $this->belongsTo(Comment::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo($this->getAuthModelName(), 'user_id');
     }
 
-    protected function getAuthModelName()
+    /**
+     * @return class-string<Model>
+     */
+    protected function getAuthModelName(): string
     {
         if (config('filament-comments.user_model')) {
             return config('filament-comments.user_model');
         }
 
-        if (! is_null(config('auth.providers.users.model'))) {
-            return config('auth.providers.users.model');
-        }
-
-        throw new Exception('Could not determine the user model name.');
+        return config('auth.providers.users.model', \App\Models\User::class);
     }
 }

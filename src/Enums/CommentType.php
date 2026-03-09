@@ -11,9 +11,9 @@ enum CommentType: string
     public function label(): string
     {
         return match ($this) {
-            self::Text => __('codenzia-comments::codenzia-comments.comment_types.text'),
-            self::Vote => __('codenzia-comments::codenzia-comments.comment_types.vote'),
-            self::Event => __('codenzia-comments::codenzia-comments.comment_types.event'),
+            self::Text => __('filament-comments::messages.comment_types.text'),
+            self::Vote => __('filament-comments::messages.comment_types.vote'),
+            self::Event => __('filament-comments::messages.comment_types.event'),
         };
     }
 

@@ -46,7 +46,7 @@ const defaultOptions = {
 compile({
     ...defaultOptions,
     entryPoints: ['./resources/js/index.js'],
-    outfile: './resources/dist/codenzia-comments.js',
+    outfile: './resources/dist/filament-comments.js',
 })
 
 compile({

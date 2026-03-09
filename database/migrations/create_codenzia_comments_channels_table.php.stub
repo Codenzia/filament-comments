@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        $tableName = config('codenzia-comments.channels_table_name', 'comment_channels');
+        $tableName = config('filament-comments.channels_table_name', 'comment_channels');
 
         Schema::create($tableName, function (Blueprint $table) {
             $table->id();
@@ -26,6 +26,7 @@ return new class extends Migration
 
     public function down()
     {
+        $tableName = config('filament-comments.channels_table_name', 'comment_channels');
 
         Schema::dropIfExists($tableName);
     }

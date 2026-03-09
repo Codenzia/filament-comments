@@ -21,6 +21,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -61,20 +62,19 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $availableChannels = $this->getAvailableChannels();
 
         $this->activeChannelId = $activeChannelId
-            ?? $availableChannels->first()?->id
             ?? $availableChannels->first()?->id;
 
         if (empty($mentionables)) {
-            $userModel = config('codenzia-comments.mentionable.model');
+            $userModel = config('filament-comments.mentionable.model');
             if ($userModel && class_exists($userModel)) {
                 $mentionables = $userModel::all();
             }
         }
 
-        $labelColumn = config('codenzia-comments.mentionable.column.label', 'name');
-        $emailColumn = config('codenzia-comments.mentionable.column.email', 'email');
-        $avatarColumn = config('codenzia-comments.mentionable.column.avatar', 'avatar');
-        $idColumn = config('codenzia-comments.mentionable.column.id', 'id');
+        $labelColumn = config('filament-comments.mentionable.column.label', 'name');
+        $emailColumn = config('filament-comments.mentionable.column.email', 'email');
+        $avatarColumn = config('filament-comments.mentionable.column.avatar', 'avatar');
+        $idColumn = config('filament-comments.mentionable.column.id', 'id');
 
         $this->mentionables = collect($mentionables)->map(function ($user) use ($labelColumn, $emailColumn, $avatarColumn, $idColumn) {
             $name = is_array($user) ? Arr::get($user, $labelColumn) : ($user->{$labelColumn} ?? null);
@@ -85,7 +85,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
             // Get full avatar URL or generate UI Avatars URL
             $avatar = $this->getAvatarUrl($avatarPath, $name);
 
-            $urlPattern = config('codenzia-comments.mentionable.url', 'admin/users/{id}');
+            $urlPattern = config('filament-comments.mentionable.url', 'admin/users/{id}');
             $link = str_replace('{id}', $id, $urlPattern);
 
             return [
@@ -173,7 +173,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
                     ->channelMentionables($this->getChannelMentionables())
                     ->projectMentionables($this->getProjectMentionables())
                     ->taskMentionables($this->getTaskMentionables())
-                    ->placeholder(config('codenzia-comments.editor.placeholder', '')),
+                    ->placeholder(config('filament-comments.editor.placeholder', '')),
             ])
             ->statePath('data');
     }
@@ -183,20 +183,20 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return $schema
             ->components([
                 TextInput::make('question')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.poll_question'))
+                    ->label(__('filament-comments::messages.comment_types.poll_question'))
                     ->required()
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.poll_question_placeholder')),
+                    ->placeholder(__('filament-comments::messages.comment_types.poll_question_placeholder')),
                 Repeater::make('options')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.poll_options'))
+                    ->label(__('filament-comments::messages.comment_types.poll_options'))
                     ->simple(
                         TextInput::make('option')
                             ->required()
-                            ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.poll_option_placeholder')),
+                            ->placeholder(__('filament-comments::messages.comment_types.poll_option_placeholder')),
                     )
                     ->minItems(2)
                     ->maxItems(10)
                     ->defaultItems(2)
-                    ->addActionLabel(__('codenzia-comments::codenzia-comments.comment_types.poll_add_option'))
+                    ->addActionLabel(__('filament-comments::messages.comment_types.poll_add_option'))
                     ->reorderable(false),
             ])
             ->statePath('voteData');
@@ -207,16 +207,16 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return $schema
             ->components([
                 TextInput::make('title')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.event_title'))
+                    ->label(__('filament-comments::messages.comment_types.event_title'))
                     ->required()
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.event_title_placeholder')),
+                    ->placeholder(__('filament-comments::messages.comment_types.event_title_placeholder')),
                 DateTimePicker::make('date')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.event_date'))
+                    ->label(__('filament-comments::messages.comment_types.event_date'))
                     ->required()
                     ->native(false),
                 Textarea::make('description')
-                    ->label(__('codenzia-comments::codenzia-comments.comment_types.event_description'))
-                    ->placeholder(__('codenzia-comments::codenzia-comments.comment_types.event_description_placeholder'))
+                    ->label(__('filament-comments::messages.comment_types.event_description'))
+                    ->placeholder(__('filament-comments::messages.comment_types.event_description_placeholder'))
                     ->rows(2),
             ])
             ->statePath('eventData');
@@ -237,14 +237,14 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     protected function getProjectMentionables(): array
     {
-        $projectModel = config('codenzia-comments.project_mentionable.model');
+        $projectModel = config('filament-comments.project_mentionable.model');
         if (! $projectModel || ! class_exists($projectModel)) {
             return [];
         }
 
-        $labelColumn = config('codenzia-comments.project_mentionable.column.label', 'title');
-        $idColumn = config('codenzia-comments.project_mentionable.column.id', 'id');
-        $urlPattern = config('codenzia-comments.project_mentionable.url', 'admin/projects/{id}');
+        $labelColumn = config('filament-comments.project_mentionable.column.label', 'title');
+        $idColumn = config('filament-comments.project_mentionable.column.id', 'id');
+        $urlPattern = config('filament-comments.project_mentionable.url', 'admin/projects/{id}');
 
         return $projectModel::all()->map(function ($project) use ($labelColumn, $idColumn, $urlPattern) {
             return [
@@ -258,14 +258,14 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     protected function getTaskMentionables(): array
     {
-        $taskModel = config('codenzia-comments.task_mentionable.model');
+        $taskModel = config('filament-comments.task_mentionable.model');
         if (! $taskModel || ! class_exists($taskModel)) {
             return [];
         }
 
-        $labelColumn = config('codenzia-comments.task_mentionable.column.label', 'title');
-        $idColumn = config('codenzia-comments.task_mentionable.column.id', 'id');
-        $urlPattern = config('codenzia-comments.task_mentionable.url', 'admin/tasks/{id}');
+        $labelColumn = config('filament-comments.task_mentionable.column.label', 'title');
+        $idColumn = config('filament-comments.task_mentionable.column.id', 'id');
+        $urlPattern = config('filament-comments.task_mentionable.url', 'admin/tasks/{id}');
 
         return $taskModel::all()->map(function ($task) use ($labelColumn, $idColumn, $urlPattern) {
             return [
@@ -308,6 +308,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
             'type' => $commentType->value,
             'user_id' => auth()->id(),
             'channel_id' => $this->activeChannelId,
+            'is_approved' => config('filament-comments.auto_approve', true),
         ]);
 
         if ($commentType === CommentType::Event) {
@@ -318,7 +319,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $mentionedNames = $this->extractMentions($commentBody);
         if (! empty($mentionedNames)) {
             $userModel = $this->getUserModelClass();
-            $columnName = config('codenzia-comments.mentionable.column.label', 'name');
+            $columnName = config('filament-comments.mentionable.column.label', 'name');
             foreach ($mentionedNames as $name) {
                 $mentionedUser = $userModel::where($columnName, $name)->first();
                 if ($mentionedUser) {
@@ -330,7 +331,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         }
 
         Notification::make()
-            ->title(__('codenzia-comments::codenzia-comments.notifications.created'))
+            ->title(__('filament-comments::messages.notifications.created'))
             ->success()
             ->send();
 
@@ -350,7 +351,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         $votePayload = [
             'question' => $data['question'],
-            'options' => collect($data['options'])->values()->all(),
+            'options' => collect($data['options'])->map(fn ($opt) => is_array($opt) ? ($opt['option'] ?? reset($opt)) : (string) $opt)->values()->all(),
             'votes' => [],
         ];
 
@@ -372,13 +373,13 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     protected function storeEventModel(Comment $comment): void
     {
-        $eventModel = config('codenzia-comments.event_model');
+        $eventModel = config('filament-comments.event_model');
 
         if (! $eventModel || ! class_exists($eventModel)) {
             return;
         }
 
-        $columns = config('codenzia-comments.event_model_columns', []);
+        $columns = config('filament-comments.event_model_columns', []);
         $payload = $comment->getDecodedComment();
 
         if (! isset($payload['title'], $payload['date'])) {
@@ -445,27 +446,29 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function castVote(int $commentId, int $optionIndex): void
     {
-        $comment = Comment::find($commentId);
+        DB::transaction(function () use ($commentId, $optionIndex) {
+            $comment = Comment::lockForUpdate()->find($commentId);
 
-        if (! $comment || $comment->type !== CommentType::Vote) {
-            return;
-        }
+            if (! $comment || $comment->type !== CommentType::Vote) {
+                return;
+            }
 
-        $data = $comment->getDecodedComment();
-        $votes = $data['votes'] ?? [];
-        $userId = (string) auth()->id();
+            $data = $comment->getDecodedComment();
+            $votes = $data['votes'] ?? [];
+            $userId = (string) auth()->id();
 
-        if (isset($votes[$userId]) && $votes[$userId] === $optionIndex) {
-            unset($votes[$userId]);
-        } else {
-            $votes[$userId] = $optionIndex;
-        }
+            if (isset($votes[$userId]) && $votes[$userId] === $optionIndex) {
+                unset($votes[$userId]);
+            } else {
+                $votes[$userId] = $optionIndex;
+            }
 
-        $data['votes'] = $votes;
+            $data['votes'] = $votes;
 
-        $comment->update([
-            'comment' => json_encode($data),
-        ]);
+            $comment->update([
+                'comment' => json_encode($data),
+            ]);
+        });
 
         $this->dispatch('voteUpdated');
     }
@@ -478,27 +481,29 @@ class CommentsComponent extends Component implements HasActions, HasForms
             return;
         }
 
-        $comment = Comment::find($commentId);
+        DB::transaction(function () use ($commentId, $status) {
+            $comment = Comment::lockForUpdate()->find($commentId);
 
-        if (! $comment || $comment->type !== CommentType::Event) {
-            return;
-        }
+            if (! $comment || $comment->type !== CommentType::Event) {
+                return;
+            }
 
-        $data = $comment->getDecodedComment();
-        $responses = $data['responses'] ?? [];
-        $userId = (string) auth()->id();
+            $data = $comment->getDecodedComment();
+            $responses = $data['responses'] ?? [];
+            $userId = (string) auth()->id();
 
-        if (isset($responses[$userId]) && $responses[$userId] === $status) {
-            unset($responses[$userId]);
-        } else {
-            $responses[$userId] = $status;
-        }
+            if (isset($responses[$userId]) && $responses[$userId] === $status) {
+                unset($responses[$userId]);
+            } else {
+                $responses[$userId] = $status;
+            }
 
-        $data['responses'] = $responses;
+            $data['responses'] = $responses;
 
-        $comment->update([
-            'comment' => json_encode($data),
-        ]);
+            $comment->update([
+                'comment' => json_encode($data),
+            ]);
+        });
 
         $this->dispatch('eventResponseUpdated');
     }
@@ -509,7 +514,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         if (! $comment || $comment->type !== CommentType::Event) {
             Notification::make()
-                ->title(__('codenzia-comments::codenzia-comments.notifications.invalid_event'))
+                ->title(__('filament-comments::messages.notifications.invalid_event'))
                 ->danger()
                 ->send();
 
@@ -523,7 +528,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         if (! $date) {
             Notification::make()
-                ->title(__('codenzia-comments::codenzia-comments.notifications.event_no_date'))
+                ->title(__('filament-comments::messages.notifications.event_no_date'))
                 ->warning()
                 ->send();
 
@@ -537,14 +542,22 @@ class CommentsComponent extends Component implements HasActions, HasForms
         event(new \Codenzia\FilamentComments\Events\EventAddedToCalendar($comment, $eventData));
 
         Notification::make()
-            ->title(__('codenzia-comments::codenzia-comments.notifications.event_added_to_calendar'))
+            ->title(__('filament-comments::messages.notifications.event_added_to_calendar'))
             ->success()
             ->send();
     }
 
     public function canUserPostInChannel(): bool
     {
+        if (! $this->activeChannelId) {
+            return false;
+        }
+
         $channel = CommentChannel::find($this->activeChannelId);
+
+        if (! $channel) {
+            return false;
+        }
 
         return $channel->members()->where('user_id', auth()->id())->exists();
     }
@@ -580,10 +593,19 @@ class CommentsComponent extends Component implements HasActions, HasForms
             return;
         }
 
+        if (auth()->id() !== $comment->user_id && ! auth()->user()?->can('delete', $comment)) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $comment->delete();
 
         Notification::make()
-            ->title(__('codenzia-comments::codenzia-comments.notifications.deleted'))
+            ->title(__('filament-comments::messages.notifications.deleted'))
             ->success()
             ->send();
     }
@@ -623,7 +645,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->activeChannelId = $id;
     }
 
-    public function getAvailableChannels()
+    public function getAvailableChannels(): \Illuminate\Support\Collection
     {
         return CommentChannel::all()->filter(function ($channel) {
             if (empty($channel->permissions)) {
@@ -657,8 +679,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
             $query->where('channel_id', $this->activeChannelId);
         }
 
-        return view('codenzia-comments::livewire.comments', [
-            'comments' => $query->latest()->get(),
+        return view('filament-comments::livewire.comments', [
+            'comments' => $query->oldest()->get(),
             'channels' => $availableChannels,
             'channelMentionables' => $this->getChannelMentionables(),
             'canPost' => $this->canUserPostInChannel(),

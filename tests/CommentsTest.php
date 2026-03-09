@@ -19,6 +19,33 @@ it('can add a comment', function () {
         $table->timestamps();
     });
 
+    Schema::create('comment_channels', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('slug')->unique();
+        $table->text('description')->nullable();
+        $table->string('icon')->nullable();
+        $table->string('visibility')->default('public');
+        $table->boolean('show_sidebar')->default(true);
+        $table->unsignedBigInteger('project_id')->nullable();
+        $table->unsignedBigInteger('created_by')->nullable();
+        $table->timestamps();
+    });
+
+    Schema::create('comments', function (Blueprint $table) {
+        $table->id();
+        $table->nullableMorphs('commentable');
+        $table->text('comment');
+        $table->string('type')->nullable();
+        $table->boolean('is_approved')->default(false);
+        $table->unsignedBigInteger('user_id')->nullable();
+        $table->unsignedBigInteger('channel_id')->nullable();
+        $table->unsignedBigInteger('parent_id')->nullable();
+        $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
+        $table->foreign('channel_id')->references('id')->on('comment_channels')->onDelete('set null');
+        $table->timestamps();
+    });
+
     $user = TestUser::create(['name' => 'John', 'email' => 'john@example.com']);
     $post = TestPost::create(['title' => 'My Post']);
 

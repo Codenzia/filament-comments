@@ -57,17 +57,17 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
         return config('filament-comments.navigation_groups.channels', 'Channels');
     }
 
-    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
     {
         return config('filament-comments.navigation_groups.channels', 'Channels');
     }
 
-    public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getHeading(): string | \Illuminate\Contracts\Support\Htmlable
     {
         return config('filament-comments.navigation_groups.channels', 'Channels');
     }
 
-    public function getSubheading(): string|\Illuminate\Contracts\Support\Htmlable|null
+    public function getSubheading(): string | \Illuminate\Contracts\Support\Htmlable | null
     {
         return 'Create, organize, and manage discussion channels';
     }

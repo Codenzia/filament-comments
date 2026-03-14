@@ -50,17 +50,17 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
         return config('filament-comments.navigation_groups.direct_messages', 'Direct Messages');
     }
 
-    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
     {
         return config('filament-comments.navigation_groups.direct_messages', 'Direct Messages');
     }
 
-    public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getHeading(): string | \Illuminate\Contracts\Support\Htmlable
     {
         return config('filament-comments.navigation_groups.direct_messages', 'Direct Messages');
     }
 
-    public function getSubheading(): string|\Illuminate\Contracts\Support\Htmlable|null
+    public function getSubheading(): string | \Illuminate\Contracts\Support\Htmlable | null
     {
         return 'View and manage all your conversations';
     }
@@ -86,12 +86,12 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
             ->query(
                 CommentChannel::query()
                     ->directMessages()
-                    ->whereHas('channelMembers', fn($q) => $q->where('user_id', auth()->id()))
+                    ->whereHas('channelMembers', fn ($q) => $q->where('user_id', auth()->id()))
             )
             ->columns([
                 TextColumn::make('name')
                     ->label('Conversation')
-                    ->formatStateUsing(fn(CommentChannel $record): string => $record->dmDisplayName())
+                    ->formatStateUsing(fn (CommentChannel $record): string => $record->dmDisplayName())
                     ->icon('heroicon-o-chat-bubble-left-right'),
                 TextColumn::make('channel_members_count')
                     ->counts('channelMembers')
@@ -114,9 +114,9 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
                         ->icon('heroicon-o-user-plus')
                         ->modalHeading('Add Members to Conversation')
                         ->modalSubmitActionLabel('Add')
-                        ->visible(fn(): bool => static::can('add_member_direct_message'))
+                        ->visible(fn (): bool => static::can('add_member_direct_message'))
                         ->form($this->getAddMembersFormSchema())
-                        ->fillForm(fn(CommentChannel $record): array => [
+                        ->fillForm(fn (CommentChannel $record): array => [
                             'member_ids' => [],
                         ])
                         ->using(function (CommentChannel $record, array $data): void {
@@ -131,7 +131,7 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
                         ->modalHeading('Delete Conversation')
                         ->modalDescription('Are you sure you want to delete this conversation? This action cannot be undone.')
                         ->modalSubmitActionLabel('Delete')
-                        ->visible(fn(): bool => static::can('delete_direct_message'))
+                        ->visible(fn (): bool => static::can('delete_direct_message'))
                         ->action(function (CommentChannel $record): void {
                             // Just remove the current user from the DM, don't delete the channel
                             $record->channelMembers()->detach(auth()->id());
@@ -146,7 +146,7 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
                     ->modalSubmitActionLabel('Start')
                     ->createAnother(false)
                     ->icon('heroicon-o-plus')
-                    ->visible(fn(): bool => static::can('create_direct_message'))
+                    ->visible(fn (): bool => static::can('create_direct_message'))
                     ->form($this->getNewDmFormSchema())
                     ->using(function (array $data): CommentChannel {
                         $userIds = array_map('intval', $data['user_ids']);
@@ -162,7 +162,7 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
             ->emptyStateHeading('No conversations')
             ->emptyStateDescription('Start a conversation to get started.')
             ->emptyStateIcon('heroicon-o-chat-bubble-left-right')
-            ->recordUrl(fn(CommentChannel $record): string => DiscussionPage::getUrl(['record' => $record->id]));
+            ->recordUrl(fn (CommentChannel $record): string => DiscussionPage::getUrl(['record' => $record->id]));
     }
 
     protected function getAddMembersFormSchema(): array

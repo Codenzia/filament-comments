@@ -139,7 +139,7 @@ class CommentChannel extends Model
      * Accepts either two scalar IDs (legacy 1-to-1) or an array of user IDs
      * for group DMs. The current authenticated user is always included.
      */
-    public static function findOrCreateDirectMessage(int|array $userIds, ?int $userId2 = null): static
+    public static function findOrCreateDirectMessage(int | array $userIds, ?int $userId2 = null): static
     {
         // Normalise to an array that always includes the current user
         if (is_int($userIds)) {

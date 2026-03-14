@@ -2,7 +2,6 @@
 
 namespace Codenzia\FilamentComments\Filament\Pages;
 
-use Codenzia\FilamentComments\Enums\ChannelType;
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Actions\Action;
@@ -166,10 +165,11 @@ class DiscussionPage extends Page
             Select::make('member_ids')
                 ->label('Add People')
                 ->multiple()
-                ->options(fn () => $userModel::query()
-                    ->whereNotIn('id', $existingMemberIds)
-                    ->pluck($labelColumn, 'id')
-                    ->toArray()
+                ->options(
+                    fn () => $userModel::query()
+                        ->whereNotIn('id', $existingMemberIds)
+                        ->pluck($labelColumn, 'id')
+                        ->toArray()
                 )
                 ->searchable()
                 ->preload()

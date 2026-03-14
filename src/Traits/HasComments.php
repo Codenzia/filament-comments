@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Traits;
 
+use Codenzia\FilamentComments\Models\CommentWatch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -40,5 +41,39 @@ trait HasComments
         ]);
 
         return $this->comments()->save($comment);
+    }
+
+    // ── Watch / Unwatch ──────────────────────────────────────────
+
+    /**
+     * Return all watchers for this model.
+     */
+    public function commentWatchers(): MorphMany
+    {
+        return $this->morphMany(CommentWatch::class, 'watchable');
+    }
+
+    public function isWatchedBy(?int $userId = null): bool
+    {
+        $userId = $userId ?? auth()->id();
+
+        return $this->commentWatchers()->where('user_id', $userId)->exists();
+    }
+
+    public function toggleWatch(?int $userId = null): bool
+    {
+        $userId = $userId ?? auth()->id();
+
+        $existing = $this->commentWatchers()->where('user_id', $userId)->first();
+
+        if ($existing) {
+            $existing->delete();
+
+            return false;
+        }
+
+        $this->commentWatchers()->create(['user_id' => $userId]);
+
+        return true;
     }
 }

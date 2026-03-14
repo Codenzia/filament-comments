@@ -3,8 +3,10 @@
 namespace Codenzia\FilamentComments;
 
 use Codenzia\FilamentComments\Commands\InstallCommand;
+use Codenzia\FilamentComments\Console\Commands\SendCommentDigest;
 use Codenzia\FilamentComments\Livewire\CommentItem;
 use Codenzia\FilamentComments\Livewire\CommentsComponent;
+use Codenzia\FilamentComments\Livewire\QuickComments;
 use Codenzia\FilamentComments\Testing\TestsFilamentComments;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
@@ -90,6 +92,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
         // Livewire Component Registration
         Livewire::component('filament-comments::comments', CommentsComponent::class);
         Livewire::component('filament-comments::comment-item', CommentItem::class);
+        Livewire::component('filament-comments::quick-comments', QuickComments::class);
         // Testing
         Testable::mixin(new TestsFilamentComments);
     }
@@ -118,6 +121,7 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
     {
         return [
             InstallCommand::class,
+            SendCommentDigest::class,
         ];
     }
 
@@ -155,8 +159,9 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
             'create_codenzia_comments_channel_members_table',
             'create_codenzia_comments_table',
             'create_codenzia_comments_reactions_table',
-            'add_type_to_comment_channels_table',
             'create_codenzia_comments_channel_reads_table',
+            'create_codenzia_comment_bookmarks_table',
+            'create_codenzia_comment_watches_table',
         ];
     }
 }

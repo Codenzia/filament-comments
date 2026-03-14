@@ -12,12 +12,14 @@ return new class extends Migration
 
         Schema::create($tableName, function (Blueprint $table) {
             $table->id();
+            $table->string('type')->default('channel');
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('icon')->nullable();
             $table->string('visibility')->default('public');
             $table->boolean('show_sidebar')->default(true);
+            $table->json('permissions')->nullable();
             $table->unsignedBigInteger('project_id')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();

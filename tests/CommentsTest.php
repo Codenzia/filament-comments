@@ -38,6 +38,11 @@ it('can add a comment', function () {
         $table->text('comment');
         $table->string('type')->nullable();
         $table->boolean('is_approved')->default(false);
+        $table->boolean('is_pinned')->default(false);
+        $table->boolean('is_resolved')->default(false);
+        $table->unsignedBigInteger('resolved_by')->nullable();
+        $table->unsignedBigInteger('linked_task_id')->nullable();
+        $table->json('link_previews')->nullable();
         $table->unsignedBigInteger('user_id')->nullable();
         $table->unsignedBigInteger('channel_id')->nullable();
         $table->unsignedBigInteger('parent_id')->nullable();

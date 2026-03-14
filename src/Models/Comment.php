@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\DB;
 
 class Comment extends Model
 {
@@ -18,15 +19,23 @@ class Comment extends Model
 
     protected $fillable = [
         'comment',
+        'link_previews',
         'type',
         'user_id',
         'channel_id',
         'is_approved',
+        'is_pinned',
+        'is_resolved',
+        'resolved_by',
+        'linked_task_id',
         'parent_id',
     ];
 
     protected $casts = [
         'is_approved' => 'boolean',
+        'is_pinned' => 'boolean',
+        'is_resolved' => 'boolean',
+        'link_previews' => 'array',
         'type' => CommentType::class,
     ];
 
@@ -147,6 +156,108 @@ class Comment extends Model
         ]);
 
         return $this;
+    }
+
+    // ── Pin ──────────────────────────────────────────────────────
+
+    public function scopePinned(Builder $query): Builder
+    {
+        return $query->where('is_pinned', true);
+    }
+
+    /**
+     * Pin this comment. Only one pinned comment per commentable — unpins the previous one.
+     */
+    public function pin(): static
+    {
+        DB::transaction(function () {
+            // Unpin any existing pinned comment for the same commentable
+            static::where('commentable_type', $this->commentable_type)
+                ->where('commentable_id', $this->commentable_id)
+                ->where('is_pinned', true)
+                ->where('id', '!=', $this->id)
+                ->update(['is_pinned' => false]);
+
+            $this->update(['is_pinned' => true]);
+        });
+
+        return $this;
+    }
+
+    public function unpin(): static
+    {
+        $this->update(['is_pinned' => false]);
+
+        return $this;
+    }
+
+    // ── Resolve ──────────────────────────────────────────────────
+
+    public function scopeResolved(Builder $query): Builder
+    {
+        return $query->where('is_resolved', true);
+    }
+
+    public function scopeUnresolved(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where('is_resolved', false)->orWhereNull('is_resolved');
+        });
+    }
+
+    public function resolvedBy(): BelongsTo
+    {
+        return $this->belongsTo($this->getAuthModelName(), 'resolved_by');
+    }
+
+    /**
+     * Resolve this comment thread. Only root comments can be resolved.
+     */
+    public function resolve(?int $userId = null): static
+    {
+        if ($this->isReply()) {
+            return $this;
+        }
+
+        $this->update([
+            'is_resolved' => true,
+            'resolved_by' => $userId ?? auth()->id(),
+        ]);
+
+        return $this;
+    }
+
+    public function unresolve(): static
+    {
+        $this->update([
+            'is_resolved' => false,
+            'resolved_by' => null,
+        ]);
+
+        return $this;
+    }
+
+    // ── Linked Task ──────────────────────────────────────────────
+
+    public function linkedTask(): BelongsTo
+    {
+        $taskModel = config('filament-comments.task_mentionable.model');
+
+        return $this->belongsTo($taskModel ?? 'App\\Models\\Task', 'linked_task_id');
+    }
+
+    // ── Bookmarks ────────────────────────────────────────────────
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(CommentBookmark::class);
+    }
+
+    public function isBookmarkedBy(?int $userId = null): bool
+    {
+        $userId = $userId ?? auth()->id();
+
+        return $this->bookmarks()->where('user_id', $userId)->exists();
     }
 
     /**

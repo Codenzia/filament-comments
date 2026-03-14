@@ -1,30 +1,131 @@
 <div
-    class="comment-item group relative flex gap-3 px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors duration-100">
-    {{-- Avatar --}}
-    <div class="flex-shrink-0 pt-0.5">
-        @php
+    id="comment-{{ $comment->id }}"
+    x-data="{ showCard: false }"
+    @click.outside="showCard = false"
+    class="comment-item group relative flex gap-3 px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-100"
+    x-init="
+        if (window.location.hash === '#comment-{{ $comment->id }}') {
+            $nextTick(() => {
+                $el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                $el.classList.add('ring-2', 'ring-primary-400', 'ring-offset-1', 'dark:ring-offset-gray-900');
+                setTimeout(() => $el.classList.remove('ring-2', 'ring-primary-400', 'ring-offset-1', 'dark:ring-offset-gray-900'), 3000);
+            });
+        }
+    ">
+    {{-- Avatar + User Profile Card --}}
+    @php
+        // Prefer Filament's avatar method, fall back to column-based lookup
+        $avatarUrl = method_exists($comment->commentator, 'getFilamentAvatarUrl')
+            ? $comment->commentator->getFilamentAvatarUrl()
+            : null;
+
+        if (! $avatarUrl) {
             $avatarColumn = config('filament-comments.mentionable.column.avatar', 'avatar_url');
             $avatarPath = $comment->commentator->{$avatarColumn} ?? null;
-        @endphp
-        @if ($avatarPath)
-            <img src="{{ asset('storage/' . $avatarPath) }}" alt="{{ $comment->commentator->name }}"
-                class="h-9 w-9 rounded-full object-cover">
-        @else
-            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-500/15">
-                <span class="text-xs font-semibold text-primary-600 dark:text-primary-400">
-                    {{ strtoupper(substr($comment->commentator->name, 0, 2)) }}
-                </span>
+            if ($avatarPath) {
+                $avatarUrl = filter_var($avatarPath, FILTER_VALIDATE_URL)
+                    ? $avatarPath
+                    : asset('storage/' . $avatarPath);
+            }
+        }
+
+        $emailColumn = config('filament-comments.mentionable.column.email', 'email');
+        $userEmail = $comment->commentator->{$emailColumn} ?? null;
+        $userTitle = $comment->commentator->title ?? null;
+        $userRole = $comment->commentator->role_name ?? null;
+        $userDepartment = method_exists($comment->commentator, 'department') && $comment->commentator->relationLoaded('department')
+            ? $comment->commentator->department?->name
+            : ($comment->commentator->department->name ?? null);
+        $isCurrentUser = $comment->commentator->id === auth()->id();
+    @endphp
+
+    <div class="flex-shrink-0 pt-0.5 relative">
+        <button type="button" @click="showCard = !showCard" class="cursor-pointer focus:outline-none">
+            @if ($avatarUrl)
+                <img src="{{ $avatarUrl }}" alt="{{ $comment->commentator->name }}"
+                    class="h-9 w-9 rounded-full object-cover hover:ring-2 hover:ring-primary-400 transition-all">
+            @else
+                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-500/15 hover:ring-2 hover:ring-primary-400 transition-all">
+                    <span class="text-xs font-semibold text-primary-600 dark:text-primary-400">
+                        {{ strtoupper(substr($comment->commentator->name, 0, 2)) }}
+                    </span>
+                </div>
+            @endif
+        </button>
+
+        {{-- User Profile Card Popover --}}
+        <div x-show="showCard" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+            class="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl border border-gray-200 bg-white shadow-xl dark:border-white/10 dark:bg-gray-900">
+            <div class="p-4">
+                {{-- Card Header: Large avatar + name --}}
+                <div class="flex items-center gap-3 mb-3">
+                    @if ($avatarUrl)
+                        <img src="{{ $avatarUrl }}" alt="{{ $comment->commentator->name }}"
+                            class="h-12 w-12 rounded-full object-cover">
+                    @else
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-500/15">
+                            <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                                {{ strtoupper(substr($comment->commentator->name, 0, 2)) }}
+                            </span>
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            {{ $comment->commentator->name }}
+                        </div>
+                        @if ($userTitle || $userRole)
+                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {{ $userTitle ?: $userRole }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Details --}}
+                <div class="space-y-1.5 mb-3">
+                    @if ($userEmail)
+                        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+                            <span class="truncate">{{ $userEmail }}</span>
+                        </div>
+                    @endif
+                    @if ($userDepartment)
+                        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>
+                            <span class="truncate">{{ $userDepartment }}</span>
+                        </div>
+                    @endif
+                    @if ($userRole && $userTitle)
+                        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+                            <span class="truncate">{{ $userRole }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Action: Direct Message (only if not current user) --}}
+                @if (! $isCurrentUser)
+                    <button
+                        wire:click="startDirectMessage({{ $comment->commentator->id }})"
+                        @click="showCard = false"
+                        class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-500"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
+                        {{ __('filament-comments::messages.user_card.message') }}
+                    </button>
+                @endif
             </div>
-        @endif
+        </div>
     </div>
 
     {{-- Content --}}
     <div class="min-w-0 flex-1">
         {{-- Header: Name · Timestamp · Actions --}}
         <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+            <button type="button" @click="showCard = !showCard"
+                class="text-sm font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:underline">
                 {{ $comment->commentator->name }}
-            </span>
+            </button>
             <span class="shrink-0 text-[11px] text-gray-400 dark:text-gray-500"
                 title="{{ $comment->created_at->format('M d, Y \a\t h:i A') }}">
                 {{ $comment->created_at->diffForHumans() }}
@@ -38,9 +139,63 @@
                 </span>
             @endif
 
+            {{-- Resolved badge --}}
+            @if ($comment->is_resolved && ! $comment->isReply())
+                <span class="inline-flex items-center gap-1 rounded-full bg-success-500 px-2 py-0.5 text-[10px] font-medium text-gray-900 dark:bg-success-600 dark:text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3 w-3"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                    {{ __('Resolved') }}
+                    @if ($comment->resolvedBy)
+                        {{ __('by') }} {{ $comment->resolvedBy->name }}
+                    @endif
+                </span>
+            @endif
+
             {{-- Inline action buttons (visible on hover) --}}
-            @if (auth()->id() === $comment->user_id)
-                <div class="flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-hover:opacity-100">
+            <div class="flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-hover:opacity-100">
+                {{-- Bookmark toggle --}}
+                <button wire:click="toggleBookmark"
+                    @class([
+                        'rounded p-0.5 transition-colors',
+                        'text-amber-500 dark:text-amber-400' => $isBookmarked,
+                        'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300' => ! $isBookmarked,
+                    ])
+                    title="{{ $isBookmarked ? __('Remove bookmark') : __('Bookmark') }}">
+                    <x-filament::icon :icon="$isBookmarked ? 'heroicon-s-bookmark' : 'heroicon-o-bookmark'" class="h-3.5 w-3.5" />
+                </button>
+
+                {{-- Pin / Unpin (root comments only) --}}
+                @if (! $comment->isReply())
+                    @if ($comment->is_pinned)
+                        <button wire:click="unpinComment"
+                            class="rounded p-0.5 text-amber-500 transition-colors hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300"
+                            title="{{ __('Unpin') }}">
+                            <x-filament::icon icon="heroicon-s-map-pin" class="h-3.5 w-3.5" />
+                        </button>
+                    @else
+                        <button wire:click="pinComment"
+                            class="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                            title="{{ __('Pin comment') }}">
+                            <x-filament::icon icon="heroicon-o-map-pin" class="h-3.5 w-3.5" />
+                        </button>
+                    @endif
+
+                    {{-- Resolve / Unresolve --}}
+                    @if ($comment->is_resolved)
+                        <button wire:click="unresolveThread"
+                            class="rounded p-0.5 text-green-500 transition-colors hover:text-green-600 dark:text-green-400 dark:hover:text-green-300"
+                            title="{{ __('Unresolve') }}">
+                            <x-filament::icon icon="heroicon-s-check-circle" class="h-3.5 w-3.5" />
+                        </button>
+                    @else
+                        <button wire:click="resolveThread"
+                            class="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                            title="{{ __('Resolve thread') }}">
+                            <x-filament::icon icon="heroicon-o-check-circle" class="h-3.5 w-3.5" />
+                        </button>
+                    @endif
+                @endif
+
+                @if (auth()->id() === $comment->user_id)
                     @if ($comment->type === null || $comment->type === \Codenzia\FilamentComments\Enums\CommentType::Text)
                         <button wire:click="edit"
                             class="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
@@ -54,8 +209,8 @@
                         title="{{ __('filament-comments::messages.comments.delete') }}">
                         <x-filament::icon icon="heroicon-o-trash" class="h-3.5 w-3.5" />
                     </button>
-                </div>
-            @endif
+                @endif
+            </div>
 
         </div>
 
@@ -371,10 +526,98 @@
                 </div>
             </div>
         @else
+            @php
+                $commentHtml = $comment->comment;
+                // Render checklist items — interactive only if user can edit
+                $checklistIndex = 0;
+                $commentHtml = preg_replace_callback(
+                    '/\[([ xX])\]/',
+                    function ($matches) use (&$checklistIndex, $canEditChecklist) {
+                        $idx = $checklistIndex++;
+                        $checked = $matches[1] !== ' ';
+                        $icon = $checked
+                            ? '<svg class="h-4 w-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>'
+                            : '<svg class="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke-width="2"/></svg>';
+                        if ($canEditChecklist) {
+                            return '<button wire:click="toggleChecklist(' . $idx . ')" class="inline-flex items-center align-text-bottom cursor-pointer hover:opacity-80">' . $icon . '</button>';
+                        }
+                        return '<span class="inline-flex items-center align-text-bottom">' . $icon . '</span>';
+                    },
+                    $commentHtml
+                );
+            @endphp
             <div class="comment-body prose prose-sm mt-1 max-w-none text-gray-700 dark:prose-invert dark:text-gray-300"
-                x-data x-init="$nextTick(() => window.__mentionPopoverManager && window.__mentionPopoverManager.bind($el, @js($mentionables)))">
-                {!! $comment->comment !!}
+                x-data x-init="$nextTick(() => {
+                    window.__mentionPopoverManager && window.__mentionPopoverManager.bind($el, @js($mentionables));
+                    @if(config('filament-comments.code_highlighting', true))
+                        $el.querySelectorAll('pre code:not(.hljs)').forEach(el => typeof hljs !== 'undefined' && hljs.highlightElement(el));
+                    @endif
+                    $el.querySelectorAll('pre').forEach(pre => {
+                        pre.classList.add('comment-code-block');
+                        pre.style.position = 'relative';
+                        const copyIcon = `<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor' style='width:16px;height:16px'><path stroke-linecap='round' stroke-linejoin='round' d='M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.334a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184' /></svg>`;
+                        const btn = document.createElement('button');
+                        btn.className = 'code-copy-btn';
+                        btn.innerHTML = copyIcon;
+                        btn.addEventListener('click', () => {
+                            const code = pre.querySelector('code');
+                            navigator.clipboard.writeText(code ? code.textContent : pre.textContent);
+                            btn.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor' style='width:16px;height:16px'><path stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5' /></svg>`;
+                            btn.classList.add('copied');
+                            setTimeout(() => { btn.innerHTML = copyIcon; btn.classList.remove('copied'); }, 2000);
+                        })
+                        pre.appendChild(btn);
+                    });
+                })">
+                {!! $commentHtml !!}
             </div>
+
+            {{-- Link Preview Cards --}}
+            @if (! empty($comment->link_previews))
+                <div class="mt-2 space-y-2">
+                    @foreach ($comment->link_previews as $preview)
+                        <a href="{{ $preview['url'] }}" target="_blank" rel="noopener"
+                            class="flex gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 no-underline transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/[0.08]">
+                            @if (! empty($preview['image']))
+                                <div class="hidden sm:block shrink-0">
+                                    <img src="{{ $preview['image'] }}" alt=""
+                                        class="h-16 w-24 rounded-md object-cover"
+                                        loading="lazy"
+                                        onerror="this.parentElement.style.display='none'">
+                                </div>
+                            @endif
+                            <div class="min-w-0 flex-1">
+                                @if (! empty($preview['title']))
+                                    <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                                        {{ $preview['title'] }}
+                                    </p>
+                                @endif
+                                @if (! empty($preview['description']))
+                                    <p class="mt-0.5 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
+                                        {{ \Illuminate\Support\Str::limit($preview['description'], 150) }}
+                                    </p>
+                                @endif
+                                <p class="mt-1 text-[10px] text-gray-400 dark:text-gray-500">
+                                    {{ $preview['domain'] ?? parse_url($preview['url'], PHP_URL_HOST) }}
+                                </p>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- Linked Task Card --}}
+            @if ($comment->linked_task_id && $comment->linkedTask)
+                @php $linkedTask = $comment->linkedTask; @endphp
+                <div class="mt-2">
+                    <a href="{{ url(config('filament-comments.task_mentionable.url', 'admin/tasks/{id}')) }}"
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs no-underline transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/[0.08]"
+                        onclick="event.preventDefault(); window.location.href=this.href.replace('{id}', '{{ $linkedTask->id }}')">
+                        <x-filament::icon icon="heroicon-o-clipboard-document-check" class="h-4 w-4 text-primary-500" />
+                        <span class="font-medium text-gray-900 dark:text-white">{{ $linkedTask->{config('filament-comments.task_mentionable.column.label', 'title')} }}</span>
+                    </a>
+                </div>
+            @endif
         @endif
 
         {{-- Footer: Reactions + Reply + Replies Toggle --}}
@@ -456,7 +699,7 @@
             {{-- Replies Toggle --}}
             @if ($comment->replies->count() > 0)
                 <button wire:click="toggleReplies"
-                    class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-500/10">
+                    class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-white/5">
                     <x-filament::icon :icon="$showReplies ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down'" class="h-3.5 w-3.5" />
                     {{ trans_choice('filament-comments::messages.comments.replies_count', $comment->replies->count(), ['count' => $comment->replies->count()]) }}
                 </button>

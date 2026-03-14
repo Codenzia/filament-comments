@@ -14,6 +14,16 @@ A full-featured commenting system for Filament v4 with threaded replies, discuss
 - **File Uploads** — Images (up to 5MB) and documents (up to 10MB)
 - **Comment Moderation** — Approval workflow with pending comments modal
 - **Notifications** — Email and database notifications for mentions
+- **Pin Comments** — Pin an important comment to the top of a discussion
+- **Resolve Threads** — Mark comment threads as resolved (collapse by default)
+- **Bookmarks** — Save comments for personal quick reference
+- **Link to Tasks** — Reference a task from a project discussion comment
+- **Watch/Unwatch** — Subscribe to all comments on a model, not just @mentions
+- **Email Digest** — Optional daily summary of unread comments
+- **Code Syntax Highlighting** — Automatic syntax highlighting for code blocks via highlight.js
+- **Checklists** — Interactive checklist items within comments (`[ ]` / `[x]`)
+- **Link Previews** — Auto-generated Open Graph cards for URLs in comments
+- **Quick Comments** — Lightweight comment preview + composer for modals and cards (optimistic UI)
 - **Dark Mode** — Full dark mode support
 - **Translations** — English and Arabic included
 
@@ -297,6 +307,181 @@ Users can react to comments with emoji. One reaction per user per comment. Custo
 ],
 ```
 
+### Quick Comments (Lightweight Preview + Composer)
+
+A lightweight, embeddable comment preview with a quick reply composer — designed for modals, sidebars, and cards where the full `CommentsComponent` would be too heavy or cause Livewire nesting issues.
+
+```blade
+<x-filament-comments::quick-comments
+    :record="$task"
+    :limit="3"
+    :view-all-url="url('app/task-details', $task->id)" />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `record` | `Model` | required | Any model using `HasComments` |
+| `limit` | `int` | `3` | Number of recent comments to show |
+| `viewAllUrl` | `?string` | `null` | URL for the "View all" link |
+
+Features:
+- Shows the latest N comments with avatars, names, and timestamps
+- Quick reply textarea with Enter-to-send
+- **Alpine optimistic UI** — new comments appear instantly without Livewire re-render (modal-safe)
+- Works inside Filament action modals without closing them
+- Accepts any model with `HasComments` (tasks, projects, invoices, etc.)
+
+Or use the Livewire component directly:
+
+```blade
+<livewire:filament-comments::quick-comments :record="$task" :limit="3" :view-all-url="$url" />
+```
+
+### Pinning Comments
+
+Pin an important comment to the top of a discussion. Only one pinned comment per commentable — pinning a new one automatically unpins the previous.
+
+- Pin/unpin via the action menu (map pin icon) on any root comment
+- Pinned comment renders at top with an amber highlight border
+- Available to all users who can post in the channel
+
+```php
+// Programmatic usage
+$comment->pin();
+$comment->unpin();
+
+// Query pinned comments
+Comment::pinned()->get();
+```
+
+### Resolving Threads
+
+Mark root comment threads as resolved to keep discussions clean. Resolved threads collapse by default and show a green "Resolved by {user}" badge.
+
+- Only root comments (not replies) can be resolved
+- A "Show resolved" toggle in the header lets users show/hide resolved threads
+- Resolved threads are hidden by default
+
+```php
+// Programmatic usage
+$comment->resolve();        // resolves as current user
+$comment->resolve($userId); // resolves as specific user
+$comment->unresolve();
+
+// Query scopes
+Comment::resolved()->get();
+Comment::unresolved()->get();
+```
+
+### Bookmarks
+
+Personal bookmarks let users save comments for quick reference. Bookmarks are private — not visible to other users.
+
+- Bookmark icon in the action menu (filled when bookmarked)
+- Toggle on/off per comment
+
+```php
+// Check if bookmarked
+$comment->isBookmarkedBy();       // current user
+$comment->isBookmarkedBy($userId); // specific user
+```
+
+### Watching Discussions
+
+Users can watch any commentable model to get notified on ALL new comments, not just @mentions. A bell icon toggles watch state.
+
+```php
+// On any model using HasComments
+$task->toggleWatch();         // toggle for current user
+$task->isWatchedBy();         // check if current user is watching
+$task->isWatchedBy($userId);  // check specific user
+$task->commentWatchers();     // MorphMany relationship
+```
+
+### Link Comments to Tasks
+
+When commenting in a project discussion, users can link a comment to a specific task. The comment displays a small task reference card that links to the task detail page.
+
+Configure the task model in config:
+
+```php
+// config/filament-comments.php
+'task_mentionable' => [
+    'model' => \App\Models\Task::class,
+    'column' => ['id' => 'id', 'label' => 'title'],
+    'url' => 'admin/tasks/{id}',
+],
+```
+
+```php
+// Relationship on Comment model
+$comment->linkedTask; // BelongsTo relationship
+```
+
+### Email Digest
+
+Optional daily email digest of unread comments for watchers. Disabled by default.
+
+```php
+// config/filament-comments.php
+'digest' => [
+    'enabled' => false,
+    'schedule' => 'daily',
+    'time' => '09:00',
+],
+```
+
+Register the command in your scheduler:
+
+```php
+// bootstrap/app.php or app/Console/Kernel.php
+$schedule->command('filament-comments:send-digest')->dailyAt('09:00');
+```
+
+The digest groups unread comments by source (task, project, channel) and only sends if there are new items in the last 24 hours.
+
+### Code Syntax Highlighting
+
+Code blocks in comments (`<pre><code>`) are automatically syntax-highlighted using [highlight.js](https://highlightjs.org/). Supports PHP, JavaScript, Python, SQL, HTML, CSS, Go, Java, JSON, YAML, XML, C++, Markdown, and more.
+
+```php
+// config/filament-comments.php
+'code_highlighting' => true, // enabled by default
+```
+
+Highlighting is applied on initial render and after Livewire updates. Uses the `github-dark` theme by default.
+
+### Checklists
+
+Comments support interactive checklists using the `[ ]` / `[x]` syntax. Checklist items render as clickable checkboxes that toggle their state via Livewire.
+
+Write in your comment:
+```
+- [ ] Review the PR
+- [x] Write tests
+- [ ] Deploy to staging
+```
+
+Clicking a checkbox updates the comment body in the database. Available to the comment author and other project members.
+
+### Link Previews
+
+URLs in comments are automatically enriched with Open Graph metadata cards showing title, description, image thumbnail, and domain.
+
+```php
+// config/filament-comments.php
+'link_previews' => [
+    'enabled' => true,
+    'cache_ttl' => 3600, // cache previews for 1 hour
+],
+```
+
+- Previews are fetched server-side on comment save
+- Stored as JSON in the `link_previews` column
+- Up to 3 link previews per comment
+- Image URLs are excluded (only page URLs are previewed)
+- Cached to avoid repeated fetches
+
 ## Configuration
 
 Publish the config file:
@@ -363,23 +548,41 @@ return [
 
 ## Database Schema
 
-The package creates four tables:
+The package creates seven tables:
 
 | Table | Purpose |
 |-------|---------|
-| `comments` | Main comments with polymorphic relation, threading, type, approval status |
+| `comments` | Main comments with polymorphic relation, threading, type, approval, pin, resolve, link previews |
 | `comment_channels` | Discussion channels and DMs with type, visibility, icon, project association |
 | `comment_channel_members` | Channel membership pivot table |
+| `comment_channel_reads` | Read tracking per channel per user |
 | `comments_reactions` | Emoji reactions per user per comment |
+| `comment_bookmarks` | Personal bookmarks per user per comment |
+| `comment_watches` | Polymorphic watch subscriptions per user per model |
 
 ## Models
 
 ### Comment
 - `channel()` — Belongs to a channel
-- `user()` — Comment author
+- `commentator()` — Comment author
 - `parent()` — Parent comment (for threading)
 - `replies()` — Child comments
 - `reactions()` — Emoji reactions
+- `bookmarks()` — User bookmarks
+- `resolvedBy()` — User who resolved the thread
+- `linkedTask()` — Linked task (configurable model)
+- `pin()` / `unpin()` — Pin/unpin this comment
+- `resolve()` / `unresolve()` — Resolve/unresolve this thread
+- `isBookmarkedBy()` — Check if bookmarked by a user
+- `scopePinned()` / `scopeResolved()` / `scopeUnresolved()` — Query scopes
+
+### CommentBookmark
+- `comment()` — The bookmarked comment
+- `user()` — The user who bookmarked
+
+### CommentWatch
+- `watchable()` — Polymorphic relation to the watched model
+- `user()` — The watching user
 
 ### CommentChannel
 - `comments()` — All channel comments
@@ -407,10 +610,15 @@ The package creates four tables:
 
 | Trait | Purpose |
 |-------|---------|
-| `HasComments` | Add to any model to enable commenting |
+| `HasComments` | Add to any model to enable commenting + watching |
 | `CanComment` | Add to user model for approval checks |
 | `ExtractsMentions` | Parse HTML for tribute mentions |
 | `HasMentionables` | Build mentionable lists from config |
+
+`HasComments` now includes watch/unwatch support:
+- `commentWatchers()` — MorphMany of watchers
+- `isWatchedBy($userId)` — Check if a user is watching
+- `toggleWatch($userId)` — Toggle watch on/off, returns boolean
 
 ## License
 

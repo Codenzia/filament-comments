@@ -197,4 +197,45 @@ return [
      */
     'enable_add_to_calendar' => true,
 
+    /*
+     * The table name to use for the comment bookmarks.
+     */
+    'bookmarks_table_name' => 'comment_bookmarks',
+
+    /*
+     * The table name to use for the comment watches.
+     */
+    'watches_table_name' => 'comment_watches',
+
+    /**
+     * Link Previews (Open Graph cards)
+     *
+     * Automatically fetch Open Graph metadata for URLs in comments
+     * and display rich preview cards.
+     */
+    'link_previews' => [
+        'enabled' => true,
+        'cache_ttl' => 3600,
+    ],
+
+    /**
+     * Code Syntax Highlighting
+     *
+     * Enable syntax highlighting for code blocks in comments.
+     * Uses highlight.js for display-side rendering.
+     */
+    'code_highlighting' => true,
+
+    /**
+     * Email Digest
+     *
+     * Send a daily email digest of unread comments to users.
+     * Register the schedule: `php artisan filament-comments:send-digest`
+     */
+    'digest' => [
+        'enabled' => false,
+        'schedule' => 'daily',
+        'time' => '09:00',
+    ],
+
 ];

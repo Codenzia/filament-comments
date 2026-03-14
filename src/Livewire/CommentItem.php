@@ -6,6 +6,9 @@ use Codenzia\FilamentComments\Enums\CommentType;
 use Codenzia\FilamentComments\Events\UserMentioned;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Codenzia\FilamentComments\Models\Comment;
+use Codenzia\FilamentComments\Models\CommentBookmark;
+use Codenzia\FilamentComments\Models\CommentChannel;
+use Codenzia\FilamentComments\Filament\Pages\DiscussionPage;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -221,8 +224,8 @@ class CommentItem extends Component implements HasActions, HasForms
     {
         if (! $this->canUserPostInChannel()) {
             Notification::make()
-                ->title('Unauthorized')
-                ->body('Only members can post in this channel.')
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->body(__('filament-comments::messages.notifications.unauthorized_members_only'))
                 ->danger()
                 ->send();
 
@@ -277,6 +280,34 @@ class CommentItem extends Component implements HasActions, HasForms
         return $channel->members()->where('user_id', auth()->id())->exists();
     }
 
+    /**
+     * Check if the current user is a member of the commentable model (project, task, etc.)
+     * or the comment author. Used for checklist editing permissions.
+     */
+    public function canEditChecklist(): bool
+    {
+        // Comment author can always edit their own checklists
+        if (auth()->id() === $this->comment->user_id) {
+            return true;
+        }
+
+        // For channel-based comments, check channel membership
+        if ($this->comment->channel) {
+            return $this->canUserPostInChannel();
+        }
+
+        // For commentable-based comments (project, task, etc.), check if the model
+        // has a members() relationship and the user is a member
+        $commentable = $this->comment->commentable;
+
+        if ($commentable && method_exists($commentable, 'members')) {
+            return $commentable->members()->where('users.id', auth()->id())->exists();
+        }
+
+        // Fallback: only the comment author (already handled above)
+        return false;
+    }
+
     public function toggleReaction(string $reactionType): void
     {
         $userReaction = $this->comment->userReaction();
@@ -303,6 +334,128 @@ class CommentItem extends Component implements HasActions, HasForms
         // Refresh the comment to get updated reactions
         $this->comment->refresh();
         $this->dispatch('reactionUpdated');
+    }
+
+    // ── Pin ────────────────────────────────────────────────────────
+
+    public function pinComment(): void
+    {
+        $this->comment->pin();
+
+        Notification::make()
+            ->title(__('filament-comments::messages.notifications.comment_pinned'))
+            ->success()
+            ->send();
+
+        $this->dispatch('commentPinned');
+    }
+
+    public function unpinComment(): void
+    {
+        $this->comment->unpin();
+
+        Notification::make()
+            ->title(__('filament-comments::messages.notifications.comment_unpinned'))
+            ->success()
+            ->send();
+
+        $this->dispatch('commentPinned');
+    }
+
+    // ── Resolve ──────────────────────────────────────────────────
+
+    public function resolveThread(): void
+    {
+        if ($this->comment->isReply()) {
+            return;
+        }
+
+        $this->comment->resolve();
+
+        Notification::make()
+            ->title(__('filament-comments::messages.notifications.thread_resolved'))
+            ->success()
+            ->send();
+
+        $this->dispatch('commentResolved');
+    }
+
+    public function unresolveThread(): void
+    {
+        $this->comment->unresolve();
+
+        Notification::make()
+            ->title(__('filament-comments::messages.notifications.thread_unresolved'))
+            ->success()
+            ->send();
+
+        $this->dispatch('commentResolved');
+    }
+
+    // ── Bookmark ─────────────────────────────────────────────────
+
+    public function toggleBookmark(): void
+    {
+        $existing = CommentBookmark::where('user_id', auth()->id())
+            ->where('comment_id', $this->comment->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.bookmark_removed'))
+                ->success()
+                ->send();
+        } else {
+            CommentBookmark::create([
+                'user_id' => auth()->id(),
+                'comment_id' => $this->comment->id,
+            ]);
+
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.bookmark_added'))
+                ->success()
+                ->send();
+        }
+
+        $this->comment->refresh();
+    }
+
+    // ── Direct Message ──────────────────────────────────────────
+
+    public function startDirectMessage(int $userId): void
+    {
+        $channel = CommentChannel::findOrCreateDirectMessage([$userId]);
+
+        $this->redirect(DiscussionPage::getUrl(['record' => $channel->id]));
+    }
+
+    // ── Checklist Toggle ─────────────────────────────────────────
+
+    public function toggleChecklist(int $index): void
+    {
+        if (! $this->canEditChecklist()) {
+            return;
+        }
+
+        $body = $this->comment->comment;
+
+        $counter = 0;
+        $body = preg_replace_callback(
+            '/\[([ xX])\]/',
+            function ($matches) use ($index, &$counter) {
+                if ($counter++ === $index) {
+                    return $matches[1] === ' ' ? '[x]' : '[ ]';
+                }
+
+                return $matches[0];
+            },
+            $body
+        );
+
+        $this->comment->update(['comment' => $body]);
+        $this->comment->refresh();
     }
 
     public function delete(): void
@@ -333,8 +486,12 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function render(): View
     {
+        $canPost = $this->canUserPostInChannel();
+
         return view('filament-comments::livewire.comment-item', [
-            'canPost' => $this->canUserPostInChannel(),
+            'canPost' => $canPost,
+            'canEditChecklist' => $this->canEditChecklist(),
+            'isBookmarked' => $this->comment->isBookmarkedBy(),
         ]);
     }
 }

@@ -1,6 +1,56 @@
 <div class="flex flex-col h-full"
     x-init="setTimeout(() => window.__scrollCommentsToBottom && window.__scrollCommentsToBottom(false), 300)"
 >
+    {{-- Header: Watch + Resolved Filter --}}
+    <div class="flex items-center justify-between gap-2 px-3 py-1.5">
+        <div class="flex items-center gap-2">
+            {{-- Resolved filter toggle --}}
+            <button
+                wire:click="toggleShowResolved"
+                @class([
+                    'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors',
+                    'bg-success-500 text-gray-900 dark:bg-success-600 dark:text-gray-900' => $showResolved,
+                    'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5' => ! $showResolved,
+                ])
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                {{ $showResolved ? __('filament-comments::messages.ui.showing_resolved') : __('filament-comments::messages.ui.show_resolved') }}
+            </button>
+        </div>
+
+        {{-- Watch/Unwatch bell --}}
+        <button
+            wire:click="toggleWatch"
+            @class([
+                'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors',
+                'bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400' => $isWatching,
+                'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5' => ! $isWatching,
+            ])
+            title="{{ $isWatching ? __('filament-comments::messages.ui.unwatch') : __('filament-comments::messages.ui.watch_discussion') }}"
+        >
+            <x-filament::icon :icon="$isWatching ? 'heroicon-s-bell' : 'heroicon-o-bell'" class="h-3.5 w-3.5" />
+            {{ $isWatching ? __('filament-comments::messages.ui.watching') : __('filament-comments::messages.ui.watch') }}
+        </button>
+    </div>
+
+    {{-- Pinned Comment --}}
+    @if ($pinnedComment)
+        <div class="mx-3 mb-2 rounded-lg border-l-2 border-l-primary-500">
+            <div class="rounded-r-lg border border-l-0 border-gray-200 bg-primary-50/50 dark:border-white/10 dark:bg-primary-500/[0.06]">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400">
+                    <x-filament::icon icon="heroicon-s-map-pin" class="h-3.5 w-3.5" />
+                    {{ __('filament-comments::messages.ui.pinned') }}
+                </div>
+                <livewire:filament-comments::comment-item
+                    :key="'pinned-' . $pinnedComment->id"
+                    :comment="$pinnedComment"
+                    :mentionables="$mentionables"
+                    :channelMentionables="$channelMentionables"
+                />
+            </div>
+        </div>
+    @endif
+
     {{-- Comments List --}}
     @if ($comments->count())
         <div class="comments-list pb-2">
@@ -8,11 +58,48 @@
             @foreach ($comments as $comment)
                 @php $currentDate = $comment->created_at->toDateString(); @endphp
                 @if ($currentDate !== $lastDate)
-                    <div class="relative my-4 flex items-center justify-center">
-                        <div class="absolute inset-x-0 top-1/2 h-px bg-gray-200 dark:bg-gray-700"></div>
-                        <span class="relative z-10 rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs font-medium text-gray-500 dark:border-gray-700 dark:bg-[#16181C] dark:text-gray-400">
-                            {{ $comment->created_at->format('l, F j') }}
-                        </span>
+                    <div class="my-4 flex items-center" x-data="{ open: false }" :class="open && 'relative z-30'" data-date-separator="{{ $currentDate }}" id="date-{{ $currentDate }}">
+                        <div class="h-px flex-1 bg-gray-300 dark:bg-white/10"></div>
+                        <div class="relative shrink-0">
+                            <button
+                                @click="open = !open"
+                                @click.outside="open = false"
+                                class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-white/5"
+                            >
+                                {{ $comment->created_at->format('l, F j') }}
+                                <x-filament::icon icon="heroicon-m-chevron-down" class="h-3 w-3 transition-transform" ::class="open && 'rotate-180'" />
+                            </button>
+
+                            {{-- Jump-to dropdown --}}
+                            <div
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute left-1/2 top-full z-20 mt-1 w-48 -translate-x-1/2 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-gray-900"
+                                x-cloak
+                            >
+                            <div class="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                                {{ __('filament-comments::messages.ui.jump_to') }}
+                            </div>
+                            <button @click="open = false; window.__commentsJumpTo($el, 'last')" class="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5">
+                                {{ __('filament-comments::messages.ui.most_recent') }}
+                            </button>
+                            <button @click="open = false; window.__commentsJumpTo($el, 'week')" class="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5">
+                                {{ __('filament-comments::messages.ui.last_week') }}
+                            </button>
+                            <button @click="open = false; window.__commentsJumpTo($el, 'month')" class="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5">
+                                {{ __('filament-comments::messages.ui.last_month') }}
+                            </button>
+                            <button @click="open = false; window.__commentsJumpTo($el, 'first')" class="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5">
+                                {{ __('filament-comments::messages.ui.the_very_beginning') }}
+                            </button>
+                            </div>
+                        </div>
+                        <div class="h-px flex-1 bg-gray-300 dark:bg-white/10"></div>
                     </div>
                     @php $lastDate = $currentDate; @endphp
                 @endif
@@ -26,7 +113,7 @@
         </div>
     @else
         <div class="flex flex-1 flex-col items-center justify-center overflow-y-auto py-16">
-            <div class="rounded-full bg-[#212427] p-4 dark:bg-white/5">
+            <div class="rounded-full bg-gray-100 p-4 dark:bg-white/5">
                 <x-filament::icon
                     icon="heroicon-o-chat-bubble-left-right"
                     class="h-8 w-8 text-gray-400 dark:text-gray-500"
@@ -395,6 +482,51 @@
     <x-filament-actions::modals />
 
     @assets
+    @if (config('filament-comments.code_highlighting', true))
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" class="hljs-light-theme">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" class="hljs-dark-theme">
+        <style>
+            /* Force correct hljs backgrounds — toggleAttribute('disabled') is unreliable */
+            .dark pre code.hljs,
+            .dark .comment-body pre code {
+                background: #0d1117 !important;
+                color: #c9d1d9 !important;
+            }
+            :root:not(.dark) pre code.hljs,
+            :root:not(.dark) .comment-body pre code {
+                background: #f6f8fa !important;
+            }
+        </style>
+        <script>
+            (function() {
+                function toggleHljsTheme() {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    document.querySelector('.hljs-light-theme')?.toggleAttribute('disabled', isDark);
+                    document.querySelector('.hljs-dark-theme')?.toggleAttribute('disabled', !isDark);
+                }
+                toggleHljsTheme();
+                new MutationObserver(toggleHljsTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            })();
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        <script>
+            document.addEventListener('livewire:navigated', function() {
+                document.querySelectorAll('.comment-body pre code').forEach(function(el) {
+                    hljs.highlightElement(el);
+                });
+            });
+            // Also run after Livewire updates
+            if (typeof Livewire !== 'undefined') {
+                document.addEventListener('livewire:update', function() {
+                    setTimeout(function() {
+                        document.querySelectorAll('.comment-body pre code:not(.hljs)').forEach(function(el) {
+                            hljs.highlightElement(el);
+                        });
+                    }, 200);
+                });
+            }
+        </script>
+    @endif
     <style>
         .comment-composer {
             background-color: {{ config('filament-comments.composer.bg', '#ffffff') }};
@@ -439,6 +571,47 @@
         .comment-body img {
             width: 20%;
         }
+        /* Code block styling */
+        .comment-code-block {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        .dark .comment-code-block {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .code-copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 150ms;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.07);
+            color: rgba(0, 0, 0, 0.4);
+        }
+        .code-copy-btn:hover {
+            color: rgba(0, 0, 0, 0.8);
+        }
+        .code-copy-btn.copied {
+            color: #34d399 !important;
+        }
+        .comment-code-block:hover .code-copy-btn {
+            opacity: 1;
+        }
+        .dark .code-copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .dark .code-copy-btn:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
     </style>
     <script>
         // Restore composer background from localStorage
@@ -473,6 +646,51 @@
             }
             // Fallback: scroll the window (standalone discussion page)
             window.scrollTo({ top: document.body.scrollHeight, behavior: smooth !== false ? 'smooth' : 'instant' });
+        };
+
+        window.__commentsJumpTo = function(el, target) {
+            var list = el.closest('.comments-list');
+            if (!list) return;
+            // Find the scrollable ancestor
+            var scrollable = list.parentElement;
+            while (scrollable && scrollable !== document.body && scrollable !== document.documentElement) {
+                var style = window.getComputedStyle(scrollable);
+                if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && scrollable.scrollHeight > scrollable.clientHeight) {
+                    break;
+                }
+                scrollable = scrollable.parentElement;
+            }
+            if (!scrollable || scrollable === document.body || scrollable === document.documentElement) {
+                scrollable = null; // will use window
+            }
+
+            var dest = null;
+            if (target === 'first') {
+                dest = list.firstElementChild;
+            } else if (target === 'last') {
+                dest = list.lastElementChild;
+            } else {
+                var seps = Array.from(list.querySelectorAll('[data-date-separator]'));
+                var now = new Date();
+                var cutoff;
+                if (target === 'week') {
+                    cutoff = new Date(now - 7 * 86400000);
+                } else if (target === 'month') {
+                    cutoff = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                }
+                // Find the separator closest to cutoff (last one <= cutoff)
+                var reversed = seps.slice().reverse();
+                dest = reversed.find(function(s) { return new Date(s.dataset.dateSeparator) <= cutoff; }) || seps[0];
+            }
+
+            if (dest) {
+                if (scrollable) {
+                    var offset = dest.offsetTop - list.offsetTop;
+                    scrollable.scrollTo({ top: offset, behavior: 'smooth' });
+                } else {
+                    dest.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
         };
 
         window.__getComposerEditor = function(rootEl) {

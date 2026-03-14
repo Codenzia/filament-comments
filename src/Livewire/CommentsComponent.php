@@ -7,6 +7,7 @@ use Codenzia\FilamentComments\Events\UserMentioned;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
+use Codenzia\FilamentComments\Services\LinkPreviewService;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -53,7 +54,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public ?int $activeChannelId = null;
 
-    protected $listeners = ['commentDeleted' => '$refresh', 'reactionUpdated' => '$refresh'];
+    public bool $showResolved = false;
+
+    protected $listeners = [
+        'commentDeleted' => '$refresh',
+        'reactionUpdated' => '$refresh',
+        'commentPinned' => '$refresh',
+        'commentResolved' => '$refresh',
+        'watchToggled' => '$refresh',
+    ];
 
     public function mount(Model $record, array $mentionables = [], ?int $activeChannelId = null): void
     {
@@ -281,8 +290,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
     {
         if (! $this->canUserPostInChannel()) {
             Notification::make()
-                ->title('Unauthorized')
-                ->body('Only members can post in this channel.')
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->body(__('filament-comments::messages.notifications.unauthorized_members_only'))
                 ->danger()
                 ->send();
 
@@ -313,6 +322,19 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         if ($commentType === CommentType::Event) {
             $this->storeEventModel($comment);
+        }
+
+        // Fetch and store link previews
+        if ($commentType === CommentType::Text && config('filament-comments.link_previews.enabled', true)) {
+            try {
+                $linkPreviewService = app(LinkPreviewService::class);
+                $previews = $linkPreviewService->fetchPreviews($commentBody);
+                if (! empty($previews)) {
+                    $comment->update(['link_previews' => $previews]);
+                }
+            } catch (\Throwable) {
+                // Silently ignore link preview errors
+            }
         }
 
         // Detect mentions in the comment and send notifications
@@ -549,6 +571,12 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function canUserPostInChannel(): bool
     {
+        // When the record is not a CommentChannel (e.g. Task, Project, Invoice),
+        // anyone who can view the record can post comments — no channel membership required.
+        if (! $this->record instanceof CommentChannel) {
+            return true;
+        }
+
         if (! $this->activeChannelId) {
             return false;
         }
@@ -579,8 +607,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->dispatch('joinedChannel');
 
         Notification::make()
-            ->title(__('Joined successfully'))
-            ->body(__('You are now a member of ' . $channel->name))
+            ->title(__('filament-comments::messages.notifications.joined_channel'))
+            ->body(__('filament-comments::messages.notifications.joined_channel_body', ['name' => $channel->name]))
             ->success()
             ->send();
     }
@@ -662,6 +690,67 @@ class CommentsComponent extends Component implements HasActions, HasForms
         });
     }
 
+    // ── Pin ────────────────────────────────────────────────────────
+
+    public function pinComment(int $commentId): void
+    {
+        $comment = Comment::find($commentId);
+
+        if (! $comment) {
+            return;
+        }
+
+        $comment->pin();
+
+        Notification::make()
+            ->title(__('filament-comments::messages.notifications.comment_pinned'))
+            ->success()
+            ->send();
+
+        $this->dispatch('commentPinned');
+    }
+
+    public function unpinComment(int $commentId): void
+    {
+        $comment = Comment::find($commentId);
+
+        if (! $comment) {
+            return;
+        }
+
+        $comment->unpin();
+
+        Notification::make()
+            ->title(__('filament-comments::messages.notifications.comment_unpinned'))
+            ->success()
+            ->send();
+
+        $this->dispatch('commentPinned');
+    }
+
+    // ── Watch / Unwatch ──────────────────────────────────────────
+
+    public function toggleWatch(): void
+    {
+        $isWatching = $this->record->toggleWatch();
+
+        Notification::make()
+            ->title($isWatching
+                ? __('filament-comments::messages.notifications.watching')
+                : __('filament-comments::messages.notifications.unwatched'))
+            ->success()
+            ->send();
+
+        $this->dispatch('watchToggled');
+    }
+
+    // ── Resolved Toggle ──────────────────────────────────────────
+
+    public function toggleShowResolved(): void
+    {
+        $this->showResolved = ! $this->showResolved;
+    }
+
     public function render(): View
     {
         $availableChannels = $this->getAvailableChannels();
@@ -670,20 +759,34 @@ class CommentsComponent extends Component implements HasActions, HasForms
             $this->activeChannelId = $availableChannels->first()?->id;
         }
 
-        $query = $this->record->comments()
+        $baseQuery = $this->record->comments()
             ->approved()
             ->whereNull('parent_id')
-            ->with(['commentator', 'replies.commentator', 'reactions', 'replies.reactions']);
+            ->with(['commentator', 'replies.commentator', 'reactions', 'replies.reactions', 'resolvedBy', 'bookmarks']);
 
         if ($this->activeChannelId) {
-            $query->where('channel_id', $this->activeChannelId);
+            $baseQuery->where('channel_id', $this->activeChannelId);
         }
+
+        // Pinned comment (always shown at top)
+        $pinnedComment = (clone $baseQuery)->pinned()->first();
+
+        // Main comments query — exclude pinned, optionally filter resolved
+        $query = (clone $baseQuery)->where('is_pinned', false);
+        if (! $this->showResolved) {
+            $query->unresolved();
+        }
+
+        $isWatching = method_exists($this->record, 'isWatchedBy') ? $this->record->isWatchedBy() : false;
 
         return view('filament-comments::livewire.comments', [
             'comments' => $query->oldest()->get(),
+            'pinnedComment' => $pinnedComment,
             'channels' => $availableChannels,
             'channelMentionables' => $this->getChannelMentionables(),
             'canPost' => $this->canUserPostInChannel(),
+            'isWatching' => $isWatching,
+            'showResolved' => $this->showResolved,
         ]);
     }
 }

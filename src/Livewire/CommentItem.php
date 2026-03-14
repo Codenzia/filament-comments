@@ -4,11 +4,11 @@ namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Enums\CommentType;
 use Codenzia\FilamentComments\Events\UserMentioned;
+use Codenzia\FilamentComments\Filament\Pages\DiscussionPage;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentBookmark;
 use Codenzia\FilamentComments\Models\CommentChannel;
-use Codenzia\FilamentComments\Filament\Pages\DiscussionPage;
 use Codenzia\FilamentComments\Traits\ExtractsMentions;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -19,6 +19,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 class CommentItem extends Component implements HasActions, HasForms
@@ -46,10 +47,10 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public array $channelMentionables = [];
 
-    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<TemporaryUploadedFile> */
     public $tempImages = [];
 
-    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<TemporaryUploadedFile> */
     public $tempFiles = [];
 
     protected $listeners = [

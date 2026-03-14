@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -42,6 +43,6 @@ class CommentReaction extends Model
             return config('filament-comments.user_model');
         }
 
-        return config('auth.providers.users.model', \App\Models\User::class);
+        return config('auth.providers.users.model', User::class);
     }
 }

@@ -3,6 +3,7 @@
 use Codenzia\FilamentComments\Models\CommentBookmark;
 use Codenzia\FilamentComments\Tests\Fixtures\CreatesTestSchema;
 use Codenzia\FilamentComments\Tests\Fixtures\TestUser;
+use Illuminate\Database\QueryException;
 
 uses(CreatesTestSchema::class);
 
@@ -72,7 +73,7 @@ it('duplicate bookmark is prevented', function () {
     expect(fn () => CommentBookmark::create([
         'user_id' => $user->id,
         'comment_id' => $comment->id,
-    ]))->toThrow(\Illuminate\Database\QueryException::class);
+    ]))->toThrow(QueryException::class);
 });
 
 it('isBookmarkedBy returns correct boolean', function () {

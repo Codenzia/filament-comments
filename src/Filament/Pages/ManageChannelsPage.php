@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Filament\Pages;
 
+use App\Models\User;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -21,6 +22,9 @@ use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ManageChannelsPage extends Page implements HasForms, HasTable
@@ -57,17 +61,17 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
         return config('filament-comments.navigation_groups.channels', 'Channels');
     }
 
-    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string | Htmlable
     {
         return config('filament-comments.navigation_groups.channels', 'Channels');
     }
 
-    public function getHeading(): string | \Illuminate\Contracts\Support\Htmlable
+    public function getHeading(): string | Htmlable
     {
         return config('filament-comments.navigation_groups.channels', 'Channels');
     }
 
-    public function getSubheading(): string | \Illuminate\Contracts\Support\Htmlable | null
+    public function getSubheading(): string | Htmlable | null
     {
         return 'Create, organize, and manage discussion channels';
     }
@@ -189,7 +193,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
     public static function getChannelFormSchema(): array
     {
         $projectModel = config('filament-comments.project_model');
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
 
         return [
             Section::make()->schema([
@@ -213,7 +217,7 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
                             ->mapWithKeys(function (Heroicon $case): array {
                                 $value = 'heroicon-' . $case->value;
                                 $label = str($case->name)->after('Outlined')->headline()->toString();
-                                $svg = \Illuminate\Support\Facades\Blade::render(
+                                $svg = Blade::render(
                                     '<x-filament::icon :icon="$icon" class="h-5 w-5" />',
                                     ['icon' => $value],
                                 );
@@ -282,8 +286,8 @@ class ManageChannelsPage extends Page implements HasForms, HasTable
             if (filter_var($avatarPath, FILTER_VALIDATE_URL)) {
                 return $avatarPath;
             }
-            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($avatarPath)) {
-                return \Illuminate\Support\Facades\Storage::disk('public')->url($avatarPath);
+            if (Storage::disk('public')->exists($avatarPath)) {
+                return Storage::disk('public')->url($avatarPath);
             }
         }
 

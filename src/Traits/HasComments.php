@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Traits;
 
+use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentWatch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -13,7 +14,7 @@ trait HasComments
      */
     public function comments(): MorphMany
     {
-        return $this->morphMany(config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class, 'commentable');
+        return $this->morphMany(config('filament-comments.comment_class') ?? Comment::class, 'commentable');
     }
 
     /**
@@ -29,7 +30,7 @@ trait HasComments
      */
     public function commentAsUser(?Model $user, string $comment, ?string $type = null, bool $is_approved = true): Model
     {
-        $commentClass = config('filament-comments.comment_class') ?? \Codenzia\FilamentComments\Models\Comment::class;
+        $commentClass = config('filament-comments.comment_class') ?? Comment::class;
 
         $comment = new $commentClass([
             'comment' => $comment,

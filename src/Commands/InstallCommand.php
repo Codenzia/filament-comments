@@ -3,6 +3,7 @@
 namespace Codenzia\FilamentComments\Commands;
 
 use Illuminate\Console\Command;
+use Spatie\Permission\Models\Permission;
 
 class InstallCommand extends Command
 {
@@ -48,7 +49,7 @@ class InstallCommand extends Command
      */
     public static function seedPermissions(): void
     {
-        $permissionClass = config('permission.models.permission', \Spatie\Permission\Models\Permission::class);
+        $permissionClass = config('permission.models.permission', Permission::class);
         $guardName = config('auth.defaults.guard', 'web');
 
         foreach (config('filament-comments.permissions', []) as $permissionName) {

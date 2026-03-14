@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,7 +26,7 @@ class CommentBookmark extends Model
     public function user(): BelongsTo
     {
         $userModel = config('filament-comments.user_model')
-            ?? config('auth.providers.users.model', \App\Models\User::class);
+            ?? config('auth.providers.users.model', User::class);
 
         return $this->belongsTo($userModel);
     }

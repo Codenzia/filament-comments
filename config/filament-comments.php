@@ -1,12 +1,17 @@
 <?php
 
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\User;
+use Codenzia\FilamentComments\Models\Comment;
+
 return [
 
     /*
      * The comment class that should be used to store and retrieve
      * the comments.
      */
-    'comment_class' => \Codenzia\FilamentComments\Models\Comment::class,
+    'comment_class' => Comment::class,
 
     /*
      * The table name to use for the comments.
@@ -57,7 +62,7 @@ return [
     ],
 
     'mentionable' => [
-        'model' => \App\Models\User::class,
+        'model' => User::class,
         'trigger' => '@',
         'column' => [
             'id' => 'id',
@@ -74,7 +79,7 @@ return [
     ],
 
     'project_mentionable' => [
-        'model' => \App\Models\Project::class,
+        'model' => Project::class,
         'trigger' => '$',
         'column' => [
             'id' => 'id',
@@ -84,7 +89,7 @@ return [
     ],
 
     'task_mentionable' => [
-        'model' => \App\Models\Task::class,
+        'model' => Task::class,
         'trigger' => '%',
         'column' => [
             'id' => 'id',
@@ -103,7 +108,7 @@ return [
     /*
      * The project model that should be used for channel association.
      */
-    'project_model' => \App\Models\Project::class,
+    'project_model' => Project::class,
 
     /*
      * The Event model that should be used when persisting event-type comments

@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Models;
 
+use App\Models\User;
 use Codenzia\FilamentComments\Enums\CommentType;
 use Codenzia\FilamentComments\Events\CommentAdded;
 use Codenzia\FilamentComments\Events\CommentDeleted;
@@ -269,6 +270,6 @@ class Comment extends Model
             return config('filament-comments.user_model');
         }
 
-        return config('auth.providers.users.model', \App\Models\User::class);
+        return config('auth.providers.users.model', User::class);
     }
 }

@@ -3,7 +3,9 @@
 namespace Codenzia\FilamentComments\Livewire;
 
 use Codenzia\FilamentComments\Enums\CommentType;
+use Codenzia\FilamentComments\Events\EventAddedToCalendar;
 use Codenzia\FilamentComments\Events\UserMentioned;
+use Codenzia\FilamentComments\Filament\Pages\DiscussionPage;
 use Codenzia\FilamentComments\Forms\TributeTextarea;
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
@@ -22,9 +24,11 @@ use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 class CommentsComponent extends Component implements HasActions, HasForms
@@ -42,10 +46,10 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public string $commentType = 'text';
 
-    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<TemporaryUploadedFile> */
     public $tempImages = [];
 
-    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<TemporaryUploadedFile> */
     public $tempFiles = [];
 
     public Model $record;
@@ -239,7 +243,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
                 'key' => $channel->name,
                 'value' => $channel->name,
                 'slug' => $channel->slug,
-                'link' => \Codenzia\FilamentComments\Filament\Pages\DiscussionPage::getUrl(['record' => $channel->id]),
+                'link' => DiscussionPage::getUrl(['record' => $channel->id]),
             ];
         })->toArray();
     }
@@ -449,7 +453,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         }
 
         try {
-            /** @var class-string<\Illuminate\Database\Eloquent\Model> $eventModel */
+            /** @var class-string<Model> $eventModel */
             $eventModel::create($attributes);
         } catch (\Throwable $e) {
             // Silently ignore persistence errors to avoid breaking comments
@@ -561,7 +565,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->storeEventModel($comment);
 
         // Dispatch an event that the app can listen to for calendar integration
-        event(new \Codenzia\FilamentComments\Events\EventAddedToCalendar($comment, $eventData));
+        event(new EventAddedToCalendar($comment, $eventData));
 
         Notification::make()
             ->title(__('filament-comments::messages.notifications.event_added_to_calendar'))
@@ -673,7 +677,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->activeChannelId = $id;
     }
 
-    public function getAvailableChannels(): \Illuminate\Support\Collection
+    public function getAvailableChannels(): Collection
     {
         return CommentChannel::all()->filter(function ($channel) {
             if (empty($channel->permissions)) {

@@ -467,7 +467,7 @@
                                             x-transition:leave="transition ease-in duration-75"
                                             x-transition:leave-start="opacity-100 scale-100"
                                             x-transition:leave-end="opacity-0 scale-95" @click.away="open = false"
-                                            class="absolute left-0 z-50 mt-1 w-40 rounded-lg bg-white py-1 dark:bg-[#16181C] border border-gray-200 dark:border-gray-700">
+                                            class="absolute left-0 z-50 mt-1 w-40 rounded-lg bg-white py-1 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
                                             <button type="button"
                                                 wire:click="$parent.respondToEvent({{ $comment->id }}, 'going')"
                                                 @click="open = false"
@@ -521,6 +521,471 @@
                                 </span>
                             @endif
 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Meeting)
+            {{-- Meeting Rendering --}}
+            @php
+                $meetingData = $comment->getDecodedComment();
+                $meetingTitle = $meetingData['title'] ?? '';
+                $meetingStart = isset($meetingData['start_at']) ? \Carbon\Carbon::parse($meetingData['start_at']) : null;
+                $meetingEnd = isset($meetingData['end_at']) ? \Carbon\Carbon::parse($meetingData['end_at']) : null;
+                $meetingLink = $meetingData['google_meet_link'] ?? '';
+                $meetingDescription = $meetingData['description'] ?? '';
+                $isPast = $meetingStart && $meetingStart->isPast();
+                $attendees = $meetingData['attendees'] ?? [];
+                $attendingCount = collect($attendees)->filter(fn($v) => $v === 'attending')->count();
+                $maybeCount = collect($attendees)->filter(fn($v) => $v === 'maybe')->count();
+                $declinedCount = collect($attendees)->filter(fn($v) => $v === 'declined')->count();
+                $userStatus = $attendees[(string) auth()->id()] ?? null;
+            @endphp
+            <div class="mt-3">
+                <div @class([
+                    'relative rounded-xl border',
+                    'border-primary-200 dark:border-primary-700/50' => !$isPast,
+                    'border-gray-200 dark:border-gray-700' => $isPast,
+                ])>
+                    <div class="flex gap-4 p-4">
+                        {{-- Video camera icon block --}}
+                        <div class="flex shrink-0 flex-col items-center">
+                            <div @class([
+                                'flex h-14 w-14 flex-col items-center justify-center rounded-xl',
+                                'bg-primary-50 dark:bg-primary-500/10' => !$isPast,
+                                'bg-gray-100 dark:bg-white/5' => $isPast,
+                            ])>
+                                <x-filament::icon icon="heroicon-o-video-camera" @class([
+                                    'h-6 w-6',
+                                    'text-primary-500' => !$isPast,
+                                    'text-gray-400 dark:text-gray-500' => $isPast,
+                                ]) />
+                            </div>
+                        </div>
+
+                        {{-- Details --}}
+                        <div class="min-w-0 flex-1">
+                            <h4 @class([
+                                'text-sm font-semibold',
+                                'text-gray-900 dark:text-white' => !$isPast,
+                                'text-gray-500 dark:text-gray-400 line-through' => $isPast,
+                            ])>
+                                {{ $meetingTitle }}
+                            </h4>
+
+                            @if ($meetingStart)
+                                <div class="mt-1 flex items-center gap-1.5">
+                                    <x-filament::icon icon="heroicon-o-clock" class="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ $meetingStart->format('l, M d, Y \a\t g:i A') }}
+                                        @if ($meetingEnd)
+                                            — {{ $meetingEnd->format('g:i A') }}
+                                        @endif
+                                    </span>
+                                </div>
+                            @endif
+
+                            @if ($meetingDescription)
+                                <p class="mt-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                                    {{ $meetingDescription }}
+                                </p>
+                            @endif
+
+                            @if ($meetingLink)
+                                <a href="{{ $meetingLink }}" target="_blank" rel="noopener"
+                                    class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary-50 px-2.5 py-1 text-[11px] font-medium text-primary-700 transition-colors hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-300 dark:hover:bg-primary-500/20">
+                                    <x-filament::icon icon="heroicon-o-video-camera" class="h-3.5 w-3.5" />
+                                    {{ __('filament-comments::messages.comment_types.meeting_join') }}
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="flex flex-row gap-2">
+                            @if (!$isPast)
+                                <div class="mt-3 flex flex-wrap items-center gap-2">
+                                    <div x-data="{ open: false }" class="relative">
+                                        <button type="button" @click="open = !open" @class([
+                                            'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] border-gray-200 dark:border-gray-700 font-medium transition-colors',
+                                            'text-primary-700 dark:text-primary-300' => $userStatus === 'attending',
+                                            'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300' => $userStatus === 'maybe',
+                                            'border-gray-400 bg-gray-200 text-gray-700 dark:border-gray-600 dark:bg-white/10 dark:text-gray-200' => $userStatus === 'declined',
+                                            'border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-white/5 dark:text-gray-300 dark:hover:border-gray-500' => !$userStatus,
+                                        ])>
+                                            <span class="flex items-center gap-1.5">
+                                                <span class="text-sm leading-none">
+                                                    @switch($userStatus)
+                                                        @case('attending') ✅ @break
+                                                        @case('maybe') 🤔 @break
+                                                        @case('declined') ❌ @break
+                                                        @default 👋
+                                                    @endswitch
+                                                </span>
+                                                <span>
+                                                    @switch($userStatus)
+                                                        @case('attending') {{ __('filament-comments::messages.comment_types.meeting_attending') }} @break
+                                                        @case('maybe') {{ __('filament-comments::messages.comment_types.meeting_maybe') }} @break
+                                                        @case('declined') {{ __('filament-comments::messages.comment_types.meeting_declined') }} @break
+                                                        @default {{ __('filament-comments::messages.comment_types.meeting_rsvp') }}
+                                                    @endswitch
+                                                </span>
+                                            </span>
+                                            <x-filament::icon icon="heroicon-o-chevron-down"
+                                                class="ml-1 h-3 w-3 text-gray-400 dark:text-gray-500 transition-transform"
+                                                x-bind:class="{ 'rotate-180': open }" />
+                                        </button>
+
+                                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                            x-transition:leave="transition ease-in duration-75"
+                                            x-transition:leave-start="opacity-100 scale-100"
+                                            x-transition:leave-end="opacity-0 scale-95" @click.away="open = false"
+                                            class="absolute left-0 z-50 mt-1 w-40 rounded-lg bg-white py-1 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                            <button type="button"
+                                                wire:click="$parent.respondToMeeting({{ $comment->id }}, 'attending')"
+                                                @click="open = false"
+                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5">
+                                                <span class="flex items-center gap-1.5">
+                                                    <span>✅</span>
+                                                    <span>{{ __('filament-comments::messages.comment_types.meeting_attending') }}</span>
+                                                </span>
+                                                @if ($attendingCount > 0)
+                                                    <span class="text-[10px] text-gray-400">({{ $attendingCount }})</span>
+                                                @endif
+                                            </button>
+                                            <button type="button"
+                                                wire:click="$parent.respondToMeeting({{ $comment->id }}, 'maybe')"
+                                                @click="open = false"
+                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5">
+                                                <span class="flex items-center gap-1.5">
+                                                    <span>🤔</span>
+                                                    <span>{{ __('filament-comments::messages.comment_types.meeting_maybe') }}</span>
+                                                </span>
+                                                @if ($maybeCount > 0)
+                                                    <span class="text-[10px] text-gray-400">({{ $maybeCount }})</span>
+                                                @endif
+                                            </button>
+                                            <button type="button"
+                                                wire:click="$parent.respondToMeeting({{ $comment->id }}, 'declined')"
+                                                @click="open = false"
+                                                class="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5">
+                                                <span class="flex items-center gap-1.5">
+                                                    <span>❌</span>
+                                                    <span>{{ __('filament-comments::messages.comment_types.meeting_declined') }}</span>
+                                                </span>
+                                                @if ($declinedCount > 0)
+                                                    <span class="text-[10px] text-gray-400">({{ $declinedCount }})</span>
+                                                @endif
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if ($isPast)
+                                <span class="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                                    {{ __('filament-comments::messages.comment_types.meeting_past') }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Todo)
+            {{-- Todo / Checklist Rendering --}}
+            @php
+                $todoData = $comment->getDecodedComment();
+                $todoItems = $todoData['items'] ?? [];
+                $doneCount = collect($todoItems)->filter(fn($item) => $item['done'] ?? false)->count();
+                $totalCount = count($todoItems);
+                $progressPercent = $totalCount > 0 ? round(($doneCount / $totalCount) * 100) : 0;
+            @endphp
+            <div class="mt-2 max-w-2xl">
+                {{-- Progress bar --}}
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
+                        <div class="h-full rounded-full bg-primary-500 transition-all duration-500 ease-out"
+                            style="width: {{ $progressPercent }}%"></div>
+                    </div>
+                    <span class="text-[11px] font-medium tabular-nums text-gray-500 dark:text-gray-400">
+                        {{ $doneCount }}/{{ $totalCount }}
+                    </span>
+                </div>
+
+                {{-- Items --}}
+                <div class="space-y-1">
+                    @foreach ($todoItems as $index => $item)
+                        @php
+                            $isDone = $item['done'] ?? false;
+                            $priority = $item['priority'] ?? 'medium';
+                            $priorityColors = [
+                                'low' => 'text-gray-400 dark:text-gray-500',
+                                'medium' => 'text-amber-500 dark:text-amber-400',
+                                'high' => 'text-red-500 dark:text-red-400',
+                            ];
+                        @endphp
+                        <button
+                            wire:click="$parent.toggleTodoItem({{ $comment->id }}, {{ $index }})"
+                            class="group/todo flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                        >
+                            @if ($isDone)
+                                <svg class="h-4.5 w-4.5 shrink-0 text-primary-500" viewBox="0 0 16 16" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.28-8.72a.75.75 0 0 0-1.06-1.06L7 8.44 5.78 7.22a.75.75 0 0 0-1.06 1.06l1.75 1.75a.75.75 0 0 0 1.06 0l3.75-3.75Z" clip-rule="evenodd" />
+                                </svg>
+                            @else
+                                <div class="h-4.5 w-4.5 shrink-0 rounded-full border-2 border-gray-300 dark:border-gray-600 transition-colors group-hover/todo:border-primary-400"></div>
+                            @endif
+                            <span @class([
+                                'flex-1 text-sm',
+                                'text-gray-400 line-through dark:text-gray-500' => $isDone,
+                                'text-gray-800 dark:text-gray-200' => !$isDone,
+                            ])>
+                                {{ $item['title'] }}
+                            </span>
+                            @if ($priority !== 'medium')
+                                <span class="{{ $priorityColors[$priority] ?? '' }} text-[10px] font-medium uppercase">
+                                    {{ $priority }}
+                                </span>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Survey)
+            {{-- Survey Rendering --}}
+            @php
+                $surveyData = $comment->getDecodedComment();
+                $surveyTitle = $surveyData['title'] ?? '';
+                $surveyDescription = $surveyData['description'] ?? '';
+                $surveyQuestions = $surveyData['questions'] ?? [];
+                $totalResponders = collect($surveyQuestions)->flatMap(fn($q) => array_keys($q['responses'] ?? []))->unique()->count();
+            @endphp
+            <div class="mt-2 max-w-2xl">
+                <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="bg-gray-50 dark:bg-white/[0.03] px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                        <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $surveyTitle }}</h4>
+                        @if ($surveyDescription)
+                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $surveyDescription }}</p>
+                        @endif
+                        <p class="mt-1 text-[10px] text-gray-400 dark:text-gray-500">
+                            {{ trans_choice('filament-comments::messages.comment_types.survey_response_count', $totalResponders, ['count' => $totalResponders]) }}
+                        </p>
+                    </div>
+
+                    <div class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                        @foreach ($surveyQuestions as $qIndex => $question)
+                            @php
+                                $qType = $question['type'] ?? 'text';
+                                $qResponses = $question['responses'] ?? [];
+                                $userAnswer = $qResponses[(string) auth()->id()] ?? null;
+                            @endphp
+                            <div class="px-4 py-3">
+                                <p class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    {{ $qIndex + 1 }}. {{ $question['content'] }}
+                                </p>
+
+                                @if ($qType === 'choice')
+                                    @php
+                                        $options = $question['options'] ?? [];
+                                        $totalVotes = count($qResponses);
+                                    @endphp
+                                    <div class="space-y-1.5">
+                                        @foreach ($options as $optIdx => $opt)
+                                            @php
+                                                $optVotes = collect($qResponses)->filter(fn($v) => $v === $optIdx)->count();
+                                                $optPercent = $totalVotes > 0 ? round(($optVotes / $totalVotes) * 100) : 0;
+                                                $isSelected = $userAnswer === $optIdx;
+                                            @endphp
+                                            <button
+                                                wire:click="$parent.respondToSurvey({{ $comment->id }}, {{ $qIndex }}, {{ $optIdx }})"
+                                                class="group/opt relative w-full overflow-hidden rounded-lg text-left transition-all duration-150 hover:brightness-110 active:scale-[0.99]"
+                                            >
+                                                <div class="relative h-8 w-full rounded-lg bg-gray-100 dark:bg-white/[0.06]">
+                                                    <div @class([
+                                                        'absolute inset-y-0 left-0 rounded-lg transition-all duration-500 ease-out',
+                                                        'bg-primary-500/80 dark:bg-primary-500/60' => $isSelected,
+                                                        'bg-gray-200 dark:bg-white/[0.08]' => !$isSelected && $totalVotes > 0,
+                                                    ])
+                                                        style="width: {{ $totalVotes > 0 ? max($optPercent, 2) : 0 }}%"></div>
+                                                    <div class="relative flex h-full items-center justify-between gap-2 px-3">
+                                                        <div class="flex items-center gap-2 truncate">
+                                                            @if ($isSelected)
+                                                                <svg class="h-3.5 w-3.5 shrink-0 text-primary-600 dark:text-primary-400" viewBox="0 0 16 16" fill="currentColor">
+                                                                    <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.28-8.72a.75.75 0 0 0-1.06-1.06L7 8.44 5.78 7.22a.75.75 0 0 0-1.06 1.06l1.75 1.75a.75.75 0 0 0 1.06 0l3.75-3.75Z" clip-rule="evenodd" />
+                                                                </svg>
+                                                            @endif
+                                                            <span class="truncate text-xs font-medium text-gray-700 dark:text-gray-300">{{ $opt }}</span>
+                                                        </div>
+                                                        @if ($totalVotes > 0)
+                                                            <span class="shrink-0 text-[11px] font-bold tabular-nums text-gray-400 dark:text-gray-500">{{ $optPercent }}%</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                @elseif ($qType === 'rating')
+                                    <div class="flex items-center gap-1">
+                                        @for ($star = 1; $star <= 5; $star++)
+                                            <button
+                                                wire:click="$parent.respondToSurvey({{ $comment->id }}, {{ $qIndex }}, {{ $star }})"
+                                                class="transition-transform hover:scale-110"
+                                            >
+                                                <svg class="h-5 w-5 {{ $userAnswer && $star <= $userAnswer ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            </button>
+                                        @endfor
+                                        @if (count($qResponses) > 0)
+                                            @php $avgRating = round(collect($qResponses)->avg(), 1); @endphp
+                                            <span class="ml-2 text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                                                {{ $avgRating }}/5 ({{ count($qResponses) }})
+                                            </span>
+                                        @endif
+                                    </div>
+                                @else
+                                    {{-- Text response --}}
+                                    @if ($userAnswer)
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 italic">
+                                            {{ __('filament-comments::messages.comment_types.survey_your_answer') }}: {{ $userAnswer }}
+                                        </p>
+                                    @else
+                                        <div class="flex gap-2" x-data="{ answer: '' }">
+                                            <input type="text" x-model="answer"
+                                                placeholder="{{ __('filament-comments::messages.comment_types.survey_text_placeholder') }}"
+                                                class="flex-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:bg-white/5 dark:text-gray-300" />
+                                            <button
+                                                @click="$wire.$parent.respondToSurvey({{ $comment->id }}, {{ $qIndex }}, answer); answer = ''"
+                                                class="rounded-lg bg-primary-500 px-2.5 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-primary-600"
+                                            >
+                                                {{ __('filament-comments::messages.comment_types.survey_submit') }}
+                                            </button>
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @elseif ($comment->type === \Codenzia\FilamentComments\Enums\CommentType::Risk)
+            {{-- Risk Rendering --}}
+            @php
+                $riskData = $comment->getDecodedComment();
+                $riskTitle = $riskData['title'] ?? '';
+                $riskCategory = $riskData['category'] ?? '';
+                $riskLikelihood = $riskData['likelihood'] ?? '';
+                $riskImpact = $riskData['impact'] ?? '';
+                $riskMitigation = $riskData['mitigation_plan'] ?? '';
+                $acknowledgedBy = $riskData['acknowledged_by'] ?? [];
+                $isAcknowledged = in_array((string) auth()->id(), $acknowledgedBy, true);
+
+                $likelihoodValues = ['rare' => 1, 'unlikely' => 2, 'possible' => 3, 'likely' => 4, 'almost_certain' => 5];
+                $impactValues = ['negligible' => 1, 'minor' => 2, 'moderate' => 3, 'major' => 4, 'critical' => 5];
+                $riskScore = ($likelihoodValues[$riskLikelihood] ?? 1) * ($impactValues[$riskImpact] ?? 1);
+
+                $severityColor = match(true) {
+                    $riskScore >= 17 => 'danger',
+                    $riskScore >= 10 => 'warning',
+                    $riskScore >= 5 => 'warning',
+                    default => 'success',
+                };
+                $severityLabel = match(true) {
+                    $riskScore >= 17 => __('filament-comments::messages.comment_types.risk_severity_critical'),
+                    $riskScore >= 10 => __('filament-comments::messages.comment_types.risk_severity_high'),
+                    $riskScore >= 5 => __('filament-comments::messages.comment_types.risk_severity_medium'),
+                    default => __('filament-comments::messages.comment_types.risk_severity_low'),
+                };
+
+                $categoryIcons = [
+                    'technical' => 'heroicon-o-cpu-chip',
+                    'schedule' => 'heroicon-o-clock',
+                    'budget' => 'heroicon-o-banknotes',
+                    'resource' => 'heroicon-o-user-group',
+                    'scope' => 'heroicon-o-arrows-pointing-out',
+                    'security' => 'heroicon-o-shield-exclamation',
+                    'other' => 'heroicon-o-ellipsis-horizontal-circle',
+                ];
+                $catIcon = $categoryIcons[$riskCategory] ?? 'heroicon-o-exclamation-triangle';
+            @endphp
+            <div class="mt-2 max-w-2xl">
+                <div @class([
+                    'rounded-xl border overflow-hidden',
+                    'border-red-200 dark:border-red-800/50' => $severityColor === 'danger',
+                    'border-amber-200 dark:border-amber-800/50' => $severityColor === 'warning',
+                    'border-green-200 dark:border-green-800/50' => $severityColor === 'success',
+                ])>
+                    {{-- Header --}}
+                    <div @class([
+                        'flex items-center gap-3 px-4 py-2.5 border-b',
+                        'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-800/50' => $severityColor === 'danger',
+                        'bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-800/50' => $severityColor === 'warning',
+                        'bg-green-50 border-green-200 dark:bg-green-500/10 dark:border-green-800/50' => $severityColor === 'success',
+                    ])>
+                        <x-filament::icon :icon="$catIcon" @class([
+                            'h-4.5 w-4.5',
+                            'text-red-500 dark:text-red-400' => $severityColor === 'danger',
+                            'text-amber-500 dark:text-amber-400' => $severityColor === 'warning',
+                            'text-green-500 dark:text-green-400' => $severityColor === 'success',
+                        ]) />
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $riskTitle }}</h4>
+                        </div>
+                        <span @class([
+                            'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
+                            'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' => $severityColor === 'danger',
+                            'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300' => $severityColor === 'warning',
+                            'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300' => $severityColor === 'success',
+                        ])>
+                            {{ $severityLabel }} ({{ $riskScore }})
+                        </span>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="px-4 py-3 space-y-2">
+                        <div class="flex flex-wrap gap-3 text-[11px]">
+                            <div>
+                                <span class="text-gray-400 dark:text-gray-500">{{ __('filament-comments::messages.comment_types.risk_category') }}:</span>
+                                <span class="ml-1 font-medium text-gray-700 dark:text-gray-300 capitalize">{{ str_replace('_', ' ', $riskCategory) }}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 dark:text-gray-500">{{ __('filament-comments::messages.comment_types.risk_likelihood') }}:</span>
+                                <span class="ml-1 font-medium text-gray-700 dark:text-gray-300 capitalize">{{ str_replace('_', ' ', $riskLikelihood) }}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 dark:text-gray-500">{{ __('filament-comments::messages.comment_types.risk_impact') }}:</span>
+                                <span class="ml-1 font-medium text-gray-700 dark:text-gray-300 capitalize">{{ str_replace('_', ' ', $riskImpact) }}</span>
+                            </div>
+                        </div>
+
+                        @if ($riskMitigation)
+                            <div>
+                                <span class="text-[11px] text-gray-400 dark:text-gray-500">{{ __('filament-comments::messages.comment_types.risk_mitigation') }}:</span>
+                                <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">{{ $riskMitigation }}</p>
+                            </div>
+                        @endif
+
+                        <div class="flex items-center justify-between pt-1">
+                            <button
+                                wire:click="$parent.acknowledgeRisk({{ $comment->id }})"
+                                @class([
+                                    'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors',
+                                    'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300' => $isAcknowledged,
+                                    'border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-500' => !$isAcknowledged,
+                                ])
+                            >
+                                @if ($isAcknowledged)
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.28-8.72a.75.75 0 0 0-1.06-1.06L7 8.44 5.78 7.22a.75.75 0 0 0-1.06 1.06l1.75 1.75a.75.75 0 0 0 1.06 0l3.75-3.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                @endif
+                                {{ __('filament-comments::messages.comment_types.risk_acknowledge') }}
+                            </button>
+                            @if (count($acknowledgedBy) > 0)
+                                <span class="text-[10px] text-gray-400 dark:text-gray-500">
+                                    {{ trans_choice('filament-comments::messages.comment_types.risk_acknowledged_count', count($acknowledgedBy), ['count' => count($acknowledgedBy)]) }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -720,7 +1185,7 @@
                 <input type="file" wire:model="tempFiles" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx"
                     multiple class="hidden" x-ref="replyFileInput{{ $comment->id }}" />
 
-                <div class="comment-composer reply-composer-{{ $comment->id }} rounded-xl dark:bg-[#16181C]">
+                <div class="comment-composer reply-composer-{{ $comment->id }} rounded-xl dark:bg-gray-900">
                     <div class="comment-composer__editor">
                         {{ $this->replyForm }}
                     </div>
@@ -731,7 +1196,7 @@
                         <div class="relative flex items-center gap-0.5">
                             {{-- @ mention --}}
                             <button
-                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('filament-comments::messages.comments.mention_hint') }}"
                                 onclick="window.__triggerMention(this.closest('.comment-composer'))">
                                 <x-filament::icon icon="heroicon-o-at-symbol" class="h-4.5 w-4.5" />
@@ -739,14 +1204,14 @@
 
                             {{-- Image shortcut --}}
                             <button @click="$refs.replyImageInput{{ $comment->id }}.click()"
-                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('filament-comments::messages.comment_types.image') }}">
                                 <x-filament::icon icon="heroicon-o-photo" class="h-4.5 w-4.5" />
                             </button>
 
                             {{-- File upload --}}
                             <button @click="$refs.replyFileInput{{ $comment->id }}.click()"
-                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('filament-comments::messages.comment_types.file') ?? 'Attach file' }}">
                                 <x-filament::icon icon="heroicon-o-paper-clip" class="h-4.5 w-4.5" />
                             </button>
@@ -754,7 +1219,7 @@
                             {{-- Emoji picker --}}
                             <div class="relative" x-data="{ emojiOpen: false }">
                                 <button @click="emojiOpen = !emojiOpen"
-                                    class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                    class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                     title="{{ __('filament-comments::messages.comments.emoji') ?? 'Emoji' }}">
                                     <x-filament::icon icon="heroicon-o-face-smile" class="h-4.5 w-4.5" />
                                 </button>
@@ -764,7 +1229,7 @@
                                     x-transition:leave="transition ease-in duration-75"
                                     x-transition:leave-start="opacity-100 scale-100"
                                     x-transition:leave-end="opacity-0 scale-95" @click.away="emojiOpen = false"
-                                    class="absolute left-0 z-50 mb-2 bottom-full w-64 max-h-48 overflow-y-auto rounded-lg bg-white p-2 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700">
+                                    class="absolute left-0 z-50 mb-2 bottom-full w-64 max-h-48 overflow-y-auto rounded-lg bg-white p-2 shadow-lg ring-1 ring-gray-200/80 dark:bg-gray-900 dark:ring-gray-700">
                                     <div class="grid grid-cols-8 gap-0.5">
                                         @foreach (['😀', '😂', '😊', '😍', '🥰', '😎', '🤔', '😏', '😢', '😭', '😡', '🤯', '🥳', '😴', '🤗', '😈', '👍', '👎', '👏', '🙌', '🤝', '✌️', '🔥', '❤️', '💯', '⭐', '🎉', '✅', '❌', '💡', '🚀', '👀', '💬', '📌', '🏆', '💪'] as $emoji)
                                             <button type="button"
@@ -796,7 +1261,7 @@
 
                         {{-- Send button --}}
                         <button wire:click="reply" wire:loading.attr="disabled" :disabled="uploading"
-                            class="flex items-center justify-center rounded-lg dark:hover:bg-[#212427] p-1.5 disabled:opacity-50">
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-gray-800 p-1.5 disabled:opacity-50">
                             <span wire:loading.remove wire:target="reply">
                                 <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
                             </span>

@@ -54,6 +54,20 @@ This publishes the config file and migrations. Run migrations:
 php artisan migrate
 ```
 
+### Tailwind v4 Custom Theme
+
+If your Filament panel uses a custom theme (Tailwind CSS v4), add the package's source paths so that utility classes are compiled:
+
+```css
+/* resources/css/filament/{panel}/theme.css */
+@source '../../../../vendor/codenzia/*/src/**/*.php';
+@source '../../../../vendor/codenzia/*/resources/views/**/*.blade.php';
+```
+
+This wildcard pattern covers all Codenzia packages at once.
+
+Then rebuild your assets (`npm run build`).
+
 ## Setup
 
 Register the plugin in your panel provider:

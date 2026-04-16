@@ -13,8 +13,10 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -39,6 +41,14 @@ class CommentsComponent extends Component implements HasActions, HasForms
     public ?array $voteData = [];
 
     public ?array $eventData = [];
+
+    public ?array $meetingData = [];
+
+    public ?array $todoData = [];
+
+    public ?array $surveyData = [];
+
+    public ?array $riskData = [];
 
     public string $commentType = 'text';
 
@@ -109,6 +119,10 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->form->fill();
         $this->voteForm->fill();
         $this->eventForm->fill();
+        $this->meetingForm->fill();
+        $this->todoForm->fill();
+        $this->surveyForm->fill();
+        $this->riskForm->fill();
     }
 
     public function updatedTempImages(): void
@@ -231,6 +245,162 @@ class CommentsComponent extends Component implements HasActions, HasForms
             ->statePath('eventData');
     }
 
+    public function meetingForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('title')
+                    ->label(__('filament-comments::messages.comment_types.meeting_title'))
+                    ->required()
+                    ->placeholder(__('filament-comments::messages.comment_types.meeting_title_placeholder')),
+                DateTimePicker::make('start_at')
+                    ->label(__('filament-comments::messages.comment_types.meeting_start'))
+                    ->required()
+                    ->native(false),
+                DateTimePicker::make('end_at')
+                    ->label(__('filament-comments::messages.comment_types.meeting_end'))
+                    ->native(false),
+                TextInput::make('google_meet_link')
+                    ->label(__('filament-comments::messages.comment_types.meeting_link'))
+                    ->placeholder(__('filament-comments::messages.comment_types.meeting_link_placeholder'))
+                    ->url(),
+                Textarea::make('description')
+                    ->label(__('filament-comments::messages.comment_types.meeting_description'))
+                    ->placeholder(__('filament-comments::messages.comment_types.meeting_description_placeholder'))
+                    ->rows(2),
+            ])
+            ->statePath('meetingData');
+    }
+
+    public function todoForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Repeater::make('items')
+                    ->label(__('filament-comments::messages.comment_types.todo_items'))
+                    ->schema([
+                        TextInput::make('title')
+                            ->required()
+                            ->placeholder(__('filament-comments::messages.comment_types.todo_item_placeholder'))
+                            ->columnSpan(2),
+                        Select::make('priority')
+                            ->label(__('filament-comments::messages.comment_types.todo_priority'))
+                            ->options([
+                                'low' => __('filament-comments::messages.comment_types.todo_priority_low'),
+                                'medium' => __('filament-comments::messages.comment_types.todo_priority_medium'),
+                                'high' => __('filament-comments::messages.comment_types.todo_priority_high'),
+                            ])
+                            ->default('medium'),
+                    ])
+                    ->columns(3)
+                    ->minItems(1)
+                    ->maxItems(20)
+                    ->defaultItems(1)
+                    ->addActionLabel(__('filament-comments::messages.comment_types.todo_add_item'))
+                    ->reorderable(),
+            ])
+            ->statePath('todoData');
+    }
+
+    public function surveyForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('title')
+                    ->label(__('filament-comments::messages.comment_types.survey_title'))
+                    ->required()
+                    ->placeholder(__('filament-comments::messages.comment_types.survey_title_placeholder')),
+                Textarea::make('description')
+                    ->label(__('filament-comments::messages.comment_types.survey_description'))
+                    ->placeholder(__('filament-comments::messages.comment_types.survey_description_placeholder'))
+                    ->rows(2),
+                Repeater::make('questions')
+                    ->label(__('filament-comments::messages.comment_types.survey_questions'))
+                    ->schema([
+                        TextInput::make('content')
+                            ->label(__('filament-comments::messages.comment_types.survey_question'))
+                            ->required()
+                            ->placeholder(__('filament-comments::messages.comment_types.survey_question_placeholder')),
+                        Select::make('type')
+                            ->label(__('filament-comments::messages.comment_types.survey_question_type'))
+                            ->options([
+                                'text' => __('filament-comments::messages.comment_types.survey_type_text'),
+                                'choice' => __('filament-comments::messages.comment_types.survey_type_choice'),
+                                'rating' => __('filament-comments::messages.comment_types.survey_type_rating'),
+                            ])
+                            ->default('text')
+                            ->required(),
+                        Repeater::make('options')
+                            ->label(__('filament-comments::messages.comment_types.survey_options'))
+                            ->simple(
+                                TextInput::make('option')
+                                    ->required()
+                                    ->placeholder(__('filament-comments::messages.comment_types.survey_option_placeholder')),
+                            )
+                            ->minItems(2)
+                            ->maxItems(6)
+                            ->defaultItems(2)
+                            ->addActionLabel(__('filament-comments::messages.comment_types.survey_add_option'))
+                            ->reorderable(false)
+                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get): bool => $get('type') === 'choice'),
+                    ])
+                    ->minItems(1)
+                    ->maxItems(10)
+                    ->defaultItems(1)
+                    ->addActionLabel(__('filament-comments::messages.comment_types.survey_add_question'))
+                    ->reorderable(),
+            ])
+            ->statePath('surveyData');
+    }
+
+    public function riskForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('title')
+                    ->label(__('filament-comments::messages.comment_types.risk_title'))
+                    ->required()
+                    ->placeholder(__('filament-comments::messages.comment_types.risk_title_placeholder')),
+                Select::make('category')
+                    ->label(__('filament-comments::messages.comment_types.risk_category'))
+                    ->options([
+                        'technical' => __('filament-comments::messages.comment_types.risk_cat_technical'),
+                        'schedule' => __('filament-comments::messages.comment_types.risk_cat_schedule'),
+                        'budget' => __('filament-comments::messages.comment_types.risk_cat_budget'),
+                        'resource' => __('filament-comments::messages.comment_types.risk_cat_resource'),
+                        'scope' => __('filament-comments::messages.comment_types.risk_cat_scope'),
+                        'security' => __('filament-comments::messages.comment_types.risk_cat_security'),
+                        'other' => __('filament-comments::messages.comment_types.risk_cat_other'),
+                    ])
+                    ->required(),
+                Select::make('likelihood')
+                    ->label(__('filament-comments::messages.comment_types.risk_likelihood'))
+                    ->options([
+                        'rare' => __('filament-comments::messages.comment_types.risk_likelihood_rare'),
+                        'unlikely' => __('filament-comments::messages.comment_types.risk_likelihood_unlikely'),
+                        'possible' => __('filament-comments::messages.comment_types.risk_likelihood_possible'),
+                        'likely' => __('filament-comments::messages.comment_types.risk_likelihood_likely'),
+                        'almost_certain' => __('filament-comments::messages.comment_types.risk_likelihood_almost_certain'),
+                    ])
+                    ->required(),
+                Select::make('impact')
+                    ->label(__('filament-comments::messages.comment_types.risk_impact'))
+                    ->options([
+                        'negligible' => __('filament-comments::messages.comment_types.risk_impact_negligible'),
+                        'minor' => __('filament-comments::messages.comment_types.risk_impact_minor'),
+                        'moderate' => __('filament-comments::messages.comment_types.risk_impact_moderate'),
+                        'major' => __('filament-comments::messages.comment_types.risk_impact_major'),
+                        'critical' => __('filament-comments::messages.comment_types.risk_impact_critical'),
+                    ])
+                    ->required(),
+                Textarea::make('mitigation_plan')
+                    ->label(__('filament-comments::messages.comment_types.risk_mitigation'))
+                    ->placeholder(__('filament-comments::messages.comment_types.risk_mitigation_placeholder'))
+                    ->rows(2),
+            ])
+            ->statePath('riskData');
+    }
+
     protected function getChannelMentionables(): array
     {
         return $this->getAvailableChannels()->map(function ($channel) {
@@ -304,6 +474,10 @@ class CommentsComponent extends Component implements HasActions, HasForms
             CommentType::Text => $this->createTextComment(),
             CommentType::Vote => $this->createVoteComment(),
             CommentType::Event => $this->createEventComment(),
+            CommentType::Meeting => $this->createMeetingComment(),
+            CommentType::Todo => $this->createTodoComment(),
+            CommentType::Survey => $this->createSurveyComment(),
+            CommentType::Risk => $this->createRiskComment(),
         };
 
         if ($commentBody === null) {
@@ -393,6 +567,73 @@ class CommentsComponent extends Component implements HasActions, HasForms
         return json_encode($eventPayload);
     }
 
+    protected function createMeetingComment(): ?string
+    {
+        $data = $this->meetingForm->getState();
+
+        $meetingPayload = [
+            'title' => $data['title'],
+            'start_at' => $data['start_at'],
+            'end_at' => $data['end_at'] ?? null,
+            'google_meet_link' => $data['google_meet_link'] ?? null,
+            'description' => $data['description'] ?? '',
+            'attendees' => [],
+        ];
+
+        return json_encode($meetingPayload);
+    }
+
+    protected function createTodoComment(): ?string
+    {
+        $data = $this->todoForm->getState();
+
+        $todoPayload = [
+            'items' => collect($data['items'] ?? [])->map(fn (array $item) => [
+                'title' => $item['title'],
+                'priority' => $item['priority'] ?? 'medium',
+                'done' => false,
+            ])->values()->all(),
+        ];
+
+        return json_encode($todoPayload);
+    }
+
+    protected function createSurveyComment(): ?string
+    {
+        $data = $this->surveyForm->getState();
+
+        $surveyPayload = [
+            'title' => $data['title'],
+            'description' => $data['description'] ?? '',
+            'questions' => collect($data['questions'] ?? [])->map(fn (array $q) => [
+                'content' => $q['content'],
+                'type' => $q['type'] ?? 'text',
+                'options' => $q['type'] === 'choice'
+                    ? collect($q['options'] ?? [])->map(fn ($opt) => is_array($opt) ? ($opt['option'] ?? reset($opt)) : (string) $opt)->values()->all()
+                    : [],
+                'responses' => [],
+            ])->values()->all(),
+        ];
+
+        return json_encode($surveyPayload);
+    }
+
+    protected function createRiskComment(): ?string
+    {
+        $data = $this->riskForm->getState();
+
+        $riskPayload = [
+            'title' => $data['title'],
+            'category' => $data['category'],
+            'likelihood' => $data['likelihood'],
+            'impact' => $data['impact'],
+            'mitigation_plan' => $data['mitigation_plan'] ?? '',
+            'acknowledged_by' => [],
+        ];
+
+        return json_encode($riskPayload);
+    }
+
     protected function storeEventModel(Comment $comment): void
     {
         $eventModel = config('filament-comments.event_model');
@@ -461,6 +702,10 @@ class CommentsComponent extends Component implements HasActions, HasForms
         $this->form->fill();
         $this->voteForm->fill();
         $this->eventForm->fill();
+        $this->meetingForm->fill();
+        $this->todoForm->fill();
+        $this->surveyForm->fill();
+        $this->riskForm->fill();
         $this->tempImages = [];
         $this->tempFiles = [];
         $this->commentType = CommentType::Text->value;
@@ -528,6 +773,127 @@ class CommentsComponent extends Component implements HasActions, HasForms
         });
 
         $this->dispatch('eventResponseUpdated');
+    }
+
+    public function respondToMeeting(int $commentId, string $status): void
+    {
+        $allowedStatuses = ['attending', 'maybe', 'declined'];
+
+        if (! in_array($status, $allowedStatuses, true)) {
+            return;
+        }
+
+        DB::transaction(function () use ($commentId, $status) {
+            $comment = Comment::lockForUpdate()->find($commentId);
+
+            if (! $comment || $comment->type !== CommentType::Meeting) {
+                return;
+            }
+
+            $data = $comment->getDecodedComment();
+            $attendees = $data['attendees'] ?? [];
+            $userId = (string) auth()->id();
+
+            if (isset($attendees[$userId]) && $attendees[$userId] === $status) {
+                unset($attendees[$userId]);
+            } else {
+                $attendees[$userId] = $status;
+            }
+
+            $data['attendees'] = $attendees;
+
+            $comment->update([
+                'comment' => json_encode($data),
+            ]);
+        });
+
+        $this->dispatch('meetingResponseUpdated');
+    }
+
+    public function toggleTodoItem(int $commentId, int $itemIndex): void
+    {
+        DB::transaction(function () use ($commentId, $itemIndex) {
+            $comment = Comment::lockForUpdate()->find($commentId);
+
+            if (! $comment || $comment->type !== CommentType::Todo) {
+                return;
+            }
+
+            $data = $comment->getDecodedComment();
+            $items = $data['items'] ?? [];
+
+            if (! isset($items[$itemIndex])) {
+                return;
+            }
+
+            $items[$itemIndex]['done'] = ! ($items[$itemIndex]['done'] ?? false);
+            $data['items'] = $items;
+
+            $comment->update([
+                'comment' => json_encode($data),
+            ]);
+        });
+
+        $this->dispatch('todoUpdated');
+    }
+
+    public function respondToSurvey(int $commentId, int $questionIndex, mixed $answer): void
+    {
+        DB::transaction(function () use ($commentId, $questionIndex, $answer) {
+            $comment = Comment::lockForUpdate()->find($commentId);
+
+            if (! $comment || $comment->type !== CommentType::Survey) {
+                return;
+            }
+
+            $data = $comment->getDecodedComment();
+            $questions = $data['questions'] ?? [];
+
+            if (! isset($questions[$questionIndex])) {
+                return;
+            }
+
+            $userId = (string) auth()->id();
+            $responses = $questions[$questionIndex]['responses'] ?? [];
+            $responses[$userId] = $answer;
+            $questions[$questionIndex]['responses'] = $responses;
+            $data['questions'] = $questions;
+
+            $comment->update([
+                'comment' => json_encode($data),
+            ]);
+        });
+
+        $this->dispatch('surveyResponseUpdated');
+    }
+
+    public function acknowledgeRisk(int $commentId): void
+    {
+        DB::transaction(function () use ($commentId) {
+            $comment = Comment::lockForUpdate()->find($commentId);
+
+            if (! $comment || $comment->type !== CommentType::Risk) {
+                return;
+            }
+
+            $data = $comment->getDecodedComment();
+            $acknowledgedBy = $data['acknowledged_by'] ?? [];
+            $userId = (string) auth()->id();
+
+            if (in_array($userId, $acknowledgedBy, true)) {
+                $acknowledgedBy = array_values(array_filter($acknowledgedBy, fn ($id) => $id !== $userId));
+            } else {
+                $acknowledgedBy[] = $userId;
+            }
+
+            $data['acknowledged_by'] = $acknowledgedBy;
+
+            $comment->update([
+                'comment' => json_encode($data),
+            ]);
+        });
+
+        $this->dispatch('riskAcknowledged');
     }
 
     public function addToCalendar(int $commentId): void

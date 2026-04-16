@@ -218,7 +218,7 @@
                         <button
                             wire:click="create"
                             wire:loading.attr="disabled"
-                            class="flex items-center justify-center rounded-lg dark:hover:bg-[#212427] p-1.5"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-gray-800 p-1.5"
                         >
                             <span wire:loading.remove wire:target="create">
                                 <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
@@ -253,7 +253,143 @@
                         <button
                             wire:click="create"
                             wire:loading.attr="disabled"
-                            class="flex items-center justify-center rounded-lg dark:hover:bg-[#212427] p-1.5"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-gray-800 p-1.5"
+                        >
+                            <span wire:loading.remove wire:target="create">
+                                <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
+                            </span>
+                            <span wire:loading wire:target="create">
+                                <x-filament::loading-indicator class="h-4 w-4" />
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            @elseif ($commentType === 'meeting')
+                {{-- Meeting mode --}}
+                <div class="comment-composer rounded-xl border border-gray-200 dark:border-white/10">
+                    <div class="p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                <x-filament::icon icon="heroicon-o-video-camera" class="h-3.5 w-3.5 text-primary-500" />
+                                {{ __('filament-comments::messages.comment_types.meeting') }}
+                            </span>
+                            <button
+                                wire:click="setCommentType('text')"
+                                class="rounded-md p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                            >
+                                <x-filament::icon icon="heroicon-o-x-mark" class="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                        {{ $this->meetingForm }}
+                    </div>
+                    <div class="flex items-center border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                        <div class="flex-1"></div>
+                        <button
+                            wire:click="create"
+                            wire:loading.attr="disabled"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-gray-800 p-1.5"
+                        >
+                            <span wire:loading.remove wire:target="create">
+                                <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
+                            </span>
+                            <span wire:loading wire:target="create">
+                                <x-filament::loading-indicator class="h-4 w-4" />
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            @elseif ($commentType === 'todo')
+                {{-- Todo / Checklist mode --}}
+                <div class="comment-composer rounded-xl border border-gray-200 dark:border-white/10">
+                    <div class="p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                <x-filament::icon icon="heroicon-o-clipboard-document-check" class="h-3.5 w-3.5 text-primary-500" />
+                                {{ __('filament-comments::messages.comment_types.todo') }}
+                            </span>
+                            <button
+                                wire:click="setCommentType('text')"
+                                class="rounded-md p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                            >
+                                <x-filament::icon icon="heroicon-o-x-mark" class="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                        {{ $this->todoForm }}
+                    </div>
+                    <div class="flex items-center border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                        <div class="flex-1"></div>
+                        <button
+                            wire:click="create"
+                            wire:loading.attr="disabled"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-gray-800 p-1.5"
+                        >
+                            <span wire:loading.remove wire:target="create">
+                                <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
+                            </span>
+                            <span wire:loading wire:target="create">
+                                <x-filament::loading-indicator class="h-4 w-4" />
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            @elseif ($commentType === 'survey')
+                {{-- Survey mode --}}
+                <div class="comment-composer rounded-xl border border-gray-200 dark:border-white/10">
+                    <div class="p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                <x-filament::icon icon="heroicon-o-clipboard-document-list" class="h-3.5 w-3.5 text-primary-500" />
+                                {{ __('filament-comments::messages.comment_types.survey') }}
+                            </span>
+                            <button
+                                wire:click="setCommentType('text')"
+                                class="rounded-md p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                            >
+                                <x-filament::icon icon="heroicon-o-x-mark" class="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                        {{ $this->surveyForm }}
+                    </div>
+                    <div class="flex items-center border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                        <div class="flex-1"></div>
+                        <button
+                            wire:click="create"
+                            wire:loading.attr="disabled"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-gray-800 p-1.5"
+                        >
+                            <span wire:loading.remove wire:target="create">
+                                <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
+                            </span>
+                            <span wire:loading wire:target="create">
+                                <x-filament::loading-indicator class="h-4 w-4" />
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            @elseif ($commentType === 'risk')
+                {{-- Risk mode --}}
+                <div class="comment-composer rounded-xl border border-gray-200 dark:border-white/10">
+                    <div class="p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                <x-filament::icon icon="heroicon-o-exclamation-triangle" class="h-3.5 w-3.5 text-danger-500" />
+                                {{ __('filament-comments::messages.comment_types.risk') }}
+                            </span>
+                            <button
+                                wire:click="setCommentType('text')"
+                                class="rounded-md p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                            >
+                                <x-filament::icon icon="heroicon-o-x-mark" class="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                        {{ $this->riskForm }}
+                    </div>
+                    <div class="flex items-center border-t border-gray-700 dark:border-gray-700 px-2 py-1.5">
+                        <div class="flex-1"></div>
+                        <button
+                            wire:click="create"
+                            wire:loading.attr="disabled"
+                            class="flex items-center justify-center rounded-lg dark:hover:bg-gray-800 p-1.5"
                         >
                             <span wire:loading.remove wire:target="create">
                                 <x-filament::icon icon="heroicon-o-paper-airplane" class="h-4 w-4" />
@@ -286,7 +422,7 @@
                                 x-transition:leave-start="opacity-100 scale-100"
                                 x-transition:leave-end="opacity-0 scale-95"
                                 @click.away="settingsOpen = false"
-                                class="absolute right-0 z-50 mt-1 w-56 rounded-lg bg-white p-3 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#1a1d21] dark:ring-gray-700"
+                                class="absolute right-0 z-50 mt-1 w-56 rounded-lg bg-white p-3 shadow-lg ring-1 ring-gray-200/80 dark:bg-gray-900 dark:ring-gray-700"
                             >
                                 <label class="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-2">
                                     Composer Background
@@ -334,7 +470,7 @@
                             {{-- + Add attachment --}}
                             <button
                                 @click="dropdownOpen = !dropdownOpen"
-                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('filament-comments::messages.comment_types.add_attachment') }}"
                             >
                                 <x-filament::icon icon="heroicon-o-plus" class="h-4.5 w-4.5" />
@@ -350,7 +486,7 @@
                                 x-transition:leave-start="opacity-100 scale-100"
                                 x-transition:leave-end="opacity-0 scale-95"
                                 @click.away="dropdownOpen = false"
-                                class="absolute left-0 z-50 mb-2 bottom-full w-48 rounded-lg bg-white py-1 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
+                                class="absolute left-0 z-50 mb-2 bottom-full w-48 rounded-lg bg-white py-1 shadow-lg ring-1 ring-gray-200/80 dark:bg-gray-900 dark:ring-gray-700"
                             >
                                 <button
                                     wire:click="setCommentType('vote')"
@@ -368,13 +504,45 @@
                                     <x-filament::icon icon="heroicon-o-calendar-days" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
                                     {{ __('filament-comments::messages.comment_types.event') }}
                                 </button>
+                                <button
+                                    wire:click="setCommentType('meeting')"
+                                    @click="dropdownOpen = false"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                >
+                                    <x-filament::icon icon="heroicon-o-video-camera" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                    {{ __('filament-comments::messages.comment_types.meeting') }}
+                                </button>
+                                <button
+                                    wire:click="setCommentType('todo')"
+                                    @click="dropdownOpen = false"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                >
+                                    <x-filament::icon icon="heroicon-o-clipboard-document-check" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                    {{ __('filament-comments::messages.comment_types.todo') }}
+                                </button>
+                                <button
+                                    wire:click="setCommentType('survey')"
+                                    @click="dropdownOpen = false"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                >
+                                    <x-filament::icon icon="heroicon-o-clipboard-document-list" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                    {{ __('filament-comments::messages.comment_types.survey') }}
+                                </button>
+                                <button
+                                    wire:click="setCommentType('risk')"
+                                    @click="dropdownOpen = false"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                >
+                                    <x-filament::icon icon="heroicon-o-exclamation-triangle" class="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                    {{ __('filament-comments::messages.comment_types.risk') }}
+                                </button>
                             </div>
 
                             <span class="mx-0.5 h-4 w-px bg-gray-200 dark:bg-gray-700"></span>
 
                             {{-- @ mention --}}
                             <button
-                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('filament-comments::messages.comments.mention_hint') }}"
                                 onclick="window.__triggerMention(this.closest('.comment-composer'))"
                             >
@@ -384,7 +552,7 @@
                             {{-- Image shortcut --}}
                             <button
                                 @click="$refs.imageInput.click()"
-                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('filament-comments::messages.comment_types.image') }}"
                             >
                                 <x-filament::icon icon="heroicon-o-photo" class="h-4.5 w-4.5" />
@@ -393,7 +561,7 @@
                             {{-- File upload --}}
                             <button
                                 @click="$refs.fileInput.click()"
-                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                 title="{{ __('filament-comments::messages.comment_types.file') ?? 'Attach file' }}"
                             >
                                 <x-filament::icon icon="heroicon-o-paper-clip" class="h-4.5 w-4.5" />
@@ -403,7 +571,7 @@
                             <div class="relative" x-data="{ emojiOpen: false }">
                                 <button
                                     @click="emojiOpen = !emojiOpen"
-                                    class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-[#212427] hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                                    class="flex items-center justify-center rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300"
                                     title="{{ __('filament-comments::messages.comments.emoji') ?? 'Emoji' }}"
                                 >
                                     <x-filament::icon icon="heroicon-o-face-smile" class="h-4.5 w-4.5" />
@@ -417,14 +585,14 @@
                                     x-transition:leave-start="opacity-100 scale-100"
                                     x-transition:leave-end="opacity-0 scale-95"
                                     @click.away="emojiOpen = false"
-                                    class="absolute left-0 z-50 mb-2 bottom-full w-64 max-h-48 overflow-y-auto rounded-lg bg-white p-2 shadow-lg ring-1 ring-gray-200/80 dark:bg-[#16181C] dark:ring-gray-700"
+                                    class="absolute left-0 z-50 mb-2 bottom-full w-64 max-h-48 overflow-y-auto rounded-lg bg-white p-2 shadow-lg ring-1 ring-gray-200/80 dark:bg-gray-900 dark:ring-gray-700"
                                 >
                                     <div class="flex flex-wrap">
                                         @foreach (['😀','😂','😊','😍','🥰','😎','🤔','😏','😢','😭','😡','🤯','🥳','😴','🤗','😈','👍','👎','👏','🙌','🤝','✌️','🔥','❤️','💯','⭐','🎉','✅','❌','💡','🚀','👀','💬','📌','🏆','💪'] as $emoji)
                                             <button
                                                 type="button"
                                                 @click="window.__insertEmoji($el.closest('.comment-composer'), '{{ $emoji }}'); emojiOpen = false"
-                                                class="flex items-center justify-center rounded p-1 text-lg dark:bg-[#16181C]"
+                                                class="flex items-center justify-center rounded p-1 text-lg dark:bg-gray-900"
                                             >
                                                 {{ $emoji }}
                                             </button>

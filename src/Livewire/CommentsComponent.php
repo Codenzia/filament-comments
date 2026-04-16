@@ -22,6 +22,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
@@ -346,7 +347,7 @@ class CommentsComponent extends Component implements HasActions, HasForms
                             ->defaultItems(2)
                             ->addActionLabel(__('filament-comments::messages.comment_types.survey_add_option'))
                             ->reorderable(false)
-                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get): bool => $get('type') === 'choice'),
+                            ->visible(fn (Get $get): bool => $get('type') === 'choice'),
                     ])
                     ->minItems(1)
                     ->maxItems(10)

@@ -2,6 +2,8 @@
 
 namespace Codenzia\FilamentComments\Models;
 
+use App\Models\Project;
+use App\Models\User;
 use Codenzia\FilamentComments\Enums\ChannelType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -68,7 +70,7 @@ class CommentChannel extends Model
             }
         }
 
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
 
         return $this->belongsToMany(
             $userModel,
@@ -83,7 +85,7 @@ class CommentChannel extends Model
      */
     public function channelMembers(): BelongsToMany
     {
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
 
         return $this->belongsToMany(
             $userModel,
@@ -95,14 +97,14 @@ class CommentChannel extends Model
 
     public function createdBy(): BelongsTo
     {
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
 
         return $this->belongsTo($userModel, 'created_by');
     }
 
     public function project(): BelongsTo
     {
-        $projectModel = config('filament-comments.project_model', \App\Models\Project::class);
+        $projectModel = config('filament-comments.project_model', Project::class);
 
         return $this->belongsTo($projectModel, 'project_id');
     }
@@ -154,7 +156,7 @@ class CommentChannel extends Model
         $allUserIds = collect($allUserIds)->unique()->sort()->values()->all();
         $memberCount = count($allUserIds);
 
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
 
         // Find existing DM with the exact same set of members
         $query = static::query()->directMessages()->withCount('channelMembers');

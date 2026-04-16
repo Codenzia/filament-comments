@@ -1,5 +1,6 @@
 <?php
 
+use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Codenzia\FilamentComments\Tests\Fixtures\TestUser;
 use Illuminate\Database\Schema\Blueprint;
@@ -100,7 +101,7 @@ it('has comments relationship', function () {
         'slug' => 'general',
     ]);
 
-    expect($channel->comments()->getRelated())->toBeInstanceOf(\Codenzia\FilamentComments\Models\Comment::class);
+    expect($channel->comments()->getRelated())->toBeInstanceOf(Comment::class);
 });
 
 it('auto-attaches creator as channel member on create', function () {

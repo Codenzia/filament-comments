@@ -10,6 +10,7 @@ use Filament\Contracts\Plugin;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
+use Illuminate\Support\Str;
 
 class FilamentCommentsPlugin implements Plugin
 {
@@ -128,7 +129,7 @@ class FilamentCommentsPlugin implements Plugin
         foreach ($dmChannels as $dm) {
             $fullName = $dm->dmDisplayName();
             $unread = $dm->unreadCount();
-            $items[] = NavigationItem::make(\Illuminate\Support\Str::limit($fullName, 20))
+            $items[] = NavigationItem::make(Str::limit($fullName, 20))
                 ->group($dmGroup)
                 ->icon($dm->channelMembers->count() > 2 ? 'heroicon-o-user-group' : 'heroicon-o-user')
                 ->url(DiscussionPage::getUrl(['record' => $dm->id]))

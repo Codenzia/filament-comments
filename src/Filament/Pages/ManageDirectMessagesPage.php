@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Filament\Pages;
 
+use App\Models\User;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -15,6 +16,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Storage;
 
 class ManageDirectMessagesPage extends Page implements HasForms, HasTable
 {
@@ -50,17 +53,17 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
         return config('filament-comments.navigation_groups.direct_messages', 'Direct Messages');
     }
 
-    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string | Htmlable
     {
         return config('filament-comments.navigation_groups.direct_messages', 'Direct Messages');
     }
 
-    public function getHeading(): string | \Illuminate\Contracts\Support\Htmlable
+    public function getHeading(): string | Htmlable
     {
         return config('filament-comments.navigation_groups.direct_messages', 'Direct Messages');
     }
 
-    public function getSubheading(): string | \Illuminate\Contracts\Support\Htmlable | null
+    public function getSubheading(): string | Htmlable | null
     {
         return 'View and manage all your conversations';
     }
@@ -167,7 +170,7 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
 
     protected function getAddMembersFormSchema(): array
     {
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
         $labelColumn = config('filament-comments.mentionable.column.label', 'name');
         $avatarColumn = config('filament-comments.mentionable.column.avatar', 'profile_photo_path');
         $emailColumn = config('filament-comments.mentionable.column.email', 'email');
@@ -207,7 +210,7 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
 
     protected function getNewDmFormSchema(): array
     {
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
         $labelColumn = config('filament-comments.mentionable.column.label', 'name');
         $avatarColumn = config('filament-comments.mentionable.column.avatar', 'profile_photo_path');
         $emailColumn = config('filament-comments.mentionable.column.email', 'email');
@@ -251,8 +254,8 @@ class ManageDirectMessagesPage extends Page implements HasForms, HasTable
             if (filter_var($avatarPath, FILTER_VALIDATE_URL)) {
                 return $avatarPath;
             }
-            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($avatarPath)) {
-                return \Illuminate\Support\Facades\Storage::disk('public')->url($avatarPath);
+            if (Storage::disk('public')->exists($avatarPath)) {
+                return Storage::disk('public')->url($avatarPath);
             }
         }
 

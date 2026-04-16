@@ -2,8 +2,10 @@
 
 namespace Codenzia\FilamentComments\Console\Commands;
 
+use App\Models\User;
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentWatch;
+use Codenzia\FilamentComments\Notifications\CommentDigestNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Notification;
 
@@ -22,7 +24,7 @@ class SendCommentDigest extends Command
         }
 
         $userModel = config('filament-comments.user_model')
-            ?? config('auth.providers.users.model', \App\Models\User::class);
+            ?? config('auth.providers.users.model', User::class);
 
         // Get all unique watcher user IDs
         $watcherIds = CommentWatch::distinct()->pluck('user_id');
@@ -79,7 +81,7 @@ class SendCommentDigest extends Command
 
             // Send notification
             try {
-                $user->notify(new \Codenzia\FilamentComments\Notifications\CommentDigestNotification($unreadComments));
+                $user->notify(new CommentDigestNotification($unreadComments));
                 $sentCount++;
             } catch (\Throwable $e) {
                 $this->error("Failed to send digest to user #{$userId}: {$e->getMessage()}");

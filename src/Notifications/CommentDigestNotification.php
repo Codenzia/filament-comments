@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class CommentDigestNotification extends Notification
 {
@@ -41,7 +42,7 @@ class CommentDigestNotification extends Notification
 
             foreach ($group['comments']->take(5) as $comment) {
                 $author = $comment->commentator?->name ?? 'Unknown';
-                $preview = \Illuminate\Support\Str::limit(strip_tags($comment->comment), 80);
+                $preview = Str::limit(strip_tags($comment->comment), 80);
                 $message->line("- {$author}: {$preview}");
             }
 

@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Filament\Pages;
 
+use App\Models\User;
 use Codenzia\FilamentComments\Models\Comment;
 use Codenzia\FilamentComments\Models\CommentChannel;
 use Filament\Actions\Action;
@@ -9,6 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 use Filament\Panel;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Collection;
 
 class DiscussionPage extends Page
 {
@@ -156,7 +158,7 @@ class DiscussionPage extends Page
 
     protected function getAddMembersFormSchema(): array
     {
-        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('filament-comments.user_model') ?? config('auth.providers.users.model', User::class);
         $labelColumn = config('filament-comments.mentionable.column.label', 'name');
 
         $existingMemberIds = $this->channel->channelMembers()->pluck('user_id')->toArray();
@@ -185,7 +187,7 @@ class DiscussionPage extends Page
             ->count();
     }
 
-    private function getPendingComments(): \Illuminate\Database\Eloquent\Collection
+    private function getPendingComments(): Collection
     {
         return Comment::query()
             ->where('channel_id', $this->channel->id)

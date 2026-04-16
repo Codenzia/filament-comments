@@ -2,6 +2,8 @@
 
 namespace Codenzia\FilamentComments\Traits;
 
+use App\Models\User;
+
 trait ExtractsMentions
 {
     /**
@@ -52,6 +54,6 @@ trait ExtractsMentions
             return config('filament-comments.user_model');
         }
 
-        return config('auth.providers.users.model', \App\Models\User::class);
+        return config('auth.providers.users.model', User::class);
     }
 }

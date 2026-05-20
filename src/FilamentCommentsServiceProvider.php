@@ -90,9 +90,22 @@ class FilamentCommentsServiceProvider extends PackageServiceProvider
             }
         }
         // Livewire Component Registration
-        Livewire::component('filament-comments::comments', CommentsComponent::class);
-        Livewire::component('filament-comments::comment-item', CommentItem::class);
-        Livewire::component('filament-comments::quick-comments', QuickComments::class);
+        $components = [
+            'filament-comments::comments' => CommentsComponent::class,
+            'filament-comments::comment-item' => CommentItem::class,
+            'filament-comments::quick-comments' => QuickComments::class,
+        ];
+
+        foreach ($components as $alias => $class) {
+            Livewire::component($alias, $class);
+        }
+
+        // Livewire v4's Finder only checks registered namespaces for
+        // `ns::component` lookups, never classComponents entries. Register
+        // a missing-component resolver so namespaced aliases resolve.
+        if (method_exists(Livewire::getFacadeRoot(), 'resolveMissingComponent')) {
+            Livewire::resolveMissingComponent(fn (string $name): ?string => $components[$name] ?? null);
+        }
         // Testing
         Testable::mixin(new TestsFilamentComments);
     }

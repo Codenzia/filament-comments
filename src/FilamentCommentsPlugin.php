@@ -60,7 +60,7 @@ class FilamentCommentsPlugin implements Plugin
 
         $items[] = NavigationItem::make('All Channels')
             ->group($channelsGroup)
-            ->icon('heroicon-o-cog-6-tooth')
+            ->icon('heroicon-o-queue-list')
             ->url(ManageChannelsPage::getUrl())
             ->sort(1)
             ->isActiveWhen(fn () => request()->routeIs(ManageChannelsPage::getRouteName()))

@@ -47,6 +47,13 @@ it('can render comments component', function () {
         $table->timestamps();
     });
 
+    Schema::create('comment_watches', function (Blueprint $table) {
+        $table->id();
+        $table->morphs('watchable');
+        $table->unsignedBigInteger('user_id');
+        $table->timestamps();
+    });
+
     $user = TestUser::create(['name' => 'John', 'email' => 'john@example.com']);
     $post = TestPost::create(['title' => 'My Post']);
 

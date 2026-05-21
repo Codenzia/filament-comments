@@ -5,8 +5,17 @@ use Codenzia\FilamentComments\Tests\Fixtures\TestUser;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 
 it('can render comments component', function () {
+    // Livewire v3's validation support reads $errors during render; in a
+    // bare Blade::render context (no HTTP middleware), the ViewErrorBag
+    // isn't shared by default. Pre-share an empty one so the component
+    // doesn't throw when Livewire tries to merge validation errors.
+    View::share('errors', (new ViewErrorBag)->put('default', new MessageBag));
+
     Schema::create('posts', function (Blueprint $table) {
         $table->id();
         $table->string('title');

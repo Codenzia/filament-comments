@@ -68,8 +68,8 @@ it('can render comments component', function () {
     // The Blade component renders a Livewire tag; actual content is rendered by Livewire at runtime
     expect($view)->toContain('livewire:filament-comments::comments');
 })->skip(
-    'Livewire v3 SupportValidation calls ViewErrorBag::put($name, null) which '.
-    "Laravel 12's typed signature rejects in a bare Blade::render context. ".
-    'Covered by integration testing on plugins-demo; revisit if Livewire ships '.
+    'Livewire v3 SupportValidation calls ViewErrorBag::put($name, null) which ' .
+    "Laravel 12's typed signature rejects in a bare Blade::render context. " .
+    'Covered by integration testing on plugins-demo; revisit if Livewire ships ' .
     'a fix or if testbench gains a way to pre-populate the validation bag.'
 );

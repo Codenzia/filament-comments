@@ -1,6 +1,18 @@
-# Filament Comments
+# Filament Comments — Threaded discussions, channels, DMs, polls & mentions
 
-A full-featured commenting system for Filament v4 with threaded replies, discussion channels, polls, events, emoji reactions, @mentions, and notifications — built with Livewire 3.
+[![Latest Version](https://img.shields.io/packagist/v/codenzia/filament-comments.svg?style=flat-square)](https://packagist.org/packages/codenzia/filament-comments)
+[![PHP Version](https://img.shields.io/packagist/php-v/codenzia/filament-comments.svg?style=flat-square)](https://packagist.org/packages/codenzia/filament-comments)
+[![Filament](https://img.shields.io/badge/Filament-v4%20%7C%20v5-f59e0b?style=flat-square)](https://filamentphp.com)
+[![Tests](https://img.shields.io/badge/tests-Pest%20v3-8b5cf6?style=flat-square)](https://pestphp.com)
+[![License](https://img.shields.io/badge/license-MIT%20%7C%20Proprietary-blue?style=flat-square)](LICENSE.md)
+
+A **full-featured commenting system for [Filament v4 and v5](https://filamentphp.com)** with threaded replies, discussion channels, Slack-style direct messages, polls, events with RSVP, emoji reactions, @mentions, notifications, watchlists, email digests, and a Tribute-powered rich-text composer — all built on Livewire 3.
+
+> **Why this exists.** "Add comments" is one of those innocent-sounding requests that turns into a six-week project: threading, mentions, notifications, moderation, file uploads, link previews, watch/unwatch, DMs. This package ships all of that as a polymorphic drop-in — attach it to any model and you have a Slack-grade discussion surface without leaving Filament.
+
+> **Try it live:** A working integration is included in the [Codenzia plugins demo](https://github.com/Codenzia/plugins-demo) at `/admin/demo/comments`.
+
+---
 
 ## Features
 
@@ -29,10 +41,12 @@ A full-featured commenting system for Filament v4 with threaded replies, discuss
 
 ## Requirements
 
-- PHP 8.3+
-- Laravel 12+
-- Filament 4.x
-- Livewire 3.x
+| Dependency | Version |
+|---|---|
+| PHP | `^8.3` |
+| Laravel | `^12.0` |
+| Filament | `^4.0 \|\| ^5.0` |
+| Livewire | `^3.0` |
 
 ## Installation
 

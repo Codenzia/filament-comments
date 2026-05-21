@@ -16,6 +16,64 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                 {{ $showResolved ? __('filament-comments::messages.ui.showing_resolved') : __('filament-comments::messages.ui.show_resolved') }}
             </button>
+
+            {{-- Sort order dropdown --}}
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+                    :class="open && 'bg-gray-100 dark:bg-white/5'"
+                >
+                    <x-filament::icon
+                        :icon="$sortOrder === 'newest' ? 'heroicon-m-bars-arrow-down' : 'heroicon-m-bars-arrow-up'"
+                        class="h-3.5 w-3.5"
+                    />
+                    {{ $sortOrder === 'newest'
+                        ? __('filament-comments::messages.ui.sort_newest_first')
+                        : __('filament-comments::messages.ui.sort_oldest_first') }}
+                    <x-filament::icon icon="heroicon-m-chevron-down" class="h-3 w-3 transition-transform" ::class="open && 'rotate-180'" />
+                </button>
+
+                <div
+                    x-show="open"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="absolute left-0 top-full z-20 mt-1 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-gray-900"
+                    x-cloak
+                >
+                    <button
+                        type="button"
+                        wire:click="setSortOrder('newest')"
+                        @click="open = false"
+                        @class([
+                            'flex w-full items-center gap-2 px-3 py-1.5 text-xs transition-colors',
+                            'text-primary-600 dark:text-primary-400' => $sortOrder === 'newest',
+                            'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5' => $sortOrder !== 'newest',
+                        ])
+                    >
+                        <x-filament::icon icon="heroicon-m-bars-arrow-down" class="h-3.5 w-3.5" />
+                        {{ __('filament-comments::messages.ui.sort_newest_first') }}
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="setSortOrder('oldest')"
+                        @click="open = false"
+                        @class([
+                            'flex w-full items-center gap-2 px-3 py-1.5 text-xs transition-colors',
+                            'text-primary-600 dark:text-primary-400' => $sortOrder === 'oldest',
+                            'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5' => $sortOrder !== 'oldest',
+                        ])
+                    >
+                        <x-filament::icon icon="heroicon-m-bars-arrow-up" class="h-3.5 w-3.5" />
+                        {{ __('filament-comments::messages.ui.sort_oldest_first') }}
+                    </button>
+                </div>
+            </div>
         </div>
 
         {{-- Watch/Unwatch bell --}}

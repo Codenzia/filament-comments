@@ -71,6 +71,8 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public bool $showResolved = false;
 
+    public string $sortOrder = 'oldest';
+
     protected $listeners = [
         'commentDeleted' => '$refresh',
         'reactionUpdated' => '$refresh',
@@ -718,6 +720,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function castVote(int $commentId, int $optionIndex): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         DB::transaction(function () use ($commentId, $optionIndex) {
             $comment = Comment::lockForUpdate()->find($commentId);
 
@@ -747,6 +758,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function respondToEvent(int $commentId, string $status): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $allowedStatuses = ['going', 'maybe', 'not_going'];
 
         if (! in_array($status, $allowedStatuses, true)) {
@@ -782,6 +802,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function respondToMeeting(int $commentId, string $status): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $allowedStatuses = ['attending', 'maybe', 'declined'];
 
         if (! in_array($status, $allowedStatuses, true)) {
@@ -817,6 +846,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function toggleTodoItem(int $commentId, int $itemIndex): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         DB::transaction(function () use ($commentId, $itemIndex) {
             $comment = Comment::lockForUpdate()->find($commentId);
 
@@ -844,6 +882,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function respondToSurvey(int $commentId, int $questionIndex, mixed $answer): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         DB::transaction(function () use ($commentId, $questionIndex, $answer) {
             $comment = Comment::lockForUpdate()->find($commentId);
 
@@ -874,6 +921,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function acknowledgeRisk(int $commentId): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         DB::transaction(function () use ($commentId) {
             $comment = Comment::lockForUpdate()->find($commentId);
 
@@ -942,6 +998,17 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function canUserPostInChannel(): bool
     {
+        // Global gate first: when the host app configures a Spatie permission
+        // for `create_comment`, the user must hold it before any comment-write
+        // path is allowed (text/reply/reactions/votes/joins/etc). Default null
+        // = any authenticated user, preserving back-compat for existing apps
+        // that don't publish or upgrade the config.
+        $permission = config('filament-comments.permissions.create_comment');
+
+        if ($permission !== null && ! auth()->user()?->can($permission)) {
+            return false;
+        }
+
         // When the record is not a CommentChannel (e.g. Task, Project, Invoice),
         // anyone who can view the record can post comments — no channel membership required.
         if (! $this->record instanceof CommentChannel) {
@@ -963,6 +1030,19 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function joinChannel(): void
     {
+        // Joining a channel without being able to post is pointless and only
+        // pollutes the member list — gate behind the same create_comment perm.
+        $permission = config('filament-comments.permissions.create_comment');
+
+        if ($permission !== null && ! auth()->user()?->can($permission)) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         if (! $this->activeChannelId) {
             return;
         }
@@ -1065,6 +1145,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function pinComment(int $commentId): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $comment = Comment::find($commentId);
 
         if (! $comment) {
@@ -1083,6 +1172,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function unpinComment(int $commentId): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $comment = Comment::find($commentId);
 
         if (! $comment) {
@@ -1103,6 +1201,15 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
     public function toggleWatch(): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $isWatching = $this->record->toggleWatch();
 
         Notification::make()
@@ -1120,6 +1227,13 @@ class CommentsComponent extends Component implements HasActions, HasForms
     public function toggleShowResolved(): void
     {
         $this->showResolved = ! $this->showResolved;
+    }
+
+    // ── Sort Order ───────────────────────────────────────────────
+
+    public function setSortOrder(string $order): void
+    {
+        $this->sortOrder = in_array($order, ['newest', 'oldest'], true) ? $order : 'oldest';
     }
 
     public function render(): View
@@ -1150,14 +1264,19 @@ class CommentsComponent extends Component implements HasActions, HasForms
 
         $isWatching = method_exists($this->record, 'isWatchedBy') ? $this->record->isWatchedBy() : false;
 
+        $query = $this->sortOrder === 'newest'
+            ? $query->latest()
+            : $query->oldest();
+
         return view('filament-comments::livewire.comments', [
-            'comments' => $query->oldest()->get(),
+            'comments' => $query->get(),
             'pinnedComment' => $pinnedComment,
             'channels' => $availableChannels,
             'channelMentionables' => $this->getChannelMentionables(),
             'canPost' => $this->canUserPostInChannel(),
             'isWatching' => $isWatching,
             'showResolved' => $this->showResolved,
+            'sortOrder' => $this->sortOrder,
         ]);
     }
 }

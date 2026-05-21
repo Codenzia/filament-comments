@@ -272,6 +272,14 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function canUserPostInChannel(): bool
     {
+        // Global gate first — see CommentsComponent::canUserPostInChannel for
+        // rationale. Honours the optional `create_comment` permission.
+        $permission = config('filament-comments.permissions.create_comment');
+
+        if ($permission !== null && ! auth()->user()?->can($permission)) {
+            return false;
+        }
+
         $channel = $this->comment->channel;
 
         if (! $channel) {
@@ -311,6 +319,15 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function toggleReaction(string $reactionType): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $userReaction = $this->comment->userReaction();
 
         if ($userReaction) {
@@ -341,6 +358,15 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function pinComment(): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $this->comment->pin();
 
         Notification::make()
@@ -353,6 +379,15 @@ class CommentItem extends Component implements HasActions, HasForms
 
     public function unpinComment(): void
     {
+        if (! $this->canUserPostInChannel()) {
+            Notification::make()
+                ->title(__('filament-comments::messages.notifications.unauthorized'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $this->comment->unpin();
 
         Notification::make()

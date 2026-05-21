@@ -195,6 +195,14 @@ return [
         'create_direct_message' => null, // null = any authenticated user can start DMs
         'delete_direct_message' => null, // null = any authenticated user can leave DMs
         'add_member_direct_message' => null, // null = any authenticated user can add members to DMs
+
+        // Gates every comment-write surface: posting, replying, reactions,
+        // joining channels, casting votes, responding to events/meetings,
+        // ticking todo items, answering surveys, acknowledging risks, pinning,
+        // and watching. Default null = any authenticated user (back-compat).
+        // Set to a Spatie permission name (e.g. 'create_comment') for public
+        // demos or read-only deployments where commenting must be locked down.
+        'create_comment' => null,
     ],
 
     /**

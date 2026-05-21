@@ -167,4 +167,6 @@ return [
     'ui.last_week' => 'الأسبوع الماضي',
     'ui.last_month' => 'الشهر الماضي',
     'ui.the_very_beginning' => 'البداية',
+    'ui.sort_newest_first' => 'الأحدث أولاً',
+    'ui.sort_oldest_first' => 'الأقدم أولاً',
 ];

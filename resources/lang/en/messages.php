@@ -178,4 +178,6 @@ return [
     'ui.last_week' => 'Last week',
     'ui.last_month' => 'Last month',
     'ui.the_very_beginning' => 'The very beginning',
+    'ui.sort_newest_first' => 'Newest first',
+    'ui.sort_oldest_first' => 'Oldest first',
 ];

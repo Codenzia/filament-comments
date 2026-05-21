@@ -2,6 +2,7 @@
 
 namespace Codenzia\FilamentComments\Tests;
 
+use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
 use Codenzia\FilamentComments\FilamentCommentsServiceProvider;
 use Filament\Support\SupportServiceProvider;
@@ -20,6 +21,7 @@ class TestCase extends Orchestra
     {
         return [
             BladeIconsServiceProvider::class,
+            BladeHeroiconsServiceProvider::class,
             LivewireServiceProvider::class,
             SupportServiceProvider::class,
             FilamentCommentsServiceProvider::class,

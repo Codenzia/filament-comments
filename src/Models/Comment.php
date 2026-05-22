@@ -19,6 +19,8 @@ class Comment extends Model
     use HasComments;
 
     protected $fillable = [
+        'commentable_type',
+        'commentable_id',
         'comment',
         'link_previews',
         'type',

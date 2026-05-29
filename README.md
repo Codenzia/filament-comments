@@ -68,6 +68,19 @@ This publishes the config file and migrations. Run migrations:
 php artisan migrate
 ```
 
+### Filament Shield / role-based moderation (optional)
+
+The comment permissions listed in `config/filament-comments.php` are seeded into
+the standard Spatie `permissions` table — so if your app uses
+[bezhansalleh/filament-shield](https://github.com/bezhanSalleh/filament-shield)
+(which transitively requires `spatie/laravel-permission`), they show up in your
+Shield UI automatically. No extra wiring.
+
+If you don't use Shield or Spatie, the install command skips the permission
+seeding step quietly — comments, channels, mentions, and DMs all work without
+it. Add `spatie/laravel-permission` to your project later and re-run
+`php artisan filament-comments:install` to opt in.
+
 ### Tailwind v4 Custom Theme
 
 If your Filament panel uses a custom theme (Tailwind CSS v4), add the package's source paths so that utility classes are compiled:

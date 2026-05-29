@@ -30,7 +30,11 @@ class InstallCommand extends Command
             $this->call('migrate');
         }
 
-        if ($this->confirm('Would you like to seed the comment permissions now?', true)) {
+        if (! class_exists(Permission::class)) {
+            $this->warn('   spatie/laravel-permission is not installed — skipping permission seeding.');
+            $this->line('   Install it (or filament-shield, which brings it in) and re-run this command');
+            $this->line('   to seed the comment permissions.');
+        } elseif ($this->confirm('Would you like to seed the comment permissions now?', true)) {
             $this->info('Seeding permissions...');
             static::seedPermissions();
             $this->info('   Permissions created. Assign them to roles via Shield or manually.');
@@ -44,11 +48,17 @@ class InstallCommand extends Command
     /**
      * Create Spatie Permission records for all configured comment permissions.
      *
-     * Safe to call multiple times — uses firstOrCreate.
+     * Safe to call multiple times — uses firstOrCreate. Returns silently if
+     * spatie/laravel-permission is not installed (the package is suggested,
+     * not required — Shield brings it in for apps that need moderation).
      * Can be called from seeders: InstallCommand::seedPermissions()
      */
     public static function seedPermissions(): void
     {
+        if (! class_exists(Permission::class)) {
+            return;
+        }
+
         $permissionClass = config('permission.models.permission', Permission::class);
         $guardName = config('auth.defaults.guard', 'web');
 
